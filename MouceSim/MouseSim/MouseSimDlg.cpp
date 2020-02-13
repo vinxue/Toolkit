@@ -200,6 +200,12 @@ void CMouseSimDlg::OnBnClickedButtonStop()
   // TODO: Add your control notification handler code here
   KillTimer(0);
 
+  if (LOBYTE(GetKeyState(VK_CAPITAL)))
+  {
+    keybd_event(VK_CAPITAL, 0, 0, 0);
+    keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, 0);
+  }
+
   ((CButton *)GetDlgItem(IDC_BUTTON_RUN))->ShowWindow(TRUE);
   ((CButton *)GetDlgItem(IDC_BUTTON_STOP))->ShowWindow(FALSE);
 }
