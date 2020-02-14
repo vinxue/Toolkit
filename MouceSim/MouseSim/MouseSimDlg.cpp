@@ -176,6 +176,11 @@ void CMouseSimDlg::OnTimer(UINT_PTR nIDEvent)
   //::SendMessage(GetDlgItem(IDC_STATIC_MouseSIM)->m_hWnd, WM_KEYUP, VK_LWIN, (yPos << 16) | xPos);
   keybd_event(VK_CAPITAL, 0, 0, 0);
   keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, 0);
+
+  Sleep(5);
+
+  keybd_event(VK_CAPITAL, 0, 0, 0);
+  keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, 0);
   
   //SetCursorPos(0, 0);
   //mouse_event (MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
@@ -188,7 +193,7 @@ void CMouseSimDlg::OnTimer(UINT_PTR nIDEvent)
 void CMouseSimDlg::OnBnClickedButtonRun()
 {
   // TODO: Add your control notification handler code here
-  SetTimer(0, 5000, NULL);
+  SetTimer(0, 10000, NULL);
 
   ((CButton *)GetDlgItem(IDC_BUTTON_RUN))->ShowWindow(FALSE);
   ((CButton *)GetDlgItem(IDC_BUTTON_STOP))->ShowWindow(TRUE);
