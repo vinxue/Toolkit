@@ -13,7 +13,8 @@
 #endif
 
 #define  BIT0                   0x00000001
-#define  INPUT_DATA_LENGTH      16
+#define  INPUT_HEX_DATA_LENGTH  16
+#define  INPUT_BITFIELD_LENGTH  2
 
 // CAboutDlg dialog used for App About
 
@@ -125,7 +126,9 @@ BOOL CBitViewerDlg::OnInitDialog()
 	//
 	// Set the text limit for input data
 	//
-	((CEdit*)GetDlgItem(IDC_EDIT_DATA))->SetLimitText(INPUT_DATA_LENGTH);
+	((CEdit*)GetDlgItem(IDC_EDIT_DATA))->SetLimitText(INPUT_HEX_DATA_LENGTH);
+	((CEdit*)GetDlgItem(IDC_EDIT_STARTBIT))->SetLimitText(INPUT_BITFIELD_LENGTH);
+	((CEdit*)GetDlgItem(IDC_EDIT_ENDBIT))->SetLimitText(INPUT_BITFIELD_LENGTH);
 
 	//
 	// Set text of bitfield
@@ -135,6 +138,14 @@ BOOL CBitViewerDlg::OnInitDialog()
 		Str.Format(L"%d", Index);
 		((CStatic*)GetDlgItem(IDC_STATIC_BITFIELD0 + Index))->SetWindowText(Str);
 	}
+
+	//
+	// Set default start/end bit to 0
+	//
+	Str.Format(L"%d", 0);
+	((CStatic*)GetDlgItem(IDC_EDIT_STARTBIT))->SetWindowText(Str);
+	((CStatic*)GetDlgItem(IDC_EDIT_ENDBIT))->SetWindowText(Str);
+
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -194,12 +205,20 @@ void CBitViewerDlg::OnBnClickedButtonDecode()
 	CEdit*               CEditCtrl;
 	UINT64               InputData;
 	CString              Str;
+	CString              StrStartBit;
+	CString              StrEndBit;
 	UINT8                Index;
 	UINT8                BitData;
 	UINT8                BitsData;
+	UINT8                StartBit;
+	UINT8                EndBit;
+	UINT64               BitFieldVal;
 
 	UpdateData(TRUE);
 
+	//
+	// Get input hex data
+	//
 	CEditCtrl = (CEdit*)GetDlgItem(IDC_EDIT_DATA);
 	CEditCtrl->GetWindowText(Str);
 	if (CEditCtrl->GetWindowTextLength() == 0)
@@ -209,6 +228,21 @@ void CBitViewerDlg::OnBnClickedButtonDecode()
 	}
 
 	InputData = _wcstoui64(Str, NULL, 16);
+
+	//
+	// Get Start/End bit
+	//
+	((CEdit*)GetDlgItem(IDC_EDIT_STARTBIT))->GetWindowText(StrStartBit);
+	((CEdit*)GetDlgItem(IDC_EDIT_ENDBIT))->GetWindowText(StrEndBit);
+
+	StartBit = (UINT8)wcstoul(StrStartBit, NULL, 10);
+	EndBit = (UINT8)wcstoul(StrEndBit, NULL, 10);
+
+	if ((StartBit > 63) || (EndBit > 63) || (StartBit > EndBit))
+	{
+		AfxMessageBox(L"Please input a valid Start/End Bit.\n");
+		return;
+	}
 
 	for (Index = 0; Index < sizeof(UINT64) * 8; Index++)
 	{
@@ -226,6 +260,13 @@ void CBitViewerDlg::OnBnClickedButtonDecode()
 		Str.Format(L"%X", BitsData);
 		((CStatic*)GetDlgItem(IDC_STATIC_BITS0 + Index))->SetWindowText(Str);
 	}
+
+	//
+	// Display bitfield value
+	//
+	BitFieldVal = (InputData & ~(((UINT64)-2) << EndBit)) >> StartBit;
+	Str.Format(L"%llX", BitFieldVal);
+	((CStatic*)GetDlgItem(IDC_EDIT_BITFIELD_VALUE))->SetWindowText(Str);
 }
 
 

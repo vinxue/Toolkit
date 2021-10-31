@@ -10,6 +10,7 @@
 #define IDC_STATIC_TITLE                1000
 #define IDC_EDIT_DATA                   1001
 #define IDC_STATIC_PROMPT               1002
+#define IDC_EDIT_BITFIELD_VALUE         1003
 #define IDC_EDIT_BIT0                   1007
 #define IDC_EDIT_BIT1                   1008
 #define IDC_EDIT_BIT2                   1009
@@ -155,6 +156,9 @@
 #define IDC_STATIC_BITS13               1149
 #define IDC_STATIC_BITS14               1150
 #define IDC_STATIC_BITS15               1151
+#define IDC_EDIT_ENDBIT                 1152
+#define IDC_EDIT_STARTBIT               1153
+#define IDC_STATIC_BITFIELD             1154
 
 // Next default values for new objects
 // 
@@ -162,7 +166,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1137
+#define _APS_NEXT_CONTROL_VALUE         1155
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
