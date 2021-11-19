@@ -36,4 +36,6 @@ public:
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnBnClickedOk();
+	afx_msg void OnBnClickedCheckSetBitfield();
+	afx_msg void OnBnClickedButtonSetBitfield();
 };

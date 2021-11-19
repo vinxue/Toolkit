@@ -159,6 +159,8 @@
 #define IDC_EDIT_ENDBIT                 1152
 #define IDC_EDIT_STARTBIT               1153
 #define IDC_STATIC_BITFIELD             1154
+#define IDC_CHECK_SET_BITFIELD          1155
+#define IDC_BUTTON_SET_BITFIELD         1156
 
 // Next default values for new objects
 // 
@@ -166,7 +168,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1155
+#define _APS_NEXT_CONTROL_VALUE         1157
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

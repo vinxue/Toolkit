@@ -71,6 +71,8 @@ BEGIN_MESSAGE_MAP(CBitViewerDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_DECODE, &CBitViewerDlg::OnBnClickedButtonDecode)
 	ON_WM_CTLCOLOR()
 	ON_BN_CLICKED(IDOK, &CBitViewerDlg::OnBnClickedOk)
+	ON_BN_CLICKED(IDC_CHECK_SET_BITFIELD, &CBitViewerDlg::OnBnClickedCheckSetBitfield)
+	ON_BN_CLICKED(IDC_BUTTON_SET_BITFIELD, &CBitViewerDlg::OnBnClickedButtonSetBitfield)
 END_MESSAGE_MAP()
 
 
@@ -147,6 +149,13 @@ BOOL CBitViewerDlg::OnInitDialog()
 	((CStatic*)GetDlgItem(IDC_EDIT_ENDBIT))->SetWindowText(Str);
 
 
+	//
+	// Set default check box
+	//
+	((CButton*)GetDlgItem(IDC_CHECK_SET_BITFIELD))->SetCheck(FALSE);
+	((CButton*)GetDlgItem(IDC_BUTTON_SET_BITFIELD))->EnableWindow(FALSE);
+	((CEdit*)GetDlgItem(IDC_EDIT_BITFIELD_VALUE))->EnableWindow(FALSE);
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -198,6 +207,88 @@ HCURSOR CBitViewerDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
+
+
+UINT64 RShiftU64(UINT64 Operand, UINT64 Count)
+{
+	ASSERT(Count < 64);
+	return Operand >> Count;
+}
+
+UINT64 LShiftU64(UINT64 Operand, UINT64 Count)
+{
+	ASSERT(Count < 64);
+	return Operand << Count;
+}
+
+UINT64 BitFieldOr64(UINT64 Operand, UINT64 StartBit, UINT64 EndBit, UINT64 OrData)
+{
+	UINT64  Value1;
+	UINT64  Value2;
+
+	ASSERT(EndBit < 64);
+	ASSERT(StartBit <= EndBit);
+	//
+	// Higher bits in OrData those are not used must be zero.
+	//
+	// EndBit - StartBit + 1 might be 64 while the result right shifting 64 on RShiftU64() API is invalid,
+	// So the logic is updated to right shift (EndBit - StartBit) bits and compare the last bit directly.
+	//
+	ASSERT(RShiftU64(OrData, EndBit - StartBit) == (RShiftU64(OrData, EndBit - StartBit) & 1));
+
+	Value1 = LShiftU64(OrData, StartBit);
+	Value2 = LShiftU64((UINT64)-2, EndBit);
+
+	return Operand | (Value1 & ~Value2);
+}
+
+UINT64 BitFieldAnd64(UINT64 Operand, UINT64 StartBit, UINT64 EndBit, UINT64 AndData)
+{
+	UINT64  Value1;
+	UINT64  Value2;
+
+	ASSERT(EndBit < 64);
+	ASSERT(StartBit <= EndBit);
+	//
+	// Higher bits in AndData those are not used must be zero.
+	//
+	// EndBit - StartBit + 1 might be 64 while the right shifting 64 on RShiftU64() API is invalid,
+	// So the logic is updated to right shift (EndBit - StartBit) bits and compare the last bit directly.
+	//
+	ASSERT(RShiftU64(AndData, EndBit - StartBit) == (RShiftU64(AndData, EndBit - StartBit) & 1));
+
+	Value1 = LShiftU64(~AndData, StartBit);
+	Value2 = LShiftU64((UINT64)-2, EndBit);
+
+	return Operand & ~(Value1 & ~Value2);
+}
+
+UINT64 BitFieldAndThenOr64(UINT64 Operand, UINT64 StartBit, UINT64 EndBit, UINT64 AndData, UINT64 OrData)
+{
+	ASSERT(EndBit < 64);
+	ASSERT(StartBit <= EndBit);
+	return BitFieldOr64(
+		BitFieldAnd64(Operand, StartBit, EndBit, AndData),
+		StartBit,
+		EndBit,
+		OrData
+	);
+}
+
+UINT64 BitFieldRead64(UINT64 Operand, UINT64 StartBit, UINT64 EndBit)
+{
+	ASSERT(EndBit < 64);
+	ASSERT(StartBit <= EndBit);
+	return RShiftU64(Operand & ~LShiftU64((UINT64)-2, EndBit), StartBit);
+}
+
+UINT64 BitFieldWrite64(UINT64 Operand, UINT64 StartBit, UINT64 EndBit, UINT64 Value)
+{
+	ASSERT(EndBit < 64);
+	ASSERT(StartBit <= EndBit);
+	return BitFieldAndThenOr64(Operand, StartBit, EndBit, 0, Value);
+}
+
 
 void CBitViewerDlg::OnBnClickedButtonDecode()
 {
@@ -264,7 +355,7 @@ void CBitViewerDlg::OnBnClickedButtonDecode()
 	//
 	// Display bitfield value
 	//
-	BitFieldVal = (InputData & ~(((UINT64)-2) << EndBit)) >> StartBit;
+	BitFieldVal = BitFieldRead64(InputData, StartBit, EndBit);
 	Str.Format(L"%llX", BitFieldVal);
 	((CStatic*)GetDlgItem(IDC_EDIT_BITFIELD_VALUE))->SetWindowText(Str);
 }
@@ -355,4 +446,106 @@ void CBitViewerDlg::OnBnClickedOk()
 	// TODO: Add your control notification handler code here
 	CBitViewerDlg::OnBnClickedButtonDecode();
 	//CDialogEx::OnOK();
+}
+
+
+void CBitViewerDlg::OnBnClickedCheckSetBitfield()
+{
+	// TODO: Add your control notification handler code here
+	if (((CButton*)GetDlgItem(IDC_CHECK_SET_BITFIELD))->GetCheck())
+	{
+		((CButton*)GetDlgItem(IDC_BUTTON_SET_BITFIELD))->EnableWindow(TRUE);
+		((CEdit*)GetDlgItem(IDC_EDIT_BITFIELD_VALUE))->EnableWindow(TRUE);
+	}
+	else
+	{
+		((CButton*)GetDlgItem(IDC_BUTTON_SET_BITFIELD))->EnableWindow(FALSE);
+		((CEdit*)GetDlgItem(IDC_EDIT_BITFIELD_VALUE))->EnableWindow(FALSE);
+	}
+}
+
+
+void CBitViewerDlg::OnBnClickedButtonSetBitfield()
+{
+	// TODO: Add your control notification handler code here
+	CEdit                *CEditCtrl;
+	UINT64               InputData;
+	CString              Str;
+	CString              StrStartBit;
+	CString              StrEndBit;
+	UINT8                Index;
+	UINT8                BitData;
+	UINT8                BitsData;
+	UINT8                StartBit;
+	UINT8                EndBit;
+	CString              StrBitField;
+	UINT64               NewBitField;
+	UINT64               NewInputData;
+
+	UpdateData(TRUE);
+
+	//
+	// Get input hex data
+	//
+	CEditCtrl = (CEdit*)GetDlgItem(IDC_EDIT_DATA);
+	CEditCtrl->GetWindowText(Str);
+	if (CEditCtrl->GetWindowTextLength() == 0)
+	{
+		AfxMessageBox(L"Please input a hex data.\n");
+		return;
+	}
+
+	InputData = _wcstoui64(Str, NULL, 16);
+
+	//
+	// Get Start/End bit
+	//
+	((CEdit*)GetDlgItem(IDC_EDIT_STARTBIT))->GetWindowText(StrStartBit);
+	((CEdit*)GetDlgItem(IDC_EDIT_ENDBIT))->GetWindowText(StrEndBit);
+
+	StartBit = (UINT8)wcstoul(StrStartBit, NULL, 10);
+	EndBit = (UINT8)wcstoul(StrEndBit, NULL, 10);
+
+	if ((StartBit > 63) || (EndBit > 63) || (StartBit > EndBit))
+	{
+		AfxMessageBox(L"Please input a valid Start/End Bit.\n");
+		return;
+	}
+
+	//
+	// Get new value of the bit field
+	//
+	((CEdit*)GetDlgItem(IDC_EDIT_BITFIELD_VALUE))->GetWindowText(StrBitField);
+	NewBitField = _wcstoui64(StrBitField, NULL, 16);
+
+	if (RShiftU64(NewBitField, EndBit - StartBit) != (RShiftU64(NewBitField, EndBit - StartBit) & 1))
+	{
+		AfxMessageBox(L"Please input a valid new value of bit field.\n");
+		return;
+	}
+
+	NewInputData = BitFieldWrite64(_wcstoui64(Str, NULL, 16), StartBit, EndBit, NewBitField);
+
+	//
+	// Update the new data
+	//
+	Str.Format(L"%llx", NewInputData);
+	((CEdit*)GetDlgItem(IDC_EDIT_DATA))->SetWindowText(Str);
+
+	for (Index = 0; Index < sizeof(UINT64) * 8; Index++)
+	{
+		CEditCtrl = (CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index);
+		BitData = (NewInputData & ((UINT64)BIT0 << Index)) ? 1 : 0;
+
+		Str.Format(L"%X", BitData);
+		((CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index))->SetWindowText(Str);
+	}
+
+	for (Index = 0; Index < sizeof(UINT64) * 2; Index++)
+	{
+		BitsData = (NewInputData >> (Index * 4)) & 0xF;
+
+		Str.Format(L"%X", BitsData);
+		((CStatic*)GetDlgItem(IDC_STATIC_BITS0 + Index))->SetWindowText(Str);
+	}
 }
