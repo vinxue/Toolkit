@@ -131,6 +131,7 @@ BOOL CBitViewerDlg::OnInitDialog()
 	((CEdit*)GetDlgItem(IDC_EDIT_DATA))->SetLimitText(INPUT_HEX_DATA_LENGTH);
 	((CEdit*)GetDlgItem(IDC_EDIT_STARTBIT))->SetLimitText(INPUT_BITFIELD_LENGTH);
 	((CEdit*)GetDlgItem(IDC_EDIT_ENDBIT))->SetLimitText(INPUT_BITFIELD_LENGTH);
+	((CEdit*)GetDlgItem(IDC_EDIT_BITFIELD_VALUE))->SetLimitText(INPUT_HEX_DATA_LENGTH);
 
 	//
 	// Set text of bitfield
@@ -418,7 +419,7 @@ BOOL CBitViewerDlg::PreTranslateMessage(MSG* pMsg)
 	}
 	else if (WM_CHAR == pMsg->message)
 	{
-		if (GetDlgItem(IDC_EDIT_DATA) == GetFocus())
+		if (GetDlgItem(IDC_EDIT_DATA) == GetFocus() || GetDlgItem(IDC_EDIT_BITFIELD_VALUE) == GetFocus())
 		{
 			SHORT Keystate = GetKeyState(VK_CONTROL);
 			// Check input hex string
