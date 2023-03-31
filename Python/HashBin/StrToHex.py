@@ -5,9 +5,12 @@ import struct
 
 '''
 The script is for below similar hex string format:
-00000000 : 00 00 00 00 00 00 00 00 - 00 00 00 00 00 00 00 00   ................
-00000000 : 00 00 00 00 00 00 00 00 - 00 00 00 00               ............
+  00000000 : 00 00 00 00 00 00 00 00 - 00 00 00 00 00 00 00 00   ................
+  00000000 : 00 00 00 00 00 00 00 00 - 00 00 00 00               ............
 
+or
+  00000BF0: 00 00 00 00 00 00 00 00-00 00 00 00 00 00 00 00  *................*
+  00000C00: 00 00 00 00 00 00 00 00-00 00 00 00 00           *.............*
 '''
 
 def main():
@@ -26,22 +29,27 @@ def main():
     line = input_file.readline()
 
     while line:
-        start_offset = 11
         line = line.strip()
         line = line.replace("- ", "")
+        line = line.replace("-", " ")
         # print(line)
 
-        if line[9] != ':':
+        if line[8] != ':' and line[9] != ':':
             print('Unrecognized format.\n')
             input_file.close()
             out_file.close()
             return
 
+        if line[8] == ':':
+            start_offset = 9
+        elif line[9] == ':':
+            start_offset = 10
+
         for index in range(0, 48, 3):
             if line[start_offset + index:start_offset + index + 2] == '  ':
                 break
 
-            hexbyte = struct.pack('B', int(line[start_offset + index:start_offset + index + 2], 16))
+            hexbyte = struct.pack('B', int(line[start_offset + index + 1:start_offset + index + 3], 16))
             out_file.write(hexbyte)
 
         line = input_file.readline()
