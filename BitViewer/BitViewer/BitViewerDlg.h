@@ -38,4 +38,6 @@ public:
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedCheckSetBitfield();
 	afx_msg void OnBnClickedButtonSetBitfield();
+	void EncodeHexValue(UINT8 SpecialIndex, UINT8 SpecialVal);
+	UINT8 NegationValue(UINT8 Index);
 };

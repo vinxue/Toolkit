@@ -143,12 +143,18 @@ BOOL CBitViewerDlg::OnInitDialog()
 	}
 
 	//
-	// Set default start/end bit to 0
+	// Set all field default to 0
 	//
 	Str.Format(L"%d", 0);
-	((CStatic*)GetDlgItem(IDC_EDIT_STARTBIT))->SetWindowText(Str);
-	((CStatic*)GetDlgItem(IDC_EDIT_ENDBIT))->SetWindowText(Str);
-
+	((CEdit*)GetDlgItem(IDC_EDIT_DATA))->SetWindowText(Str);
+	((CEdit*)GetDlgItem(IDC_EDIT_BITFIELD_VALUE))->SetWindowText(Str);
+	((CEdit*)GetDlgItem(IDC_EDIT_STARTBIT))->SetWindowText(Str);
+	((CEdit*)GetDlgItem(IDC_EDIT_ENDBIT))->SetWindowText(Str);
+	for (Index = 0; Index < sizeof(UINT64) * 8; Index++)
+	{
+		((CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index))->SetWindowText(Str);
+		((CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index))->SetLimitText(1);
+	}
 
 	//
 	// Set default check box
@@ -358,7 +364,7 @@ void CBitViewerDlg::OnBnClickedButtonDecode()
 	//
 	BitFieldVal = BitFieldRead64(InputData, StartBit, EndBit);
 	Str.Format(L"%llX", BitFieldVal);
-	((CStatic*)GetDlgItem(IDC_EDIT_BITFIELD_VALUE))->SetWindowText(Str);
+	((CEdit*)GetDlgItem(IDC_EDIT_BITFIELD_VALUE))->SetWindowText(Str);
 }
 
 
@@ -390,12 +396,113 @@ HBRUSH CBitViewerDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	return hbr;
 }
 
+void CBitViewerDlg::EncodeHexValue(UINT8 SpecialIndex, UINT8 SpecialVal)
+{
+	UINT8            Index;
+	CString          StrBitValue;
+	CString          Str;
+	UINT8            BitValue;
+	UINT64           HexValue;
+	UINT8            BitsData;
+	CString          StrStartBit;
+	CString          StrEndBit;
+	UINT8            StartBit;
+	UINT8            EndBit;
+	UINT64           BitFieldVal;
+
+	HexValue = 0;
+
+	UpdateData(TRUE);
+
+	for (Index = 0; Index < sizeof(UINT64) * 8; Index++)
+	{
+		((CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index))->GetWindowText(StrBitValue);
+		if (((CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index))->GetWindowTextLength() == 0)
+		{
+			// Empty value in Edit Control, set value to 0 by default
+			BitValue = 0;
+		}
+		else
+		{
+			BitValue = (UINT8)wcstoul(StrBitValue, NULL, 10);
+		}
+
+		HexValue = BitFieldWrite64(HexValue, Index, Index, BitValue);
+	}
+
+	HexValue = BitFieldWrite64(HexValue, SpecialIndex, SpecialIndex, SpecialVal);
+
+	//
+	// Update the static bits
+	//
+	Str.Format(L"%llx", HexValue);
+	((CEdit*)GetDlgItem(IDC_EDIT_DATA))->SetWindowText(Str);
+
+	for (Index = 0; Index < sizeof(UINT64) * 2; Index++)
+	{
+		BitsData = (HexValue >> (Index * 4)) & 0xF;
+
+		Str.Format(L"%X", BitsData);
+		((CStatic*)GetDlgItem(IDC_STATIC_BITS0 + Index))->SetWindowText(Str);
+	}
+
+	//
+	// Update BitField Edit Control
+	// Get Start/End bit
+	//
+	((CEdit*)GetDlgItem(IDC_EDIT_STARTBIT))->GetWindowText(StrStartBit);
+	((CEdit*)GetDlgItem(IDC_EDIT_ENDBIT))->GetWindowText(StrEndBit);
+
+	StartBit = (UINT8)wcstoul(StrStartBit, NULL, 10);
+	EndBit = (UINT8)wcstoul(StrEndBit, NULL, 10);
+
+	if ((StartBit > 63) || (EndBit > 63) || (StartBit > EndBit))
+	{
+		AfxMessageBox(L"Invalid Start/End Bit.\n");
+		return;
+	}
+
+	//
+	// Display bitfield value
+	//
+	BitFieldVal = BitFieldRead64(HexValue, StartBit, EndBit);
+	Str.Format(L"%llX", BitFieldVal);
+	((CEdit*)GetDlgItem(IDC_EDIT_BITFIELD_VALUE))->SetWindowText(Str);
+}
+
+UINT8 CBitViewerDlg::NegationValue(UINT8 Index)
+{
+	CString          StrBitValue;
+
+	UpdateData(TRUE);
+
+	((CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index))->GetWindowText(StrBitValue);
+	if (((CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index))->GetWindowTextLength() == 0)
+	{
+		return 0xFF;
+	}
+
+	if ((UINT8)wcstoul(StrBitValue, NULL, 10) == 0)
+	{
+		((CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index))->SetWindowText(L"1");
+		return 1;
+	}
+	else
+	{
+		((CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index))->SetWindowText(L"0");
+		return 0;
+	}
+}
 
 BOOL CBitViewerDlg::PreTranslateMessage(MSG* pMsg)
 {
 	// TODO: Add your specialized code here and/or call the base class
+	UINT8            Index;
+	CString          Str;
+	UINT8            Value;
+
 	// Disable Esc key
-	if (WM_KEYDOWN == pMsg->message)
+	if (pMsg->message == WM_KEYDOWN)
 	{
 		UINT nKey = (int)pMsg->wParam;
 		if (/*VK_RETURN == nKey || */VK_ESCAPE == nKey)
@@ -404,7 +511,7 @@ BOOL CBitViewerDlg::PreTranslateMessage(MSG* pMsg)
 		}
 	}
 	// Disable Alt+F4 combine key
-	else if (WM_SYSKEYDOWN == pMsg->message)
+	else if (pMsg->message == WM_SYSKEYDOWN)
 	{
 		UINT nKey = (int)pMsg->wParam;
 
@@ -417,7 +524,7 @@ BOOL CBitViewerDlg::PreTranslateMessage(MSG* pMsg)
 			}
 		}
 	}
-	else if (WM_CHAR == pMsg->message)
+	else if (pMsg->message == WM_CHAR)
 	{
 		if (GetDlgItem(IDC_EDIT_DATA) == GetFocus() || GetDlgItem(IDC_EDIT_BITFIELD_VALUE) == GetFocus())
 		{
@@ -426,7 +533,7 @@ BOOL CBitViewerDlg::PreTranslateMessage(MSG* pMsg)
 			if ((pMsg->wParam >= 0x30 && pMsg->wParam <= 0x39) ||
 				(pMsg->wParam >= 'a' && pMsg->wParam <= 'f') ||
 				(pMsg->wParam >= 'A' && pMsg->wParam <= 'F') ||
-				(pMsg->wParam == 0x08) || (pMsg->wParam == 0x7F) ||  // Backspace || Delete
+				(pMsg->wParam == VK_BACK) ||  // Backspace
 				(GetKeyState(VK_CONTROL) & 0x8000))  // Ctrl
 			{
 				return CDialogEx::PreTranslateMessage(pMsg);
@@ -434,6 +541,44 @@ BOOL CBitViewerDlg::PreTranslateMessage(MSG* pMsg)
 			else
 			{
 				pMsg->wParam = NULL;
+			}
+		}
+		else
+		{
+			// Check input for each bit field
+			for (Index = 0; Index < sizeof(UINT64) * 8; Index++)
+			{
+				if (GetDlgItem(IDC_EDIT_BIT0 + Index) == GetFocus())
+				{
+					if ((pMsg->wParam == 0x30 || pMsg->wParam == 0x31) ||
+						(pMsg->wParam == VK_BACK) ||  // Backspace
+						(GetKeyState(VK_CONTROL) & 0x8000))  // Ctrl
+					{
+						if (pMsg->wParam == 0x30 || pMsg->wParam == 0x31)
+						{
+							EncodeHexValue(Index, (UINT8)(pMsg->wParam - 0x30));
+						}
+						return CDialogEx::PreTranslateMessage(pMsg);
+					}
+					else
+					{
+						pMsg->wParam = NULL;
+					}
+				}
+			}
+		}
+	}
+	else if (pMsg->message == WM_LBUTTONDBLCLK)
+	{
+		for (Index = 0; Index < sizeof(UINT64) * 8; Index++)
+		{
+			if (pMsg->hwnd == GetDlgItem(IDC_EDIT_BIT0 + Index)->GetSafeHwnd())
+			{
+				Value = NegationValue(Index);
+				if (Value != 0xFF)
+				{
+					EncodeHexValue(Index, Value);
+				}
 			}
 		}
 	}
