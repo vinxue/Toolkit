@@ -9,8 +9,8 @@ The script is for below similar hex string format:
   00000000 : 00 00 00 00 00 00 00 00 - 00 00 00 00               ............
 
 or
-  00000BF0: 00 00 00 00 00 00 00 00-00 00 00 00 00 00 00 00  *................*
-  00000C00: 00 00 00 00 00 00 00 00-00 00 00 00 00           *.............*
+  00000000: 00 00 00 00 00 00 00 00-00 00 00 00 00 00 00 00  *................*
+  00000000: 00 00 00 00 00 00 00 00-00 00 00 00 00           *.............*
 '''
 
 def main():
@@ -49,14 +49,17 @@ def main():
             if line[start_offset + index:start_offset + index + 2] == '  ':
                 break
 
-            hexbyte = struct.pack('B', int(line[start_offset + index + 1:start_offset + index + 3], 16))
-            out_file.write(hexbyte)
+            try:
+                hexbyte = struct.pack('B', int(line[start_offset + index + 1:start_offset + index + 3], 16))
+                out_file.write(hexbyte)
+            except:
+                break
 
         line = input_file.readline()
 
     input_file.close()
     out_file.close()
-    print ('Convert successfully.\n')
+    print ('Convert successfully.')
 
 if __name__ == "__main__":
     main()
