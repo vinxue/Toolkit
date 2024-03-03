@@ -1,10 +1,10 @@
 
-// MouseSimDlg.cpp : implementation file
+// KbSimDlg.cpp : implementation file
 //
 
 #include "stdafx.h"
-#include "MouseSim.h"
-#include "MouseSimDlg.h"
+#include "KbSim.h"
+#include "KbSimDlg.h"
 #include "afxdialogex.h"
 
 #ifdef _DEBUG
@@ -43,35 +43,35 @@ BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 
-// CMouseSimDlg dialog
+// CKbSimDlg dialog
 
 
 
-CMouseSimDlg::CMouseSimDlg(CWnd* pParent /*=NULL*/)
-	: CDialogEx(CMouseSimDlg::IDD, pParent)
+CKbSimDlg::CKbSimDlg(CWnd* pParent /*=NULL*/)
+	: CDialogEx(CKbSimDlg::IDD, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
-void CMouseSimDlg::DoDataExchange(CDataExchange* pDX)
+void CKbSimDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 }
 
-BEGIN_MESSAGE_MAP(CMouseSimDlg, CDialogEx)
+BEGIN_MESSAGE_MAP(CKbSimDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
   ON_WM_TIMER()
-  ON_BN_CLICKED(IDC_BUTTON_RUN, &CMouseSimDlg::OnBnClickedButtonRun)
-  ON_BN_CLICKED(IDC_BUTTON_STOP, &CMouseSimDlg::OnBnClickedButtonStop)
+  ON_BN_CLICKED(IDC_BUTTON_RUN, &CKbSimDlg::OnBnClickedButtonRun)
+  ON_BN_CLICKED(IDC_BUTTON_STOP, &CKbSimDlg::OnBnClickedButtonStop)
   ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
 
-// CMouseSimDlg message handlers
+// CKbSimDlg message handlers
 
-BOOL CMouseSimDlg::OnInitDialog()
+BOOL CKbSimDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
@@ -107,12 +107,12 @@ BOOL CMouseSimDlg::OnInitDialog()
   font = new CFont;
   font->CreateFont(16, 0, 0, 0, FW_BOLD/*FW_MEDIUM*//*FW_NORMAL*/, FALSE, FALSE, 0, DEFAULT_CHARSET,
     OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, _T("Arial"));
-  GetDlgItem(IDC_STATIC_MouseSIM)->SetFont(font);
+  GetDlgItem(IDC_STATIC_KbSim)->SetFont(font);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
-void CMouseSimDlg::OnSysCommand(UINT nID, LPARAM lParam)
+void CKbSimDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
 	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
 	{
@@ -129,7 +129,7 @@ void CMouseSimDlg::OnSysCommand(UINT nID, LPARAM lParam)
 //  to draw the icon.  For MFC applications using the document/view model,
 //  this is automatically done for you by the framework.
 
-void CMouseSimDlg::OnPaint()
+void CKbSimDlg::OnPaint()
 {
 	if (IsIconic())
 	{
@@ -156,41 +156,25 @@ void CMouseSimDlg::OnPaint()
 
 // The system calls this function to obtain the cursor to display while the user drags
 //  the minimized window.
-HCURSOR CMouseSimDlg::OnQueryDragIcon()
+HCURSOR CKbSimDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
 
 
-void CMouseSimDlg::OnTimer(UINT_PTR nIDEvent)
+void CKbSimDlg::OnTimer(UINT_PTR nIDEvent)
 {
   // TODO: Add your message handler code here and/or call default
-  int xPos;
-  int yPos;
-
-  xPos = 0;
-  yPos = 0;
-
-  //::SendMessage(GetDlgItem(IDC_STATIC_MouseSIM)->m_hWnd, WM_KEYDOWN, VK_LWIN, (yPos << 16) | xPos);
-  //::SendMessage(GetDlgItem(IDC_STATIC_MouseSIM)->m_hWnd, WM_KEYUP, VK_LWIN, (yPos << 16) | xPos);
   keybd_event(VK_CAPITAL, 0, 0, 0);
   keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, 0);
 
-  Sleep(5);
-
-  keybd_event(VK_CAPITAL, 0, 0, 0);
-  keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, 0);
-  
-  //SetCursorPos(0, 0);
-  //mouse_event (MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-  //mouse_event (MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
   CDialogEx::OnTimer(nIDEvent);
 }
 
 
 
-void CMouseSimDlg::OnBnClickedButtonRun()
+void CKbSimDlg::OnBnClickedButtonRun()
 {
   // TODO: Add your control notification handler code here
   SetTimer(0, 10000, NULL);
@@ -200,7 +184,7 @@ void CMouseSimDlg::OnBnClickedButtonRun()
 }
 
 
-void CMouseSimDlg::OnBnClickedButtonStop()
+void CKbSimDlg::OnBnClickedButtonStop()
 {
   // TODO: Add your control notification handler code here
   KillTimer(0);
@@ -216,14 +200,14 @@ void CMouseSimDlg::OnBnClickedButtonStop()
 }
 
 
-HBRUSH CMouseSimDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+HBRUSH CKbSimDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
   HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
 
   // TODO:  Change any attributes of the DC here
 
   // TODO:  Return a different brush if the default is not desired
-  if (pWnd->GetDlgCtrlID() == IDC_STATIC_MouseSIM)
+  if (pWnd->GetDlgCtrlID() == IDC_STATIC_KbSim)
   {
     pDC->SetTextColor(RGB(0, 102, 129));
     pDC->SetBkMode(TRANSPARENT);

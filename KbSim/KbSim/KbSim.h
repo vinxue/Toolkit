@@ -1,5 +1,5 @@
 
-// MouseSim.h : main header file for the PROJECT_NAME application
+// KbSim.h : main header file for the PROJECT_NAME application
 //
 
 #pragma once
@@ -11,14 +11,14 @@
 #include "resource.h"		// main symbols
 
 
-// CMouseSimApp:
-// See MouseSim.cpp for the implementation of this class
+// CKbSimApp:
+// See KbSim.cpp for the implementation of this class
 //
 
-class CMouseSimApp : public CWinApp
+class CKbSimApp : public CWinApp
 {
 public:
-	CMouseSimApp();
+	CKbSimApp();
 
 // Overrides
 public:
@@ -29,4 +29,4 @@ public:
 	DECLARE_MESSAGE_MAP()
 };
 
-extern CMouseSimApp theApp;
+extern CKbSimApp theApp;

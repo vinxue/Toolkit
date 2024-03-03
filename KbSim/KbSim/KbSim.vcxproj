@@ -12,21 +12,21 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2604C0C1-E69C-4FA0-B494-9A8AA0E3B4D4}</ProjectGuid>
-    <RootNamespace>MouseSim</RootNamespace>
+    <RootNamespace>KbSim</RootNamespace>
     <Keyword>MFCProj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
@@ -101,35 +101,35 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MouseSim.h" />
-    <ClInclude Include="MouseSimDlg.h" />
+    <ClInclude Include="KbSim.h" />
+    <ClInclude Include="KbSimDlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MouseSim.cpp" />
-    <ClCompile Include="MouseSimDlg.cpp" />
+    <ClCompile Include="KbSim.cpp" />
+    <ClCompile Include="KbSimDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="MouseSim.rc" />
+    <ResourceCompile Include="KbSim.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\MouseSim.rc2" />
+    <None Include="res\KbSim.rc2" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\MouseSim.ico" />
+    <Image Include="res\KbSim.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties RESOURCE_FILE="MouseSim.rc" />
+      <UserProperties RESOURCE_FILE="KbSim.rc" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

@@ -1,19 +1,19 @@
 
-// MouseSimDlg.h : header file
+// KbSimDlg.h : header file
 //
 
 #pragma once
 
 
-// CMouseSimDlg dialog
-class CMouseSimDlg : public CDialogEx
+// CKbSimDlg dialog
+class CKbSimDlg : public CDialogEx
 {
 // Construction
 public:
-	CMouseSimDlg(CWnd* pParent = NULL);	// standard constructor
+	CKbSimDlg(CWnd* pParent = NULL);	// standard constructor
 
 // Dialog Data
-	enum { IDD = IDD_MouseSIM_DIALOG };
+	enum { IDD = IDD_KbSim_DIALOG };
 
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support

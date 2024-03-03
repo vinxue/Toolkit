@@ -1,26 +1,26 @@
 
-// MouseSim.cpp : Defines the class behaviors for the application.
+// KbSim.cpp : Defines the class behaviors for the application.
 //
 
 #include "stdafx.h"
-#include "MouseSim.h"
-#include "MouseSimDlg.h"
+#include "KbSim.h"
+#include "KbSimDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
 
-// CMouseSimApp
+// CKbSimApp
 
-BEGIN_MESSAGE_MAP(CMouseSimApp, CWinApp)
+BEGIN_MESSAGE_MAP(CKbSimApp, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
 
-// CMouseSimApp construction
+// CKbSimApp construction
 
-CMouseSimApp::CMouseSimApp()
+CKbSimApp::CKbSimApp()
 {
 	// support Restart Manager
 	m_dwRestartManagerSupportFlags = AFX_RESTART_MANAGER_SUPPORT_RESTART;
@@ -30,14 +30,14 @@ CMouseSimApp::CMouseSimApp()
 }
 
 
-// The one and only CMouseSimApp object
+// The one and only CKbSimApp object
 
-CMouseSimApp theApp;
+CKbSimApp theApp;
 
 
-// CMouseSimApp initialization
+// CKbSimApp initialization
 
-BOOL CMouseSimApp::InitInstance()
+BOOL CKbSimApp::InitInstance()
 {
 	// InitCommonControlsEx() is required on Windows XP if an application
 	// manifest specifies use of ComCtl32.dll version 6 or later to enable
@@ -70,7 +70,7 @@ BOOL CMouseSimApp::InitInstance()
 	// such as the name of your company or organization
 	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
 
-	CMouseSimDlg dlg;
+	CKbSimDlg dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == IDOK)

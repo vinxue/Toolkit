@@ -18,10 +18,10 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MouseSim.h">
+    <ClInclude Include="KbSim.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MouseSimDlg.h">
+    <ClInclude Include="KbSimDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
@@ -35,10 +35,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MouseSim.cpp">
+    <ClCompile Include="KbSim.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MouseSimDlg.cpp">
+    <ClCompile Include="KbSimDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
@@ -46,17 +46,17 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="MouseSim.rc">
+    <ResourceCompile Include="KbSim.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\MouseSim.rc2">
+    <None Include="res\KbSim.rc2">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\MouseSim.ico">
+    <Image Include="res\KbSim.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
