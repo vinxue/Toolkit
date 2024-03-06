@@ -101,13 +101,19 @@ BOOL CKbSimDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
-  ((CButton *)GetDlgItem(IDC_BUTTON_STOP))->ShowWindow(FALSE);
+	CString         Str;
 
-  CFont *font;
-  font = new CFont;
-  font->CreateFont(16, 0, 0, 0, FW_BOLD/*FW_MEDIUM*//*FW_NORMAL*/, FALSE, FALSE, 0, DEFAULT_CHARSET,
-    OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, _T("Arial"));
-  GetDlgItem(IDC_STATIC_KbSim)->SetFont(font);
+	((CButton*)GetDlgItem(IDC_BUTTON_STOP))->ShowWindow(FALSE);
+
+	CFont* font;
+	font = new CFont;
+	font->CreateFont(16, 0, 0, 0, FW_BOLD/*FW_MEDIUM*//*FW_NORMAL*/, FALSE, FALSE, 0, DEFAULT_CHARSET,
+		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, _T("Arial"));
+	GetDlgItem(IDC_STATIC_KbSim)->SetFont(font);
+
+	((CEdit*)GetDlgItem(IDC_EDIT_INTERVAL))->SetLimitText(3);
+	Str.Format(L"%d", 60);
+	((CEdit*)GetDlgItem(IDC_EDIT_INTERVAL))->SetWindowText(Str);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -165,53 +171,66 @@ HCURSOR CKbSimDlg::OnQueryDragIcon()
 
 void CKbSimDlg::OnTimer(UINT_PTR nIDEvent)
 {
-  // TODO: Add your message handler code here and/or call default
-  keybd_event(VK_CAPITAL, 0, 0, 0);
-  keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, 0);
+	// TODO: Add your message handler code here and/or call default
+	keybd_event(VK_CAPITAL, 0, 0, 0);
+	keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, 0);
 
-  CDialogEx::OnTimer(nIDEvent);
+	CDialogEx::OnTimer(nIDEvent);
 }
 
 
 
 void CKbSimDlg::OnBnClickedButtonRun()
 {
-  // TODO: Add your control notification handler code here
-  SetTimer(0, 10000, NULL);
+	// TODO: Add your control notification handler code here
+	CString StrIntervalTime;
+	UINT32 IntervalTime;
 
-  ((CButton *)GetDlgItem(IDC_BUTTON_RUN))->ShowWindow(FALSE);
-  ((CButton *)GetDlgItem(IDC_BUTTON_STOP))->ShowWindow(TRUE);
+	// Get interval time
+	((CEdit*)GetDlgItem(IDC_EDIT_INTERVAL))->GetWindowText(StrIntervalTime);
+	IntervalTime = wcstoul(StrIntervalTime, NULL, 10);
+
+	if ((IntervalTime < 1) || (IntervalTime > 299))
+	{
+		AfxMessageBox(L"Please input a valid value (1 ~ 299)\n");
+		return;
+	}
+
+	SetTimer(0, IntervalTime * 1000, NULL);
+
+	((CButton*)GetDlgItem(IDC_BUTTON_RUN))->ShowWindow(FALSE);
+	((CButton*)GetDlgItem(IDC_BUTTON_STOP))->ShowWindow(TRUE);
 }
 
 
 void CKbSimDlg::OnBnClickedButtonStop()
 {
-  // TODO: Add your control notification handler code here
-  KillTimer(0);
+	// TODO: Add your control notification handler code here
+	KillTimer(0);
 
-  if (LOBYTE(GetKeyState(VK_CAPITAL)))
-  {
-    keybd_event(VK_CAPITAL, 0, 0, 0);
-    keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, 0);
-  }
+	if (LOBYTE(GetKeyState(VK_CAPITAL)))
+	{
+		keybd_event(VK_CAPITAL, 0, 0, 0);
+		keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, 0);
+	}
 
-  ((CButton *)GetDlgItem(IDC_BUTTON_RUN))->ShowWindow(TRUE);
-  ((CButton *)GetDlgItem(IDC_BUTTON_STOP))->ShowWindow(FALSE);
+	((CButton*)GetDlgItem(IDC_BUTTON_RUN))->ShowWindow(TRUE);
+	((CButton*)GetDlgItem(IDC_BUTTON_STOP))->ShowWindow(FALSE);
 }
 
 
 HBRUSH CKbSimDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
-  HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
+	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
 
-  // TODO:  Change any attributes of the DC here
+	// TODO:  Change any attributes of the DC here
 
-  // TODO:  Return a different brush if the default is not desired
-  if (pWnd->GetDlgCtrlID() == IDC_STATIC_KbSim)
-  {
-    pDC->SetTextColor(RGB(0, 102, 129));
-    pDC->SetBkMode(TRANSPARENT);
-    return hbr;
-  }
-  return hbr;
+	// TODO:  Return a different brush if the default is not desired
+	if (pWnd->GetDlgCtrlID() == IDC_STATIC_KbSim)
+	{
+		pDC->SetTextColor(RGB(0, 102, 129));
+		pDC->SetBkMode(TRANSPARENT);
+		return hbr;
+	}
+	return hbr;
 }
