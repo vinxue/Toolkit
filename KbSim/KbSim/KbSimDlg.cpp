@@ -6,11 +6,31 @@
 #include "KbSim.h"
 #include "KbSimDlg.h"
 #include "afxdialogex.h"
+#include <PowrProf.h>
+
+#pragma comment (lib, "PowrProf.lib")
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
+enum SystemState
+{
+	STATE_LOG_OFF,
+	STATE_RESTART,
+	STATE_SUSPEND,
+	STATE_HIBERNATE,
+	STATE_SHUTDOWN,
+	STATE_MAX
+};
+
+UINT8 mSysState[STATE_MAX] = { 0 };
+DWORD TargetCount;
+DWORD Count;
+BOOLEAN mPrivilegeFlag = FALSE;
+
+#define ID_EVENT_KB 0
+#define ID_EVENT_COUNTDOWN 1
 
 // CAboutDlg dialog used for App About
 
@@ -102,6 +122,9 @@ BOOL CKbSimDlg::OnInitDialog()
 
 	// TODO: Add extra initialization here
 	CString         Str;
+	UINT8           Index;
+	UINT8           StateIndex;
+	SYSTEM_POWER_CAPABILITIES PowerCaps;
 
 	((CButton*)GetDlgItem(IDC_BUTTON_STOP))->ShowWindow(FALSE);
 
@@ -111,9 +134,62 @@ BOOL CKbSimDlg::OnInitDialog()
 		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, _T("Arial"));
 	GetDlgItem(IDC_STATIC_KbSim)->SetFont(font);
 
+	// Set up interval time
 	((CEdit*)GetDlgItem(IDC_EDIT_INTERVAL))->SetLimitText(3);
 	Str.Format(L"%d", 60);
 	((CEdit*)GetDlgItem(IDC_EDIT_INTERVAL))->SetWindowText(Str);
+
+	// Set up countdown
+	CTime tm(0, 0, 0);
+	((CDateTimeCtrl*)GetDlgItem(IDC_DATETIMEPICKER_COUNTDOWN))->SetTime(&tm);
+	((CDateTimeCtrl*)GetDlgItem(IDC_DATETIMEPICKER_COUNTDOWN))->SetFormat(L"HH:mm:ss");
+
+	// Set system state after stop
+	if (!GetPwrCapabilities(&PowerCaps)) {
+		AfxMessageBox(L"Retrieves system power capabilities failed.");
+		return FALSE;
+	}
+
+	StateIndex = 0;
+	for (Index = 0; Index < STATE_MAX; Index++)
+	{
+		switch (Index)
+		{
+		case STATE_LOG_OFF:
+			((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Log Off");
+			mSysState[StateIndex] = STATE_LOG_OFF;
+			StateIndex++;
+			break;
+		case STATE_RESTART:
+			((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Restart");
+			mSysState[StateIndex] = STATE_RESTART;
+			StateIndex++;
+			break;
+		case STATE_SUSPEND:
+			if (PowerCaps.SystemS3 == TRUE)
+			{
+				((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Suspend");
+				mSysState[StateIndex] = STATE_SUSPEND;
+				StateIndex++;
+			}
+			break;
+		case STATE_HIBERNATE:
+			if (PowerCaps.SystemS4 == TRUE)
+			{
+				((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Hibernate");
+				mSysState[StateIndex] = STATE_HIBERNATE;
+				StateIndex++;
+			}
+			break;
+		case STATE_SHUTDOWN:
+			((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Shut Down");
+			mSysState[StateIndex] = STATE_SHUTDOWN;
+			StateIndex++;
+			break;
+		default:
+			break;
+		}
+	}
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -168,12 +244,126 @@ HCURSOR CKbSimDlg::OnQueryDragIcon()
 }
 
 
+BOOL SetPrivilege(
+	LPCTSTR lpszPrivilege,  // name of privilege to enable/disable
+	BOOL bEnablePrivilege   // to enable or disable privilege
+)
+{
+	HANDLE hToken;  // access token handle
+	TOKEN_PRIVILEGES tp;
+	LUID luid;
+
+	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
+	{
+		return FALSE;
+	}
+
+	if (!LookupPrivilegeValue(
+		NULL,            // lookup privilege on local system
+		lpszPrivilege,   // privilege to lookup 
+		&luid))        // receives LUID of privilege
+	{
+		// printf("LookupPrivilegeValue error: %u\n", GetLastError());
+		return FALSE;
+	}
+
+	tp.PrivilegeCount = 1;
+	tp.Privileges[0].Luid = luid;
+	if (bEnablePrivilege)
+		tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+	else
+		tp.Privileges[0].Attributes = 0;
+
+	// Enable the privilege or disable all privileges.
+
+	if (!AdjustTokenPrivileges(
+		hToken,
+		FALSE,
+		&tp,
+		sizeof(TOKEN_PRIVILEGES),
+		(PTOKEN_PRIVILEGES)NULL,
+		(PDWORD)NULL))
+	{
+		// printf("AdjustTokenPrivileges error: %u\n", GetLastError());
+		return FALSE;
+	}
+
+	if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
+
+	{
+		// printf("The token does not have the specified privilege. \n");
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 
 void CKbSimDlg::OnTimer(UINT_PTR nIDEvent)
 {
 	// TODO: Add your message handler code here and/or call default
-	keybd_event(VK_CAPITAL, 0, 0, 0);
-	keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, 0);
+	switch (nIDEvent)
+	{
+	case ID_EVENT_KB:
+		keybd_event(VK_CAPITAL, 0, 0, 0);
+		keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, 0);
+		break;
+	case ID_EVENT_COUNTDOWN:
+		if (((CButton*)GetDlgItem(IDC_CHECK_COUNTDOWN))->GetCheck() == TRUE)
+		{
+			int DisHour, DisMin, DisSec;
+
+			if (Count > GetTickCount())
+			{
+				DisHour = (Count - GetTickCount()) / 3600000;
+				DisMin = ((Count - GetTickCount()) % 3600000) / 60000;
+				DisSec = ((Count - GetTickCount()) % 3600000) % 60000 / 1000;
+
+				CTime SysTm = CTime::GetCurrentTime();
+
+				CTime tm(SysTm.GetYear(), SysTm.GetMonth(), SysTm.GetDay(), DisHour, DisMin, DisSec);
+				((CDateTimeCtrl*)GetDlgItem(IDC_DATETIMEPICKER_COUNTDOWN))->SetTime(&tm);
+			}
+
+			if (GetTickCount() / 1000 == TargetCount)
+			{
+				OnBnClickedButtonStop();
+
+				int SelIdx = ((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->GetCurSel();
+				if (SelIdx != CB_ERR)
+				{
+					switch (mSysState[SelIdx])
+					{
+					case STATE_LOG_OFF:
+						if (!ExitWindowsEx(EWX_LOGOFF, 0))
+							AfxMessageBox(L"Log off is failed!", MB_ICONINFORMATION);
+						break;
+					case STATE_RESTART:
+						if (!ExitWindowsEx(EWX_REBOOT, 0))
+							AfxMessageBox(L"Restart is failed!", MB_ICONINFORMATION);
+						break;
+					case STATE_SUSPEND:
+						if (!SetSuspendState(FALSE, FALSE, FALSE))
+							AfxMessageBox(L"Suspend is failed!", MB_ICONINFORMATION);
+						break;
+					case STATE_HIBERNATE:
+						if (!SetSuspendState(TRUE, FALSE, FALSE))
+							AfxMessageBox(L"Hibernate is failed!", MB_ICONINFORMATION);
+						break;
+					case STATE_SHUTDOWN:
+						if (!ExitWindowsEx(EWX_SHUTDOWN | EWX_POWEROFF, 0))
+							AfxMessageBox(L"Shutdown is failed!", MB_ICONINFORMATION);
+						break;
+					default:
+						break;
+					}
+				}
+			}
+		}
+		break;
+	default:
+		break;
+	}
 
 	CDialogEx::OnTimer(nIDEvent);
 }
@@ -186,7 +376,7 @@ void CKbSimDlg::OnBnClickedButtonRun()
 	CString StrIntervalTime;
 	UINT32 IntervalTime;
 
-	// Get interval time
+	// Step 1: Get interval time
 	((CEdit*)GetDlgItem(IDC_EDIT_INTERVAL))->GetWindowText(StrIntervalTime);
 	IntervalTime = wcstoul(StrIntervalTime, NULL, 10);
 
@@ -196,7 +386,57 @@ void CKbSimDlg::OnBnClickedButtonRun()
 		return;
 	}
 
-	SetTimer(0, IntervalTime * 1000, NULL);
+	// Step 2: Get countdown setting
+	if (((CButton*)GetDlgItem(IDC_CHECK_COUNTDOWN))->GetCheck() == TRUE)
+	{
+		CTime CountTime;
+		((CDateTimeCtrl*)GetDlgItem(IDC_DATETIMEPICKER_COUNTDOWN))->GetTime(CountTime);
+
+		int mHour, mMin, mSec;
+
+		mHour = CountTime.GetHour();
+		mMin = CountTime.GetMinute();
+		mSec = CountTime.GetSecond();
+		if ((mHour == 0) && (mMin == 0) && (mSec == 0))
+		{
+			AfxMessageBox(L"Please select a value of countdown.");
+			return;
+		}
+
+		Count = GetTickCount() + mHour * 3600 * 1000 + mMin * 60 * 1000 + mSec * 1000;
+		TargetCount = Count / 1000;
+
+		// Setp 3: Check system state after countdown ends
+		int SelIdx = ((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->GetCurSel();
+		if (SelIdx != CB_ERR)
+		{
+			if (!mPrivilegeFlag)
+			{
+				if (!SetPrivilege(SE_SHUTDOWN_NAME, TRUE))
+				{
+					AfxMessageBox(L"Set privilege failed.");
+					return;
+				}
+				else
+				{
+					mPrivilegeFlag = TRUE;
+				}
+			}
+		}
+	}
+
+	// Step 4: Start timer
+	if (((CButton*)GetDlgItem(IDC_CHECK_COUNTDOWN))->GetCheck() == TRUE)
+	{
+		((CButton*)GetDlgItem(IDC_CHECK_COUNTDOWN))->EnableWindow(FALSE);
+		((CDateTimeCtrl*)GetDlgItem(IDC_DATETIMEPICKER_COUNTDOWN))->EnableWindow(FALSE);
+		((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->EnableWindow(FALSE);
+		SetTimer(ID_EVENT_COUNTDOWN, 500, NULL);
+	}
+
+	SetTimer(ID_EVENT_KB, IntervalTime * 1000, NULL);
+
+	((CEdit*)GetDlgItem(IDC_EDIT_INTERVAL))->EnableWindow(FALSE);
 
 	((CButton*)GetDlgItem(IDC_BUTTON_RUN))->ShowWindow(FALSE);
 	((CButton*)GetDlgItem(IDC_BUTTON_STOP))->ShowWindow(TRUE);
@@ -206,13 +446,22 @@ void CKbSimDlg::OnBnClickedButtonRun()
 void CKbSimDlg::OnBnClickedButtonStop()
 {
 	// TODO: Add your control notification handler code here
-	KillTimer(0);
+	KillTimer(ID_EVENT_KB);
+	if (((CButton*)GetDlgItem(IDC_CHECK_COUNTDOWN))->GetCheck() == TRUE)
+	{
+		((CButton*)GetDlgItem(IDC_CHECK_COUNTDOWN))->EnableWindow(TRUE);
+		((CDateTimeCtrl*)GetDlgItem(IDC_DATETIMEPICKER_COUNTDOWN))->EnableWindow(TRUE);
+		((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->EnableWindow(TRUE);
+		KillTimer(ID_EVENT_COUNTDOWN);
+	}
 
 	if (LOBYTE(GetKeyState(VK_CAPITAL)))
 	{
 		keybd_event(VK_CAPITAL, 0, 0, 0);
 		keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, 0);
 	}
+
+	((CEdit*)GetDlgItem(IDC_EDIT_INTERVAL))->EnableWindow(TRUE);
 
 	((CButton*)GetDlgItem(IDC_BUTTON_RUN))->ShowWindow(TRUE);
 	((CButton*)GetDlgItem(IDC_BUTTON_STOP))->ShowWindow(FALSE);
