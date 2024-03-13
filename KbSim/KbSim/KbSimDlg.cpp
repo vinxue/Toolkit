@@ -16,6 +16,7 @@
 
 enum SystemState
 {
+	STATE_DO_NOTHING,
 	STATE_LOG_OFF,
 	STATE_RESTART,
 	STATE_SUSPEND,
@@ -155,8 +156,13 @@ BOOL CKbSimDlg::OnInitDialog()
 	{
 		switch (Index)
 		{
+		case STATE_DO_NOTHING:
+			((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Do nothing");
+			mSysState[StateIndex] = STATE_DO_NOTHING;
+			StateIndex++;
+			break;
 		case STATE_LOG_OFF:
-			((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Log Off");
+			((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Log off");
 			mSysState[StateIndex] = STATE_LOG_OFF;
 			StateIndex++;
 			break;
@@ -182,7 +188,7 @@ BOOL CKbSimDlg::OnInitDialog()
 			}
 			break;
 		case STATE_SHUTDOWN:
-			((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Shut Down");
+			((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Shut down");
 			mSysState[StateIndex] = STATE_SHUTDOWN;
 			StateIndex++;
 			break;
@@ -190,6 +196,7 @@ BOOL CKbSimDlg::OnInitDialog()
 			break;
 		}
 	}
+	((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->SetCurSel(STATE_DO_NOTHING);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -399,7 +406,7 @@ void CKbSimDlg::OnBnClickedButtonRun()
 		mSec = CountTime.GetSecond();
 		if ((mHour == 0) && (mMin == 0) && (mSec == 0))
 		{
-			AfxMessageBox(L"Please select a value of countdown.");
+			AfxMessageBox(L"Please set a value of countdown.");
 			return;
 		}
 
@@ -410,7 +417,7 @@ void CKbSimDlg::OnBnClickedButtonRun()
 		int SelIdx = ((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->GetCurSel();
 		if (SelIdx != CB_ERR)
 		{
-			if (!mPrivilegeFlag)
+			if ((!mPrivilegeFlag) && (mSysState[SelIdx] != STATE_DO_NOTHING))
 			{
 				if (!SetPrivilege(SE_SHUTDOWN_NAME, TRUE))
 				{
