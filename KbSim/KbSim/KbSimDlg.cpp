@@ -172,7 +172,7 @@ BOOL CKbSimDlg::OnInitDialog()
 			StateIndex++;
 			break;
 		case STATE_SUSPEND:
-			if (PowerCaps.SystemS3 == TRUE)
+			if (PowerCaps.SystemS3)
 			{
 				((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Suspend");
 				mSysState[StateIndex] = STATE_SUSPEND;
@@ -180,7 +180,7 @@ BOOL CKbSimDlg::OnInitDialog()
 			}
 			break;
 		case STATE_HIBERNATE:
-			if (PowerCaps.SystemS4 == TRUE)
+			if (PowerCaps.SystemS4 && PowerCaps.HiberFilePresent)
 			{
 				((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Hibernate");
 				mSysState[StateIndex] = STATE_HIBERNATE;
@@ -389,7 +389,7 @@ void CKbSimDlg::OnBnClickedButtonRun()
 
 	if ((IntervalTime < 1) || (IntervalTime > 299))
 	{
-		AfxMessageBox(L"Please input a valid value (1 ~ 299)\n");
+		AfxMessageBox(L"Please input a valid value (1 ~ 299).\n");
 		return;
 	}
 
