@@ -13,7 +13,7 @@ public:
 	CKbSimDlg(CWnd* pParent = NULL);	// standard constructor
 
 // Dialog Data
-	enum { IDD = IDD_KbSim_DIALOG };
+	enum { IDD = IDD_KBSIM_DIALOG };
 
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
@@ -34,4 +34,7 @@ public:
   afx_msg void OnBnClickedButtonRun();
   afx_msg void OnBnClickedButtonStop();
   afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+  afx_msg void OnClose();
+  virtual void OnOK();
+  virtual void OnCancel();
 };

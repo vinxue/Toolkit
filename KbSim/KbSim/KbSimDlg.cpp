@@ -29,6 +29,7 @@ UINT8 mSysState[STATE_MAX] = { 0 };
 DWORD TargetCount;
 DWORD Count;
 BOOLEAN mPrivilegeFlag = FALSE;
+BOOLEAN mActivityFlag = FALSE;
 
 #define ID_EVENT_KB 0
 #define ID_EVENT_COUNTDOWN 1
@@ -83,10 +84,11 @@ BEGIN_MESSAGE_MAP(CKbSimDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-  ON_WM_TIMER()
-  ON_BN_CLICKED(IDC_BUTTON_RUN, &CKbSimDlg::OnBnClickedButtonRun)
-  ON_BN_CLICKED(IDC_BUTTON_STOP, &CKbSimDlg::OnBnClickedButtonStop)
-  ON_WM_CTLCOLOR()
+	ON_WM_TIMER()
+	ON_BN_CLICKED(IDC_BUTTON_RUN, &CKbSimDlg::OnBnClickedButtonRun)
+	ON_BN_CLICKED(IDC_BUTTON_STOP, &CKbSimDlg::OnBnClickedButtonStop)
+	ON_WM_CTLCOLOR()
+	ON_WM_CLOSE()
 END_MESSAGE_MAP()
 
 
@@ -125,6 +127,7 @@ BOOL CKbSimDlg::OnInitDialog()
 	CString         Str;
 	UINT8           Index;
 	UINT8           StateIndex;
+	BOOLEAN         PwrCapResult;
 	SYSTEM_POWER_CAPABILITIES PowerCaps;
 
 	((CButton*)GetDlgItem(IDC_BUTTON_STOP))->ShowWindow(FALSE);
@@ -146,9 +149,9 @@ BOOL CKbSimDlg::OnInitDialog()
 	((CDateTimeCtrl*)GetDlgItem(IDC_DATETIMEPICKER_COUNTDOWN))->SetFormat(L"HH:mm:ss");
 
 	// Set system state after stop
+	PwrCapResult = TRUE;
 	if (!GetPwrCapabilities(&PowerCaps)) {
-		AfxMessageBox(L"Retrieves system power capabilities failed.");
-		return FALSE;
+		PwrCapResult = FALSE;
 	}
 
 	StateIndex = 0;
@@ -172,19 +175,25 @@ BOOL CKbSimDlg::OnInitDialog()
 			StateIndex++;
 			break;
 		case STATE_SUSPEND:
-			if (PowerCaps.SystemS3)
+			if (PwrCapResult)
 			{
-				((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Suspend");
-				mSysState[StateIndex] = STATE_SUSPEND;
-				StateIndex++;
+				if (PowerCaps.SystemS3)
+				{
+					((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Suspend");
+					mSysState[StateIndex] = STATE_SUSPEND;
+					StateIndex++;
+				}
 			}
 			break;
 		case STATE_HIBERNATE:
-			if (PowerCaps.SystemS4 && PowerCaps.HiberFilePresent)
+			if (PwrCapResult)
 			{
-				((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Hibernate");
-				mSysState[StateIndex] = STATE_HIBERNATE;
-				StateIndex++;
+				if (PowerCaps.SystemS4 && PowerCaps.HiberFilePresent)
+				{
+					((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->AddString(L"Hibernate");
+					mSysState[StateIndex] = STATE_HIBERNATE;
+					StateIndex++;
+				}
 			}
 			break;
 		case STATE_SHUTDOWN:
@@ -382,6 +391,7 @@ void CKbSimDlg::OnBnClickedButtonRun()
 	// TODO: Add your control notification handler code here
 	CString StrIntervalTime;
 	UINT32 IntervalTime;
+	SYSTEM_POWER_POLICY SystemPowerPolicy;
 
 	// Step 1: Get interval time
 	((CEdit*)GetDlgItem(IDC_EDIT_INTERVAL))->GetWindowText(StrIntervalTime);
@@ -432,7 +442,17 @@ void CKbSimDlg::OnBnClickedButtonRun()
 		}
 	}
 
-	// Step 4: Start timer
+	// Step 4: Prevent the display and sleep idle time-out
+	if (!CallNtPowerInformation(SystemPowerPolicyCurrent, NULL, 0, &SystemPowerPolicy, sizeof(SYSTEM_POWER_POLICY)))
+	{
+		if ((IntervalTime >= SystemPowerPolicy.VideoTimeout) && !mActivityFlag)
+		{
+			SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
+			mActivityFlag = TRUE;
+		}
+	}
+
+	// Step 5: Start timer
 	if (((CButton*)GetDlgItem(IDC_CHECK_COUNTDOWN))->GetCheck() == TRUE)
 	{
 		((CButton*)GetDlgItem(IDC_CHECK_COUNTDOWN))->EnableWindow(FALSE);
@@ -462,6 +482,13 @@ void CKbSimDlg::OnBnClickedButtonStop()
 		KillTimer(ID_EVENT_COUNTDOWN);
 	}
 
+	// Clear EXECUTION_STATE flags to allow the display to idle and allow the system to idle to sleep normally.
+	if (mActivityFlag)
+	{
+		SetThreadExecutionState(ES_CONTINUOUS);
+		mActivityFlag = FALSE;
+	}
+
 	if (LOBYTE(GetKeyState(VK_CAPITAL)))
 	{
 		keybd_event(VK_CAPITAL, 0, 0, 0);
@@ -489,4 +516,30 @@ HBRUSH CKbSimDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		return hbr;
 	}
 	return hbr;
+}
+
+
+void CKbSimDlg::OnClose()
+{
+	// TODO: Add your message handler code here and/or call default
+	OnBnClickedButtonStop();
+
+	CDialogEx::OnClose();
+}
+
+
+void CKbSimDlg::OnOK()
+{
+	// TODO: Add your specialized code here and/or call the base class
+
+	// CDialogEx::OnOK();
+}
+
+
+void CKbSimDlg::OnCancel()
+{
+	// TODO: Add your specialized code here and/or call the base class
+	OnBnClickedButtonStop();
+
+	CDialogEx::OnCancel();
 }
