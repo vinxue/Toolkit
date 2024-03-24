@@ -36,5 +36,5 @@ public:
   afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
   afx_msg void OnClose();
   virtual void OnOK();
-  virtual void OnCancel();
+  virtual BOOL PreTranslateMessage(MSG* pMsg);
 };

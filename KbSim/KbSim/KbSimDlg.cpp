@@ -30,9 +30,12 @@ DWORD TargetCount;
 DWORD Count;
 BOOLEAN mPrivilegeFlag = FALSE;
 BOOLEAN mActivityFlag = FALSE;
+SHORT mPreviousKeyState = 0;
 
 #define ID_EVENT_KB 0
 #define ID_EVENT_COUNTDOWN 1
+BOOLEAN mKbFlag = FALSE;
+BOOLEAN mCountdownFlag = FALSE;
 
 // CAboutDlg dialog used for App About
 
@@ -452,16 +455,21 @@ void CKbSimDlg::OnBnClickedButtonRun()
 		}
 	}
 
-	// Step 5: Start timer
+	// Step 5: Save current key state
+	mPreviousKeyState = LOBYTE(GetKeyState(VK_CAPITAL));
+
+	// Step 6: Start timer
 	if (((CButton*)GetDlgItem(IDC_CHECK_COUNTDOWN))->GetCheck() == TRUE)
 	{
 		((CButton*)GetDlgItem(IDC_CHECK_COUNTDOWN))->EnableWindow(FALSE);
 		((CDateTimeCtrl*)GetDlgItem(IDC_DATETIMEPICKER_COUNTDOWN))->EnableWindow(FALSE);
 		((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->EnableWindow(FALSE);
 		SetTimer(ID_EVENT_COUNTDOWN, 500, NULL);
+		mCountdownFlag = TRUE;
 	}
 
 	SetTimer(ID_EVENT_KB, IntervalTime * 1000, NULL);
+	mKbFlag = TRUE;
 
 	((CEdit*)GetDlgItem(IDC_EDIT_INTERVAL))->EnableWindow(FALSE);
 
@@ -473,13 +481,29 @@ void CKbSimDlg::OnBnClickedButtonRun()
 void CKbSimDlg::OnBnClickedButtonStop()
 {
 	// TODO: Add your control notification handler code here
-	KillTimer(ID_EVENT_KB);
+	if (mKbFlag)
+	{
+		KillTimer(ID_EVENT_KB);
+		mKbFlag = FALSE;
+
+		if (LOBYTE(GetKeyState(VK_CAPITAL)) != mPreviousKeyState)
+		{
+			keybd_event(VK_CAPITAL, 0, 0, 0);
+			keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, 0);
+		}
+		mPreviousKeyState = 0;
+	}
+
 	if (((CButton*)GetDlgItem(IDC_CHECK_COUNTDOWN))->GetCheck() == TRUE)
 	{
 		((CButton*)GetDlgItem(IDC_CHECK_COUNTDOWN))->EnableWindow(TRUE);
 		((CDateTimeCtrl*)GetDlgItem(IDC_DATETIMEPICKER_COUNTDOWN))->EnableWindow(TRUE);
 		((CComboBox*)GetDlgItem(IDC_COMBO_ACTION))->EnableWindow(TRUE);
-		KillTimer(ID_EVENT_COUNTDOWN);
+		if (mCountdownFlag)
+		{
+			KillTimer(ID_EVENT_COUNTDOWN);
+			mCountdownFlag = FALSE;
+		}
 	}
 
 	// Clear EXECUTION_STATE flags to allow the display to idle and allow the system to idle to sleep normally.
@@ -487,12 +511,6 @@ void CKbSimDlg::OnBnClickedButtonStop()
 	{
 		SetThreadExecutionState(ES_CONTINUOUS);
 		mActivityFlag = FALSE;
-	}
-
-	if (LOBYTE(GetKeyState(VK_CAPITAL)))
-	{
-		keybd_event(VK_CAPITAL, 0, 0, 0);
-		keybd_event(VK_CAPITAL, 0, KEYEVENTF_KEYUP, 0);
 	}
 
 	((CEdit*)GetDlgItem(IDC_EDIT_INTERVAL))->EnableWindow(TRUE);
@@ -536,10 +554,13 @@ void CKbSimDlg::OnOK()
 }
 
 
-void CKbSimDlg::OnCancel()
+BOOL CKbSimDlg::PreTranslateMessage(MSG* pMsg)
 {
 	// TODO: Add your specialized code here and/or call the base class
-	OnBnClickedButtonStop();
+	if ((pMsg->message == WM_KEYDOWN) && (pMsg->wParam == VK_ESCAPE))
+	{
+		return TRUE;
+	}
 
-	CDialogEx::OnCancel();
+	return CDialogEx::PreTranslateMessage(pMsg);
 }
