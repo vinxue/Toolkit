@@ -13,8 +13,8 @@ on:
 
 env:
   # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE_PATH_KBSIM: KbSim
   SOLUTION_FILE_PATH_BITVIEWER: BitViewer
+  SOLUTION_FILE_PATH_KBSIM: KbSim
 
   # Configuration type to build.
   # You can convert this to a build matrix if you need coverage of multiple configuration types.
@@ -39,5 +39,13 @@ jobs:
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: |
-        msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH_KBSIM}}
         msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH_BITVIEWER}}
+        msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH_KBSIM}}
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: App-Artifact
+        path: |
+          ${{env.SOLUTION_FILE_PATH_BITVIEWER}}/x64/Release/*.exe
+          ${{env.SOLUTION_FILE_PATH_KBSIM}}/Release/*.exe
