@@ -17,6 +17,7 @@ env:
   SOLUTION_FILE_PATH_BITVIEWER: BitViewer
   SOLUTION_FILE_PATH_KBSIM: KbSim
   SOLUTION_FILE_PATH_PCIE: PCIe
+  SOLUTION_FILE_PATH_TIMER: Timer
 
   # Configuration type to build.
   # You can convert this to a build matrix if you need coverage of multiple configuration types.
@@ -44,12 +45,14 @@ jobs:
         msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH_PCIE}}
         msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH_BITVIEWER}}
         msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH_KBSIM}}
+        msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH_TIMER}}
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: App-Artifact
+        name: AppArtifact
         path: |
           ${{env.SOLUTION_FILE_PATH_PCIE}}/Release/*.exe
           ${{env.SOLUTION_FILE_PATH_BITVIEWER}}/x64/Release/*.exe
           ${{env.SOLUTION_FILE_PATH_KBSIM}}/Release/*.exe
+          ${{env.SOLUTION_FILE_PATH_TIMER}}/Release/*.exe
