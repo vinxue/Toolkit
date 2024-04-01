@@ -19,6 +19,7 @@ env:
   SOLUTION_FILE_PATH_PCIE: PCIe
   SOLUTION_FILE_PATH_TIMER: Timer
   SOLUTION_FILE_PATH_IMGCONVERTER: ImgConverter
+  SOLUTION_FILE_PATH_STOPWATCH: StopWatch
 
   # Configuration type to build.
   # You can convert this to a build matrix if you need coverage of multiple configuration types.
@@ -48,6 +49,7 @@ jobs:
         msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH_KBSIM}}
         msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH_TIMER}}
         msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH_IMGCONVERTER}}
+        msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH_STOPWATCH}}
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
@@ -59,3 +61,4 @@ jobs:
           ${{env.SOLUTION_FILE_PATH_KBSIM}}/Release/*.exe
           ${{env.SOLUTION_FILE_PATH_TIMER}}/Release/*.exe
           ${{env.SOLUTION_FILE_PATH_IMGCONVERTER}}/Release/*.exe
+          ${{env.SOLUTION_FILE_PATH_STOPWATCH}}/Release/*.exe
