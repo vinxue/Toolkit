@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImgConverter", "ImgConverter\ImgConverter.vcxproj", "{8B922E8C-EF19-4002-9C1A-98B1A07007DD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8B922E8C-EF19-4002-9C1A-98B1A07007DD}.Debug|Win32.ActiveCfg = Release|Win32
+		{8B922E8C-EF19-4002-9C1A-98B1A07007DD}.Debug|Win32.Build.0 = Release|Win32
+		{8B922E8C-EF19-4002-9C1A-98B1A07007DD}.Release|Win32.ActiveCfg = Release|Win32
+		{8B922E8C-EF19-4002-9C1A-98B1A07007DD}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
