@@ -141,6 +141,14 @@ BOOL CKbSimDlg::OnInitDialog()
 		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, _T("Arial"));
 	GetDlgItem(IDC_STATIC_KbSim)->SetFont(font);
 
+	// Set WS_EX_LAYERED on this window
+	SetWindowLong(GetSafeHwnd(),
+		GWL_EXSTYLE,
+		GetWindowLong(GetSafeHwnd(), GWL_EXSTYLE) | WS_EX_LAYERED);
+
+	// Make this window 95% alpha
+	::SetLayeredWindowAttributes(GetSafeHwnd(), 0, (255 * 95) / 100, LWA_ALPHA);
+
 	// Set up interval time
 	((CEdit*)GetDlgItem(IDC_EDIT_INTERVAL))->SetLimitText(3);
 	Str.Format(L"%d", 60);
