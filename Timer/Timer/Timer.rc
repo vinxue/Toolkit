@@ -82,7 +82,7 @@ CAPTION "About Timer"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,14,14,20,20
-    LTEXT           "Smart Timer, Version 1.0.2.5",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Smart Timer, Version 1.0.2.6",IDC_STATIC,42,14,114,8,SS_NOPREFIX
     LTEXT           "Copyright © 2009-2024 Gavin.",IDC_STATIC,42,26,114,8
     DEFPUSHBUTTON   "OK",IDOK,114,42,50,14,WS_GROUP
 END
@@ -119,8 +119,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,2,5
- PRODUCTVERSION 1,0,2,5
+ FILEVERSION 1,0,2,6
+ PRODUCTVERSION 1,0,2,6
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -137,12 +137,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Gavin"
             VALUE "FileDescription", "Smart Timer"
-            VALUE "FileVersion", "1.0.2.5"
+            VALUE "FileVersion", "1.0.2.6"
             VALUE "InternalName", "Timer.exe"
             VALUE "LegalCopyright", "Copyright © 2009-2024 Gavin.  All rights reserved."
             VALUE "OriginalFilename", "Timer.exe"
             VALUE "ProductName", "Timer"
-            VALUE "ProductVersion", "1.0.2.5"
+            VALUE "ProductVersion", "1.0.2.6"
         END
     END
     BLOCK "VarFileInfo"

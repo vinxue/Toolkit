@@ -68,6 +68,14 @@ History: 1.Removed unavailable contact information.
 Known Issue: None
 ***********************************************************/
 
+/*********************************************************
+Author: Gavin
+Date: 04/12/2024
+Version: 1.0.2.6
+History: 1.Prevent the display and sleep idle timeout
+Known Issue: None
+***********************************************************/
+
 #include "stdafx.h"
 #include "Timer.h"
 #include "TimerDlg.h"
@@ -322,6 +330,9 @@ void CTimerDlg::OnTimer(UINT_PTR nIDEvent)
 			m_Date.EnableWindow(TRUE);
 			m_Time.EnableWindow(TRUE);
 
+			// Clear EXECUTION_STATE flags to allow the display to idle and allow the system to idle to sleep normally
+			SetThreadExecutionState(ES_CONTINUOUS);  // Gavin 04/12/2024
+
 			if (TRUE == pRadion1->GetCheck())
 			{
 				CComboBox* comboctrl = (CComboBox*)GetDlgItem(IDC_COMBO_ACTION);
@@ -441,6 +452,8 @@ void CTimerDlg::OnBnClickedButtonActivate()
 			m_cPause.ShowWindow(TRUE);
 
 			SetTimer(0, 200, NULL);                           //Fixed action option 2 can't activated issue     01/21/2010  Gavin
+			// Prevent the display and sleep idle time-out
+			SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);  // Gavin 04/12/2024
 		}
 
 		else if ((m_strFile == "") && (index == CB_ERR))
@@ -456,6 +469,8 @@ void CTimerDlg::OnBnClickedButtonActivate()
 			m_cPause.ShowWindow(TRUE);	
 
 			SetTimer(0, 200, NULL);                         //Modify by Gavin     12/26/2009
+			// Prevent the display and sleep idle time-out
+			SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);  // Gavin 04/12/2024
 		}
 
 		//SetTimer(0, 200, NULL);
