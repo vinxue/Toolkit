@@ -23,6 +23,7 @@ env:
   SOLUTION_FILE_PATH_IMGCONVERTER: ImgConverter
   SOLUTION_FILE_PATH_STOPWATCH: StopWatch
   SOLUTION_FILE_PATH_IDCARD: IDCard
+  TOOLS_C_PATH: Tools/C
 
   # Configuration type to build.
   # You can convert this to a build matrix if you need coverage of multiple configuration types.
@@ -33,7 +34,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-2019
 
     steps:
@@ -42,7 +43,7 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
 
-    - name: Build
+    - name: Windows Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
@@ -58,7 +59,7 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: AppArtifact
+        name: WinAppArtifact
         path: |
           ${{env.SOLUTION_FILE_PATH_PCIE}}/Release/*.exe
           ${{env.SOLUTION_FILE_PATH_BITVIEWER}}/x64/Release/*.exe
@@ -66,3 +67,21 @@ jobs:
           ${{env.SOLUTION_FILE_PATH_TIMER}}/Release/*.exe
           ${{env.SOLUTION_FILE_PATH_IMGCONVERTER}}/Release/*.exe
           ${{env.SOLUTION_FILE_PATH_STOPWATCH}}/Release/*.exe
+
+
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Linux Build
+      run: |
+        gcc -o ${{env.TOOLS_C_PATH}}/Crc32/Crc32 ${{env.TOOLS_C_PATH}}/Crc32/Crc32.c
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: LinuxAppArtifact
+        path: |
+          ${{env.TOOLS_C_PATH}}/Crc32/Crc32
