@@ -78,6 +78,7 @@ jobs:
     - name: Linux Build
       run: |
         gcc -o ${{env.TOOLS_C_PATH}}/Crc32/Crc32 ${{env.TOOLS_C_PATH}}/Crc32/Crc32.c
+        gcc -o ${{env.TOOLS_C_PATH}}/Checksum/Checksum ${{env.TOOLS_C_PATH}}/Checksum/Checksum.c
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
@@ -85,3 +86,4 @@ jobs:
         name: LinuxAppArtifact
         path: |
           ${{env.TOOLS_C_PATH}}/Crc32/Crc32
+          ${{env.TOOLS_C_PATH}}/Checksum/Checksum

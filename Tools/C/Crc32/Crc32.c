@@ -1,3 +1,11 @@
+/** @file
+  Utility functions to generate the 32-bit CRC based on ITU-T V.42.
+
+  Copyright (c) 2024, Gavin Xue. All rights reserved.<BR>
+  SPDX-License-Identifier: BSD-2-Clause
+
+**/
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
