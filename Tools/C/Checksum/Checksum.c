@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 
     // Read file content into buffer
     size_t bytes_read = fread(buffer, 1, file_size, file);
-    if (bytes_read != file_size) {
+    if (bytes_read != (size_t)file_size) {
         perror("Failed to read file");
         free(buffer);
         fclose(file);
