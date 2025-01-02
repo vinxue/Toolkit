@@ -3,7 +3,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: MSBuild
+name: Build
 
 on:
   schedule:
@@ -77,13 +77,11 @@ jobs:
 
     - name: Linux Build
       run: |
-        gcc -o ${{env.TOOLS_C_PATH}}/Crc32/Crc32 ${{env.TOOLS_C_PATH}}/Crc32/Crc32.c
-        gcc -o ${{env.TOOLS_C_PATH}}/Checksum/Checksum ${{env.TOOLS_C_PATH}}/Checksum/Checksum.c
+        make -C ${{env.TOOLS_C_PATH}}
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: LinuxAppArtifact
         path: |
-          ${{env.TOOLS_C_PATH}}/Crc32/Crc32
-          ${{env.TOOLS_C_PATH}}/Checksum/Checksum
+          ${{env.TOOLS_C_PATH}}/build/*
