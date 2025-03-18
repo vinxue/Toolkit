@@ -344,7 +344,6 @@ void CBitViewerDlg::OnBnClickedButtonDecode()
 
 	for (Index = 0; Index < sizeof(UINT64) * 8; Index++)
 	{
-		CEditCtrl = (CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index);
 		BitData = (InputData & ((UINT64)BIT0 << Index)) ? 1 : 0;
 
 		Str.Format(L"%X", BitData);
@@ -403,6 +402,7 @@ void CBitViewerDlg::EncodeHexValue(UINT8 SpecialIndex, UINT8 SpecialVal)
 	CString          Str;
 	UINT8            BitValue;
 	UINT64           HexValue;
+	UINT8            BitData;
 	UINT8            BitsData;
 	CString          StrStartBit;
 	CString          StrEndBit;
@@ -431,6 +431,14 @@ void CBitViewerDlg::EncodeHexValue(UINT8 SpecialIndex, UINT8 SpecialVal)
 	}
 
 	HexValue = BitFieldWrite64(HexValue, SpecialIndex, SpecialIndex, SpecialVal);
+
+	for (Index = 0; Index < sizeof(UINT64) * 8; Index++)
+	{
+		BitData = (HexValue & ((UINT64)BIT0 << Index)) ? 1 : 0;
+
+		Str.Format(L"%X", BitData);
+		((CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index))->SetWindowText(Str);
+	}
 
 	//
 	// Update the static bits
@@ -484,12 +492,10 @@ UINT8 CBitViewerDlg::NegationValue(UINT8 Index)
 
 	if ((UINT8)wcstoul(StrBitValue, NULL, 10) == 0)
 	{
-		((CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index))->SetWindowText(L"1");
 		return 1;
 	}
 	else
 	{
-		((CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index))->SetWindowText(L"0");
 		return 0;
 	}
 }
@@ -680,7 +686,6 @@ void CBitViewerDlg::OnBnClickedButtonSetBitfield()
 
 	for (Index = 0; Index < sizeof(UINT64) * 8; Index++)
 	{
-		CEditCtrl = (CEdit*)GetDlgItem(IDC_EDIT_BIT0 + Index);
 		BitData = (NewInputData & ((UINT64)BIT0 << Index)) ? 1 : 0;
 
 		Str.Format(L"%X", BitData);
