@@ -3,7 +3,7 @@ import tkinter as tk
 import time
 import sys
 
-HIDE_MENUBAR = False
+SET_TRANSPARENT = False
 
 # Hide Windows command prompt window (doesn't affect macOS/Linux)
 if sys.platform == 'win32':
@@ -39,11 +39,11 @@ class ElegantClock:
         self.update_time()
 
     def _init_window(self, width=300, heigh=120):
-        if HIDE_MENUBAR:
-            self.root.overrideredirect(True)
+        self.root.overrideredirect(True)
+        if SET_TRANSPARENT:
             self.root.attributes("-transparentcolor", self.colors["background"])
         else:
-            self.root.attributes("-alpha", 0.9)  # 90% opacity
+            self.root.attributes("-alpha", 0.85)  # 85% opacity
 
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
