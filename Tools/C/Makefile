@@ -14,7 +14,9 @@ $(BUILD_DIR):
 
 # Recursively call subdirectory Makefile and pass build directory
 $(SUBDIRS): $(BUILD_DIR)
-	$(MAKE) -C $@ BUILD_DIR=$(abspath $(BUILD_DIR))
+	if [ -f $@/Makefile ]; then \
+		$(MAKE) -C $@ BUILD_DIR=$(abspath $(BUILD_DIR)); \
+	fi
 
 # Clean target
 .PHONY: clean
