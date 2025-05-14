@@ -4,6 +4,7 @@
 
 #pragma once
 
+//#define ACRYLIC_SUPPORT
 
 // CBitViewerDlg dialog
 class CBitViewerDlg : public CDialogEx
@@ -40,4 +41,9 @@ public:
 	afx_msg void OnBnClickedButtonSetBitfield();
 	void EncodeHexValue(UINT8 SpecialIndex, UINT8 SpecialVal);
 	UINT8 NegationValue(UINT8 Index);
+#ifdef ACRYLIC_SUPPORT
+private:
+	CMFCButton m_btnDecode;
+	CMFCButton m_btnSetBitfield;
+#endif
 };

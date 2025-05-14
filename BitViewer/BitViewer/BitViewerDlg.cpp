@@ -7,6 +7,11 @@
 #include "BitViewer.h"
 #include "BitViewerDlg.h"
 #include "afxdialogex.h"
+#ifdef ACRYLIC_SUPPORT
+#include <dwmapi.h>
+
+#pragma comment(lib, "Dwmapi.lib")
+#endif
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -62,6 +67,10 @@ CBitViewerDlg::CBitViewerDlg(CWnd* pParent /*=nullptr*/)
 void CBitViewerDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+#ifdef ACRYLIC_SUPPORT
+	DDX_Control(pDX, IDC_BUTTON_DECODE, m_btnDecode);
+	DDX_Control(pDX, IDC_BUTTON_SET_BITFIELD, m_btnSetBitfield);
+#endif
 }
 
 BEGIN_MESSAGE_MAP(CBitViewerDlg, CDialogEx)
@@ -75,6 +84,26 @@ BEGIN_MESSAGE_MAP(CBitViewerDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_SET_BITFIELD, &CBitViewerDlg::OnBnClickedButtonSetBitfield)
 END_MESSAGE_MAP()
 
+#ifdef ACRYLIC_SUPPORT
+enum DWM_SYSTEMBACKDROP_TYPE_A
+{
+	DWMSBT_AUTO_A = 0,
+	DWMSBT_NONE_A = 1,
+	DWMSBT_MAINWINDOW_A = 2,
+	DWMSBT_TRANSIENTWINDOW_A = 3,
+	DWMSBT_TABBEDWINDOW_A = 4
+};
+
+const int DWMWA_SYSTEMBACKDROP_TYPE_A = 38;
+
+void EnableAcrylicEffect(HWND hwnd)
+{
+	DWM_SYSTEMBACKDROP_TYPE_A backdropType = DWMSBT_TRANSIENTWINDOW_A;
+	DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE_A, &backdropType, sizeof(backdropType));
+}
+
+#define TRANSPARENT_COLOR RGB(200, 201, 202)
+#endif
 
 // CBitViewerDlg message handlers
 
@@ -108,6 +137,22 @@ BOOL CBitViewerDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
+#ifdef ACRYLIC_SUPPORT
+	SetWindowLong(GetSafeHwnd(),
+		GWL_EXSTYLE,
+		GetWindowLong(GetSafeHwnd(), GWL_EXSTYLE) | WS_EX_LAYERED);
+
+	SetLayeredWindowAttributes(TRANSPARENT_COLOR, 0, LWA_COLORKEY);
+
+	EnableAcrylicEffect(m_hWnd);
+
+	MARGINS margins = { -1 };
+	DwmExtendFrameIntoClientArea(m_hWnd, &margins);
+	SetBackgroundColor(TRANSPARENT_COLOR);
+	CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerWindows));
+	CMFCButton::EnableWindowsTheming();
+#endif
+
 	CFont*          Font;
 	UINT8           Index;
 	CString         Str;
@@ -117,6 +162,7 @@ BOOL CBitViewerDlg::OnInitDialog()
 		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial"));
 	GetDlgItem(IDC_STATIC_TITLE)->SetFont(Font);
 
+#ifndef ACRYLIC_SUPPORT
 	// Set WS_EX_LAYERED on this window
 	SetWindowLong(GetSafeHwnd(),
 		GWL_EXSTYLE,
@@ -124,6 +170,7 @@ BOOL CBitViewerDlg::OnInitDialog()
 
 	// Make this window 95% alpha
 	::SetLayeredWindowAttributes(GetSafeHwnd(), 0, (255 * 95) / 100, LWA_ALPHA);
+#endif
 
 	//
 	// Set the text limit for input data
