@@ -47,7 +47,9 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: WinAppArtifact
-        path: '*/**/Release/*.exe'
+        path: |
+          **/Release/*.exe
+          !**/obj/Release/*.exe
 
 
   build-linux:

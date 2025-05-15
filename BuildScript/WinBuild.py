@@ -18,21 +18,21 @@ def main():
         ("Timer", "Win32"),
         ("ImgConverter", "Win32"),
         ("StopWatch", "Win32"),
-        ("IDCard", "Win32")
+        ("IDCard", "Win32"),
+        ("HashCalc", "Any CPU"),
+        ("End", "End")
     ]
 
     # Define the build configuration
     build_configuration = "Release"
-
-    # Initialize a list to store paths of built executables
-    all_exe_paths = []
 
     # Special build for BitViewer with ACRYLIC_SUPPORT
     build_special_bitviewer()
 
     # Iterate over each solution and build it
     for solution_path, platform in solution_paths:
-        build_solution(solution_path, platform)
+        if solution_path != "End":
+            build_solution(solution_path, platform)
 
 if __name__ == "__main__":
     main()
