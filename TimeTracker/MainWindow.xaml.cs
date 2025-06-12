@@ -91,9 +91,9 @@ namespace TimeTracker
 
         private void InitializeTimePickers()
         {
-            hourCombo.ItemsSource = Enumerable.Range(0, 24);
-            minuteCombo.ItemsSource = Enumerable.Range(0, 60);
-            secondCombo.ItemsSource = Enumerable.Range(0, 60);
+            hourCombo.ItemsSource = Enumerable.Range(0, 24).Select(i => i.ToString("D2"));
+            minuteCombo.ItemsSource = Enumerable.Range(0, 60).Select(i => i.ToString("D2"));
+            secondCombo.ItemsSource = Enumerable.Range(0, 60).Select(i => i.ToString("D2"));
 
             // Handle selection changes
             datePicker.SelectedDateChanged += (s, e) => UpdateTimeDifference();
@@ -105,10 +105,11 @@ namespace TimeTracker
         private void SetCurrentTime()
         {
             var now = DateTime.Now;
+            var initTime = "00";
             datePicker.SelectedDate = now.Date;
-            hourCombo.SelectedItem = 0; // now.Hour;
-            minuteCombo.SelectedItem = 0; // now.Minute;
-            secondCombo.SelectedItem = 0; // now.Second;
+            hourCombo.SelectedItem = initTime;
+            minuteCombo.SelectedItem = initTime;
+            secondCombo.SelectedItem = initTime;
         }
 
         private void UpdateTimeDifference(object sender = null, EventArgs e = null)
@@ -116,9 +117,9 @@ namespace TimeTracker
             try
             {
                 var selectedDate = datePicker.SelectedDate ?? DateTime.Today;
-                var hour = hourCombo.SelectedItem as int? ?? 0;
-                var minute = minuteCombo.SelectedItem as int? ?? 0;
-                var second = secondCombo.SelectedItem as int? ?? 0;
+                var hour = int.Parse(hourCombo.SelectedItem as string ?? "00");
+                var minute = int.Parse(minuteCombo.SelectedItem as string ?? "00");
+                var second = int.Parse(secondCombo.SelectedItem as string ?? "00");
 
                 var targetTime = new DateTime(
                     selectedDate.Year, selectedDate.Month, selectedDate.Day,
