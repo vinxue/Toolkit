@@ -1,6 +1,10 @@
 import subprocess
-import glob
+import concurrent.futures
 
+"""
+Add MSBuild to PATH. e.g.:
+set PATH=C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin;%PATH%
+"""
 # Define the solution paths and platforms
 solution_paths = [
     ("BitViewer", "x64"),
@@ -31,10 +35,14 @@ def main():
     # Special build for BitViewer with ACRYLIC_SUPPORT
     build_special_bitviewer()
 
-    # Iterate over each solution and build it
-    for solution_path, platform in solution_paths:
-        if solution_path != "End":
-            build_solution(solution_path, platform)
+    # Use ThreadPoolExecutor to build solutions concurrently
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [
+            executor.submit(build_solution, solution_path, platform, build_configuration)
+            for solution_path, platform in solution_paths if solution_path != "End"
+        ]
+        # Wait for all futures to complete
+        concurrent.futures.wait(futures, timeout=60*60)
 
 if __name__ == "__main__":
     main()
