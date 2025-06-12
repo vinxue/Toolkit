@@ -12,6 +12,7 @@ solution_paths = [
     ("IDCard", "Win32"),
     ("HashCalc", "Any CPU"),
     ("ClockApp", "Any CPU"),
+    ("TimeTracker", "Any CPU"),
     ("End", "End")
 ]
 
