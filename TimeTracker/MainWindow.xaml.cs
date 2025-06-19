@@ -23,45 +23,23 @@ namespace TimeTracker
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly DispatcherTimer dispatcherTimer;
+        private DispatcherTimer dispatcherTimer;
         public MainWindow()
         {
             InitializeComponent();
             Loaded += MainWindow_Loaded;
 
-            // Setup update timer
-            dispatcherTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(1)
-            };
-            dispatcherTimer.Tick += UpdateTimeDifference;
-            dispatcherTimer.Start();
-
-            // Set initial values to current time
-            InitializeTimePickers();
-            SetCurrentTime();
-            UpdateTimeDifference(null, EventArgs.Empty);
+            InitializeAppComponents();
         }
 
+        #region DWM API for Window Style
         public static class DwmApi
         {
             public const int DWMWA_SYSTEMBACKDROP_TYPE = 38;
+            public const int DWMSBT_TRANSIENTWINDOW = 3;
 
             [DllImport("dwmapi.dll", PreserveSig = true)]
             public static extern int DwmSetWindowAttribute(IntPtr hwnd, int dwAttribute, ref int pvAttribute, int cbAttribute);
-        }
-
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            var hwnd = new WindowInteropHelper(this).Handle;
-
-            int backdropType = 3;
-            DwmApi.DwmSetWindowAttribute(hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE, ref backdropType, Marshal.SizeOf(typeof(int)));
-
-            HwndSource mainWindowSrc = HwndSource.FromHwnd(hwnd);
-            mainWindowSrc.CompositionTarget.BackgroundColor = Color.FromArgb(0, 0, 0, 0);
-            NonClientRegionAPI.MARGINS margins = new NonClientRegionAPI.MARGINS { cxLeftWidth = -1, cxRightWidth = -1, cyTopHeight = -1, cyBottomHeight = -1 };
-            NonClientRegionAPI.DwmExtendFrameIntoClientArea(hwnd, ref margins);
         }
 
         public static class NonClientRegionAPI
@@ -75,11 +53,23 @@ namespace TimeTracker
                 public int cyBottomHeight;   // height of bottom border that retains its size
             };
 
-            [DllImport("DwmApi.dll")]
-            public static extern int DwmExtendFrameIntoClientArea(
-                IntPtr hwnd,
-                ref MARGINS pMarInset);
+            [DllImport("dwmapi.dll")]
+            public static extern int DwmExtendFrameIntoClientArea(IntPtr hwnd, ref MARGINS pMarInset);
         }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+
+            int backdropType = DwmApi.DWMSBT_TRANSIENTWINDOW;
+            DwmApi.DwmSetWindowAttribute(hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE, ref backdropType, Marshal.SizeOf(typeof(int)));
+
+            HwndSource mainWindowSrc = HwndSource.FromHwnd(hwnd);
+            mainWindowSrc.CompositionTarget.BackgroundColor = Color.FromArgb(0, 0, 0, 0);
+            NonClientRegionAPI.MARGINS margins = new NonClientRegionAPI.MARGINS { cxLeftWidth = -1, cxRightWidth = -1, cyTopHeight = -1, cyBottomHeight = -1 };
+            NonClientRegionAPI.DwmExtendFrameIntoClientArea(hwnd, ref margins);
+        }
+        #endregion
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -87,6 +77,21 @@ namespace TimeTracker
             {
                 this.DragMove();
             }
+        }
+
+        private void InitializeAppComponents()
+        {
+            InitializeTimePickers();
+            SetInitialTargetTime();
+
+            dispatcherTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(250)
+            };
+            dispatcherTimer.Tick += UpdateTimeDifference;
+            dispatcherTimer.Start();
+
+            UpdateTimeDifference(null, EventArgs.Empty);
         }
 
         private void InitializeTimePickers()
@@ -102,11 +107,11 @@ namespace TimeTracker
             secondCombo.SelectionChanged += (s, e) => UpdateTimeDifference();
         }
 
-        private void SetCurrentTime()
+
+        private void SetInitialTargetTime()
         {
-            var now = DateTime.Now;
             var initTime = "00";
-            datePicker.SelectedDate = now.Date;
+            datePicker.SelectedDate = DateTime.Now.Date;
             hourCombo.SelectedItem = initTime;
             minuteCombo.SelectedItem = initTime;
             secondCombo.SelectedItem = initTime;
@@ -130,7 +135,7 @@ namespace TimeTracker
 
                 FormatTimeDifference(difference);
             }
-            catch (ArgumentOutOfRangeException)
+            catch (Exception)
             {
                 daysText.Text = "Invalid";
                 hoursText.Text = "date/time";
