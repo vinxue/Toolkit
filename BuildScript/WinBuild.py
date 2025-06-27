@@ -1,10 +1,9 @@
 import subprocess
 import concurrent.futures
 
-"""
-Add MSBuild to PATH. e.g.:
-set PATH=C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin;%PATH%
-"""
+# Add MSBuild to PATH. e.g.:
+# set PATH=C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin;%PATH%
+
 # Define the solution paths and platforms
 solution_paths = [
     ("BitViewer", "x64"),
@@ -14,7 +13,7 @@ solution_paths = [
     ("ImgConverter", "Win32"),
     ("StopWatch", "Win32"),
     ("IDCard", "Win32"),
-    ("HashCalc", "Any CPU"),
+    ("ClockApp", "Any CPU"),
     ("TimeTracker", "Any CPU"),
     ("SecKit", "Any CPU"),
     ("End", "End")
@@ -32,17 +31,23 @@ def main():
     # Define the build configuration
     build_configuration = "Release"
 
-    # Special build for BitViewer with ACRYLIC_SUPPORT
-    build_special_bitviewer()
+    try:
+        # Special build for BitViewer with ACRYLIC_SUPPORT
+        build_special_bitviewer()
 
-    # Use ThreadPoolExecutor to build solutions concurrently
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [
-            executor.submit(build_solution, solution_path, platform, build_configuration)
-            for solution_path, platform in solution_paths if solution_path != "End"
-        ]
-        # Wait for all futures to complete
-        concurrent.futures.wait(futures, timeout=60*60)
+        # Use ThreadPoolExecutor to build solutions concurrently
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(build_solution, solution_path, platform, build_configuration)
+                for solution_path, platform in solution_paths if solution_path != "End"
+            ]
+            # Wait for all futures to complete
+            for future in concurrent.futures.as_completed(futures):
+                # This will raise an exception if the future encountered an exception
+                future.result()
+    except Exception as e:
+        print(f"Build failed: {e}")
+        exit(1)
 
 if __name__ == "__main__":
     main()

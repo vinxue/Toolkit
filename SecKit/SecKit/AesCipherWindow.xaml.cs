@@ -78,6 +78,7 @@ namespace SecKit
 
         private async void ProcessFile(bool encrypt)
         {
+            string outputFile = null;
             try
             {
                 var iv = HexStringToBytes(txtIV.Text);
@@ -89,7 +90,7 @@ namespace SecKit
                 if (key.Length != 32) throw new ArgumentException("Key must be 32 bytes");
                 if (string.IsNullOrEmpty(inputFile)) throw new ArgumentException("Please select a file");
 
-                string outputFile = System.IO.Path.Combine(
+                outputFile = System.IO.Path.Combine(
                     System.IO.Path.GetDirectoryName(inputFile),
                     System.IO.Path.GetFileName(inputFile) +
                     (encrypt ? ".enc" : ".dec"));
@@ -118,6 +119,10 @@ namespace SecKit
             }
             catch (Exception ex)
             {
+                if (outputFile != null && File.Exists(outputFile))
+                {
+                    File.Delete(outputFile);
+                }
                 MessageBox.Show($"Error: {ex.Message}", "Error");
             }
         }
