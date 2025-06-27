@@ -7,11 +7,11 @@ using System.Windows;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("HashCalc")]
+[assembly: AssemblyTitle("SecKit")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("HashCalc")]
+[assembly: AssemblyProduct("SecKit")]
 [assembly: AssemblyCopyright("Copyright © 2025 Gavin Xue")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

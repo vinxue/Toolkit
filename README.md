@@ -12,10 +12,10 @@ Welcome to the Toolkit project! This project contains a collection of Windows ap
 |-----------------|-----------------------------------------------------------------------|
 | `BitViewer`     | An application for viewing bit data of a hex data.                    |
 | `ClockApp`      | A simple clock application.                                           |
-| `HashCalc`      | An application for calculating hash values, including CRC32/MD5/SHA1/SHA256/SHA384/SHA512 algorithms. |
 | `ImgConverter`  | An image conversion tool supporting multiple image formats.           |
 | `KbSim`         | A keyboard simulator application.                                     |
 | `PCIe`          | An application to calculate PCIe address.                             |
+| `SecKit`        | An application for AES encryption/decryption and hash calculating.    |
 | `StopWatch`     | A simple stopwatch application.                                       |
 | `Timer`         | A timer application.                                                  |
 | `TimeTracker`   | A time tracking application.                                          |

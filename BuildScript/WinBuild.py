@@ -15,8 +15,8 @@ solution_paths = [
     ("StopWatch", "Win32"),
     ("IDCard", "Win32"),
     ("HashCalc", "Any CPU"),
-    ("ClockApp", "Any CPU"),
     ("TimeTracker", "Any CPU"),
+    ("SecKit", "Any CPU"),
     ("End", "End")
 ]
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,15 +13,16 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Security.Cryptography;
+using System.IO;
 
-namespace HashCalc
+namespace SecKit
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for HashCalcWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class HashCalcWindow : UserControl
     {
-        public MainWindow()
+        public HashCalcWindow()
         {
             InitializeComponent();
         }
@@ -212,7 +212,7 @@ namespace HashCalc
             (byte)((x >> 16) & 0xff),
             (byte)((x >> 8) & 0xff),
             (byte)(x & 0xff)
-        };
+            };
         }
     }
 }
