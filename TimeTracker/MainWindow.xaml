@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TimeTracker"
         mc:Ignorable="d"
-        Title="Time Tracker" Height="250" Width="500" WindowStartupLocation="CenterScreen" Topmost="True"
+        Title="Time Tracker" Height="250" Width="500" WindowStartupLocation="CenterScreen"
         Background="Transparent" MouseDown="Window_MouseDown" ResizeMode="CanMinimize" Icon="AppIcon.ico">
     <Grid>
         <StackPanel>
