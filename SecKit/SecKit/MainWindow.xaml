@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:SecKit"
         mc:Ignorable="d"
         Title="Security Kit" Height="380" Width="600" ResizeMode="CanMinimize"
-        WindowStartupLocation="CenterScreen" Icon="AppIcon.ico">
+        WindowStartupLocation="CenterScreen" Icon="AppIcon.ico"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
     <Grid>
         <TabControl>
             <TabItem Header="AES Cipher">

@@ -31,7 +31,7 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0 5" HorizontalAlignment="Center">
             <TextBlock Text="IV (16 bytes hex):" Width="120" 
                        VerticalAlignment="Center" FontSize="14"/>
-            <TextBox x:Name="txtIV" Width="350" FontSize="14" MaxLength="32"
+            <TextBox x:Name="txtIV" Width="400" FontSize="14" MaxLength="32"
                      ToolTip="32 hexadecimal characters (16 bytes)"/>
         </StackPanel>
 
@@ -39,13 +39,13 @@
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0 5" HorizontalAlignment="Center">
             <TextBlock Text="KEY (32 bytes hex):" Width="120" 
                        VerticalAlignment="Center" FontSize="14"/>
-            <TextBox x:Name="txtKey" Width="350" FontSize="14" MaxLength="64"
+            <TextBox x:Name="txtKey" Width="400" FontSize="14" MaxLength="64"
                      ToolTip="64 hexadecimal characters (32 bytes)"/>
         </StackPanel>
 
         <!-- File Selection -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0 15" HorizontalAlignment="Center">
-            <TextBox x:Name="txtFilePath" Width="380" FontSize="14" IsReadOnly="True"/>
+            <TextBox x:Name="txtFilePath" Width="430" FontSize="14" IsReadOnly="True"/>
             <Button x:Name="btnBrowse" Content="Browse..." Width="80" Margin="10 0 0 0"
                     Click="BtnBrowse_Click" FontSize="14" Padding="5 2"/>
         </StackPanel>
