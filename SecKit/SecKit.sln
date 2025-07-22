@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.34601.136
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecKit", "SecKit\SecKit.csproj", "{41F2E79F-A03D-4939-AB26-EE79C24C8C08}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecKit", "SecKit\SecKit.csproj", "{7CD57972-B41F-487E-B564-2F492712808E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{41F2E79F-A03D-4939-AB26-EE79C24C8C08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{41F2E79F-A03D-4939-AB26-EE79C24C8C08}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{41F2E79F-A03D-4939-AB26-EE79C24C8C08}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{41F2E79F-A03D-4939-AB26-EE79C24C8C08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CD57972-B41F-487E-B564-2F492712808E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CD57972-B41F-487E-B564-2F492712808E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CD57972-B41F-487E-B564-2F492712808E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CD57972-B41F-487E-B564-2F492712808E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {DFA88511-BD45-4798-98CB-7E4F7DB62E2C}
+		SolutionGuid = {46F49265-4E3C-48F2-BDBE-2B9D3FB6A931}
 	EndGlobalSection
 EndGlobal
