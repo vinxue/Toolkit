@@ -48,8 +48,11 @@ jobs:
       with:
         name: WinAppArtifact
         path: |
-          **/Release/*.exe
-          !**/obj/Release/*.exe
+          **/Release/**/*.exe
+          **/Release/**/*.deps.json
+          **/Release/**/*.dll
+          **/Release/**/*.runtimeconfig.json
+          !**/obj/**
 
 
   build-linux:

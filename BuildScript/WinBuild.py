@@ -15,13 +15,16 @@ solution_paths = [
     ("IDCard", "Win32"),
     ("ClockApp", "Any CPU"),
     ("TimeTracker", "Any CPU"),
-    ("SecKit", "Any CPU"),
+    ("SecKit", "dotnet"),
     ("End", "End")
 ]
 
 def build_solution(solution_path, platform, build_configuration="Release"):
     print(f"Building {solution_path} for platform {platform}...")
-    subprocess.run(["msbuild", "/m", f"/p:Configuration={build_configuration}", f"/p:Platform={platform}", solution_path], check=True)
+    if platform == "dotnet":
+        subprocess.run(["dotnet", "build", "-c", build_configuration, solution_path], check=True)
+    else:
+        subprocess.run(["msbuild", "/m", f"/p:Configuration={build_configuration}", f"/p:Platform={platform}", solution_path], check=True)
 
 def build_special_bitviewer(build_configuration="Release"):
     print("Building BitViewer with ACRYLIC_SUPPORT...")
