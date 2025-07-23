@@ -33,17 +33,17 @@ namespace SecKit
 
         private void SignRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            if (KeyFileLabel != null)
+            if (KeyFileText != null)
             {
-                KeyFileLabel.Content = "Select Private Key";
+                KeyFileText.Text = "Select Private Key";
             }
         }
 
         private void VerifyRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            if (KeyFileLabel != null)
+            if (KeyFileText != null)
             {
-                KeyFileLabel.Content = "Select Public Key";
+                KeyFileText.Text = "Select Public Key";
             }
         }
 

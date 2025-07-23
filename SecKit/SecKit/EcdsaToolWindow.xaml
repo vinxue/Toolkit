@@ -31,13 +31,13 @@
         </StackPanel>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 5">
-            <Label x:Name="KeyFileLabel" Content="Select Private Key" Width="120"/>
+            <TextBlock x:Name="KeyFileText" Text="Select Private Key" Width="110"/>
             <TextBox x:Name="KeyFileTextBox" Width="330" Margin="5,0,10,0" IsReadOnly="True"/>
             <Button Content="Browse..." Width="80" Click="KeyFileButton_Click"/>
         </StackPanel>
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 5">
-            <Label Content="Select Data File" Width="120"/>
+            <TextBlock Text="Select Data File" Width="110"/>
             <TextBox x:Name="DataFileTextBox" Width="330" Margin="5,0,10,0" IsReadOnly="True"/>
             <Button Content="Browse..." Width="80" Click="DataFileButton_Click"/>
         </StackPanel>
