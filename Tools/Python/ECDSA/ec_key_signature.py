@@ -85,10 +85,23 @@ def process_signature(der_signature_file):
 
     print(f"r/s signature written to {output_file}")
 
+def header_convert_binary(input_file_path):
+    with open(input_file_path, 'r') as file:
+        hex_data = file.read().strip()
+
+    hex_data = hex_data.replace('0x', '').replace(',', '').replace(' ', '')
+    binary_data = bytes.fromhex(hex_data)
+    output_file_path = os.path.splitext(input_file_path)[0] + '.bin'
+    with open(output_file_path, 'wb') as output_file:
+        output_file.write(binary_data)
+
+    print(f"Binary data saved to {output_file_path}")
+
 def main():
     parser = argparse.ArgumentParser(description='Process an EC public key or DER signature.')
     parser.add_argument('-p', '--public_key', type=str, help='Path to the public key PEM file')
     parser.add_argument('-s', '--signature', type=str, help='Path to the DER signature file')
+    parser.add_argument('-c', '--header2bin', type=str, help='Path to the header file')
 
     args = parser.parse_args()
 
@@ -96,6 +109,8 @@ def main():
         process_public_key(args.public_key)
     elif args.signature:
         process_signature(args.signature)
+    elif args.header2bin:
+        header_convert_binary(args.header2bin)
     else:
         parser.print_help()
         sys.exit(1)
