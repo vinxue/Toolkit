@@ -91,12 +91,13 @@ namespace SecKit
             }
 
             byte[] data = File.ReadAllBytes(dataFilePath);
-            byte[] privateKey = File.ReadAllBytes(privateKeyPath);
 
-            using (ECDsa ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP384))
+            try
             {
-                ecdsa.ImportFromPem(File.ReadAllText(privateKeyPath));
-                byte[] signature = ecdsa.SignData(data, HashAlgorithmName.SHA384);
+                using (ECDsa ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP384))
+                {
+                    ecdsa.ImportFromPem(File.ReadAllText(privateKeyPath));
+                    byte[] signature = ecdsa.SignData(data, HashAlgorithmName.SHA384);
 
                 // string signedFilePath = System.IO.Path.ChangeExtension(dataFilePath, ".sig");
                 string signedFilePath = dataFilePath + ".sig";
@@ -106,7 +107,16 @@ namespace SecKit
                     fs.Write(data, 0, data.Length);
                 }
 
-                MessageBox.Show($"Data signed successfully. Signed file: {signedFilePath}");
+                    MessageBox.Show($"Data signed successfully. Signed file: {signedFilePath}");
+                }
+            }
+            catch (CryptographicException ex)
+            {
+                MessageBox.Show($"Failed to import private key: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}");
             }
         }
 
@@ -122,7 +132,6 @@ namespace SecKit
             }
 
             byte[] signedData = File.ReadAllBytes(dataFilePath);
-            byte[] publicKey = File.ReadAllBytes(publicKeyPath);
 
             if (signedData.Length < 96)
             {
@@ -135,12 +144,23 @@ namespace SecKit
             Array.Copy(signedData, 0, signature, 0, 96);
             Array.Copy(signedData, 96, data, 0, data.Length);
 
-            using (ECDsa ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP384))
+            try
             {
-                ecdsa.ImportFromPem(File.ReadAllText(publicKeyPath));
-                bool isValid = ecdsa.VerifyData(data, signature, HashAlgorithmName.SHA384);
+                using (ECDsa ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP384))
+                {
+                    ecdsa.ImportFromPem(File.ReadAllText(publicKeyPath));
+                    bool isValid = ecdsa.VerifyData(data, signature, HashAlgorithmName.SHA384);
 
-                MessageBox.Show(isValid ? "Signature is valid." : "Signature is invalid.");
+                    MessageBox.Show(isValid ? "Signature is valid." : "Signature is invalid.");
+                }
+            }
+            catch (CryptographicException ex)
+            {
+                MessageBox.Show($"Failed to import public key: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}");
             }
         }
 
