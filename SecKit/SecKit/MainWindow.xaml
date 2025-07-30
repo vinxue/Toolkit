@@ -6,17 +6,17 @@
         xmlns:local="clr-namespace:SecKit"
         mc:Ignorable="d"
         Title="Security Kit" Height="380" Width="600" ResizeMode="CanMinimize"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="CenterScreen" Background="Transparent"
         MouseLeftButtonDown="Window_MouseLeftButtonDown">
     <Grid>
-        <TabControl>
-            <TabItem Header="Hash Calc">
+        <TabControl Background="Transparent">
+            <TabItem Header="Hash Calc" Background="Transparent">
                 <local:HashCalcWindow />
             </TabItem>
-            <TabItem Header="AES Cipher">
+            <TabItem Header="AES Cipher" Background="Transparent">
                 <local:AesCipherWindow />
             </TabItem>
-            <TabItem Header="ECDSA Tool">
+            <TabItem Header="ECDSA Tool" Background="Transparent">
                 <local:EcdsaToolWindow />
             </TabItem>
         </TabControl>

@@ -99,13 +99,13 @@ namespace SecKit
                     ecdsa.ImportFromPem(File.ReadAllText(privateKeyPath));
                     byte[] signature = ecdsa.SignData(data, HashAlgorithmName.SHA384);
 
-                // string signedFilePath = System.IO.Path.ChangeExtension(dataFilePath, ".sig");
-                string signedFilePath = dataFilePath + ".sig";
-                using (FileStream fs = new FileStream(signedFilePath, FileMode.Create, FileAccess.Write))
-                {
-                    fs.Write(signature, 0, signature.Length);
-                    fs.Write(data, 0, data.Length);
-                }
+                    // string signedFilePath = System.IO.Path.ChangeExtension(dataFilePath, ".sig");
+                    string signedFilePath = dataFilePath + ".sig";
+                    using (FileStream fs = new FileStream(signedFilePath, FileMode.Create, FileAccess.Write))
+                    {
+                        fs.Write(signature, 0, signature.Length);
+                        fs.Write(data, 0, data.Length);
+                    }
 
                     MessageBox.Show($"Data signed successfully. Signed file: {signedFilePath}");
                 }
