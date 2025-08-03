@@ -10,6 +10,6 @@
         WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize"
         ShowInTaskbar="False" MouseLeftButtonDown="Window_MouseLeftButtonDown" Icon="appicon.ico">
     <Grid>
-        <TextBlock Name="ClockTextBlock" FontSize="64" Foreground="#598BAF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <TextBlock Name="ClockTextBlock" FontSize="64" Foreground="#FF0068B5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
 </Window>
