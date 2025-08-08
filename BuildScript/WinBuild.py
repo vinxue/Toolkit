@@ -7,15 +7,16 @@ import concurrent.futures
 # Define the solution paths and platforms
 solution_paths = [
     ("BitViewer", "x64"),
+    ("ClockApp", "Any CPU"),
+    ("IDCard", "Win32"),
+    ("ImgConverter", "Win32"),
+    ("Internal\IkgfDecode", "Any CPU"),
     ("KbSim", "Win32"),
     ("PCIe", "Win32"),
-    ("Timer", "Win32"),
-    ("ImgConverter", "Win32"),
-    ("StopWatch", "Win32"),
-    ("IDCard", "Win32"),
-    ("ClockApp", "Any CPU"),
-    ("TimeTracker", "Any CPU"),
     ("SecKit", "dotnet"),
+    ("StopWatch", "Win32"),
+    ("Timer", "Win32"),
+    ("TimeTracker", "Any CPU"),
     ("End", "End")
 ]
 

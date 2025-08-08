@@ -1,0 +1,42 @@
+﻿<Window x:Class="IkgfDecode.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:IkgfDecode"
+        mc:Ignorable="d"
+        Title="IKGF Decode" Height="360" Width="680" ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterScreen" FontSize="14" AllowDrop="True" Drop="Window_Drop"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="IKGF GKEY Decode" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 0 0 20">
+            <TextBlock.Foreground>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#FF512BD4" Offset="0.0" />
+                    <GradientStop Color="#FFD600AA" Offset="1.0" />
+                </LinearGradientBrush>
+            </TextBlock.Foreground>
+        </TextBlock>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+            <RadioButton Name="rbKey" Content="Key" IsChecked="True" Margin="0,0,60,0" Checked="Radio_Checked"/>
+            <RadioButton Name="rbIV" Content="IV" Margin="0,0,10,0" Checked="Radio_Checked"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0 15" HorizontalAlignment="Center">
+            <TextBox x:Name="txtFilePath" Width="520" IsReadOnly="True"/>
+            <Button x:Name="btnBrowse" Content="Browse..." Width="80" Margin="10 0 0 0"
+                    Click="BtnBrowse_Click"/>
+        </StackPanel>
+
+        <TextBox Grid.Row="3" Name="txtOutput" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                 FontFamily="Consolas" FontSize="14"  Width="610" IsReadOnly="True" TextWrapping="Wrap"/>
+    </Grid>
+</Window>
