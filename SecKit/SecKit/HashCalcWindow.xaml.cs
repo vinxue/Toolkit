@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Security.Cryptography;
 using System.IO;
+using Microsoft.Win32;
 
 namespace SecKit
 {
@@ -35,64 +36,81 @@ namespace SecKit
                 if (files.Length > 0)
                 {
                     string filePath = files[0];
-                    FilePathTextBlock.Text = filePath;
-
-                    if (CRC32CheckBox.IsChecked == true)
-                    {
-                        CRC32TextBox.Text = ComputeCRC32(filePath);
-                    }
-                    else
-                    {
-                        CRC32TextBox.Clear();
-                    }
-
-                    if (MD5CheckBox.IsChecked == true)
-                    {
-                        MD5TextBox.Text = ComputeHash(filePath, new MD5CryptoServiceProvider());
-                    }
-                    else
-                    {
-                        MD5TextBox.Clear();
-                    }
-
-                    if (SHA1CheckBox.IsChecked == true)
-                    {
-                        SHA1TextBox.Text = ComputeHash(filePath, new SHA1CryptoServiceProvider());
-                    }
-                    else
-                    {
-                        SHA1TextBox.Clear();
-                    }
-
-                    if (SHA256CheckBox.IsChecked == true)
-                    {
-                        SHA256TextBox.Text = ComputeHash(filePath, new SHA256CryptoServiceProvider());
-                    }
-                    else
-                    {
-                        SHA256TextBox.Clear();
-                    }
-
-                    if (SHA384CheckBox.IsChecked == true)
-                    {
-                        SHA384TextBox.Text = ComputeHash(filePath, new SHA384CryptoServiceProvider());
-                    }
-                    else
-                    {
-                        SHA384TextBox.Clear();
-                    }
-
-                    if (SHA512CheckBox.IsChecked == true)
-                    {
-                        SHA512TextBox.Text = ComputeHash(filePath, new SHA512CryptoServiceProvider());
-                    }
-                    else
-                    {
-                        SHA512TextBox.Clear();
-                    }
+                    txtFilePath.Text = filePath;
+                    ComputeHashValue(filePath);
                 }
             }
         }
+
+        private void BtnBrowse_Click(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                txtFilePath.Text = openFileDialog.FileName;
+                ComputeHashValue(openFileDialog.FileName);
+            }
+        }
+
+#pragma warning disable SYSLIB0021
+        private void ComputeHashValue(string filePath)
+        {
+            if (CRC32CheckBox.IsChecked == true)
+            {
+                CRC32TextBox.Text = ComputeCRC32(filePath);
+            }
+            else
+            {
+                CRC32TextBox.Clear();
+            }
+
+            if (MD5CheckBox.IsChecked == true)
+            {
+                MD5TextBox.Text = ComputeHash(filePath, new  MD5CryptoServiceProvider());
+            }
+            else
+            {
+                MD5TextBox.Clear();
+            }
+
+            if (SHA1CheckBox.IsChecked == true)
+            {
+                SHA1TextBox.Text = ComputeHash(filePath, new SHA1CryptoServiceProvider());
+            }
+            else
+            {
+                SHA1TextBox.Clear();
+            }
+
+            if (SHA256CheckBox.IsChecked == true)
+            {
+                SHA256TextBox.Text = ComputeHash(filePath, new SHA256CryptoServiceProvider());
+            }
+            else
+            {
+                SHA256TextBox.Clear();
+            }
+
+            if (SHA384CheckBox.IsChecked == true)
+            {
+                SHA384TextBox.Text = ComputeHash(filePath, new SHA384CryptoServiceProvider());
+            }
+            else
+            {
+                SHA384TextBox.Clear();
+            }
+
+            if (SHA512CheckBox.IsChecked == true)
+            {
+                SHA512TextBox.Text = ComputeHash(filePath, new SHA512CryptoServiceProvider());
+            }
+            else
+            {
+                SHA512TextBox.Clear();
+            }
+
+        }
+#pragma warning restore SYSLIB0021
 
         private string ComputeCRC32(string filePath)
         {
