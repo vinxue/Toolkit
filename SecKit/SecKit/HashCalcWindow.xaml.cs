@@ -28,6 +28,16 @@ namespace SecKit
             InitializeComponent();
         }
 
+        private void ClearHashTextBoxes()
+        {
+            CRC32TextBox.Clear();
+            MD5TextBox.Clear();
+            SHA1TextBox.Clear();
+            SHA256TextBox.Clear();
+            SHA384TextBox.Clear();
+            SHA512TextBox.Clear();
+        }
+
         private void Window_Drop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -37,7 +47,8 @@ namespace SecKit
                 {
                     string filePath = files[0];
                     txtFilePath.Text = filePath;
-                    ComputeHashValue(filePath);
+                    ClearHashTextBoxes();
+                    ComputeHashValueAsync(filePath);
                 }
             }
         }
@@ -48,67 +59,40 @@ namespace SecKit
             if (openFileDialog.ShowDialog() == true)
             {
                 txtFilePath.Text = openFileDialog.FileName;
-                ComputeHashValue(openFileDialog.FileName);
+                ClearHashTextBoxes();
+                ComputeHashValueAsync(openFileDialog.FileName);
             }
         }
 
 #pragma warning disable SYSLIB0021
-        private void ComputeHashValue(string filePath)
+        private async void ComputeHashValueAsync(string filePath)
         {
-            if (CRC32CheckBox.IsChecked == true)
-            {
-                CRC32TextBox.Text = ComputeCRC32(filePath);
-            }
-            else
-            {
-                CRC32TextBox.Clear();
-            }
+            bool calcCRC32 = CRC32CheckBox.IsChecked == true;
+            bool calcMD5 = MD5CheckBox.IsChecked == true;
+            bool calcSHA1 = SHA1CheckBox.IsChecked == true;
+            bool calcSHA256 = SHA256CheckBox.IsChecked == true;
+            bool calcSHA384 = SHA384CheckBox.IsChecked == true;
+            bool calcSHA512 = SHA512CheckBox.IsChecked == true;
 
-            if (MD5CheckBox.IsChecked == true)
+            var result = await Task.Run(() =>
             {
-                MD5TextBox.Text = ComputeHash(filePath, new  MD5CryptoServiceProvider());
-            }
-            else
-            {
-                MD5TextBox.Clear();
-            }
+                return new
+                {
+                    CRC32 = calcCRC32 ? ComputeCRC32(filePath) : string.Empty,
+                    MD5 = calcMD5 ? ComputeHash(filePath, new MD5CryptoServiceProvider()) : string.Empty,
+                    SHA1 = calcSHA1 ? ComputeHash(filePath, new SHA1CryptoServiceProvider()) : string.Empty,
+                    SHA256 = calcSHA256 ? ComputeHash(filePath, new SHA256CryptoServiceProvider()) : string.Empty,
+                    SHA384 = calcSHA384 ? ComputeHash(filePath, new SHA384CryptoServiceProvider()) : string.Empty,
+                    SHA512 = calcSHA512 ? ComputeHash(filePath, new SHA512CryptoServiceProvider()) : string.Empty
+                };
+            });
 
-            if (SHA1CheckBox.IsChecked == true)
-            {
-                SHA1TextBox.Text = ComputeHash(filePath, new SHA1CryptoServiceProvider());
-            }
-            else
-            {
-                SHA1TextBox.Clear();
-            }
-
-            if (SHA256CheckBox.IsChecked == true)
-            {
-                SHA256TextBox.Text = ComputeHash(filePath, new SHA256CryptoServiceProvider());
-            }
-            else
-            {
-                SHA256TextBox.Clear();
-            }
-
-            if (SHA384CheckBox.IsChecked == true)
-            {
-                SHA384TextBox.Text = ComputeHash(filePath, new SHA384CryptoServiceProvider());
-            }
-            else
-            {
-                SHA384TextBox.Clear();
-            }
-
-            if (SHA512CheckBox.IsChecked == true)
-            {
-                SHA512TextBox.Text = ComputeHash(filePath, new SHA512CryptoServiceProvider());
-            }
-            else
-            {
-                SHA512TextBox.Clear();
-            }
-
+            CRC32TextBox.Text = result.CRC32;
+            MD5TextBox.Text = result.MD5;
+            SHA1TextBox.Text = result.SHA1;
+            SHA256TextBox.Text = result.SHA256;
+            SHA384TextBox.Text = result.SHA384;
+            SHA512TextBox.Text = result.SHA512;
         }
 #pragma warning restore SYSLIB0021
 
