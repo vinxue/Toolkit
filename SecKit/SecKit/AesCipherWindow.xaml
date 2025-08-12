@@ -47,7 +47,7 @@
         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0 15" HorizontalAlignment="Center">
             <TextBox x:Name="txtFilePath" Width="430" FontSize="14" IsReadOnly="True"/>
             <Button x:Name="btnBrowse" Content="Browse..." Width="80" Margin="10 0 0 0"
-                    Click="BtnBrowse_Click" FontSize="14" Padding="5 2"/>
+                    Click="BtnBrowse_Click" FontSize="14"/>
         </StackPanel>
 
         <!-- Padding Checkbox -->
