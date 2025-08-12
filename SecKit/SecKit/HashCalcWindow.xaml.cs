@@ -38,6 +38,11 @@ namespace SecKit
             SHA512TextBox.Clear();
         }
 
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            btnBrowse.Focus(); // Set initial focus to the Browse button
+        }
+
         private void Window_Drop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -61,6 +66,43 @@ namespace SecKit
                 txtFilePath.Text = openFileDialog.FileName;
                 ClearHashTextBoxes();
                 ComputeHashValueAsync(openFileDialog.FileName);
+            }
+        }
+
+        private void CopyToClipboard_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var allHashes = new StringBuilder();
+            allHashes.AppendLine($"File: {txtFilePath.Text}");
+            allHashes.AppendLine($"CRC32: {CRC32TextBox.Text}");
+            allHashes.AppendLine($"MD5: {MD5TextBox.Text}");
+            allHashes.AppendLine($"SHA1: {SHA1TextBox.Text}");
+            allHashes.AppendLine($"SHA256: {SHA256TextBox.Text}");
+            allHashes.AppendLine($"SHA384: {SHA384TextBox.Text}");
+            allHashes.AppendLine($"SHA512: {SHA512TextBox.Text}");
+
+            Clipboard.SetDataObject(allHashes.ToString());
+        }
+
+        private void SaveToFile_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
+                DefaultExt = ".txt"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                var allHashes = new StringBuilder();
+                allHashes.AppendLine($"File: {txtFilePath.Text}");
+                allHashes.AppendLine($"CRC32: {CRC32TextBox.Text}");
+                allHashes.AppendLine($"MD5: {MD5TextBox.Text}");
+                allHashes.AppendLine($"SHA1: {SHA1TextBox.Text}");
+                allHashes.AppendLine($"SHA256: {SHA256TextBox.Text}");
+                allHashes.AppendLine($"SHA384: {SHA384TextBox.Text}");
+                allHashes.AppendLine($"SHA512: {SHA512TextBox.Text}");
+
+                File.WriteAllText(saveFileDialog.FileName, allHashes.ToString());
             }
         }
 
