@@ -28,7 +28,7 @@ namespace SecKit
         public static class DwmApi
         {
             public const int DWMWA_SYSTEMBACKDROP_TYPE = 38;
-            public const int DWMSBT_TRANSIENTWINDOW = 2;
+            public const int DWMSBT_MAINWINDOW = 2;
 
             [DllImport("dwmapi.dll", PreserveSig = true)]
             public static extern int DwmSetWindowAttribute(IntPtr hwnd, int dwAttribute, ref int pvAttribute, int cbAttribute);
@@ -53,7 +53,7 @@ namespace SecKit
         {
             var hwnd = new WindowInteropHelper(this).Handle;
 
-            int backdropType = DwmApi.DWMSBT_TRANSIENTWINDOW;
+            int backdropType = DwmApi.DWMSBT_MAINWINDOW;
             DwmApi.DwmSetWindowAttribute(hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE, ref backdropType, Marshal.SizeOf(typeof(int)));
 
             HwndSource mainWindowSrc = HwndSource.FromHwnd(hwnd);
