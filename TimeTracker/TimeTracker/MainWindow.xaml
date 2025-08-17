@@ -33,19 +33,19 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <!-- First row for values -->
-                <TextBlock x:Name="daysText" Grid.Row="0" Grid.Column="0" FontSize="64" TextAlignment="Center" Foreground="#FF598BAF"/>
-                <TextBlock Grid.Row="0" Grid.Column="1" Text=":" FontSize="64" TextAlignment="Center" Foreground="#FF598BAF" VerticalAlignment="Center"/>
-                <TextBlock x:Name="hoursText" Grid.Row="0" Grid.Column="2" FontSize="64" TextAlignment="Center" Foreground="#FF598BAF"/>
-                <TextBlock Grid.Row="0" Grid.Column="3" Text=":" FontSize="64" TextAlignment="Center" Foreground="#FF598BAF" VerticalAlignment="Center"/>
-                <TextBlock x:Name="minutesText" Grid.Row="0" Grid.Column="4" FontSize="64" TextAlignment="Center" Foreground="#FF598BAF"/>
-                <TextBlock Grid.Row="0" Grid.Column="5" Text=":" FontSize="64" TextAlignment="Center" Foreground="#FF598BAF" VerticalAlignment="Center"/>
-                <TextBlock x:Name="secondsText" Grid.Row="0" Grid.Column="6" FontSize="64" TextAlignment="Center" Foreground="#FF598BAF"/>
+                <TextBlock x:Name="daysText" Grid.Row="0" Grid.Column="0" FontSize="64" TextAlignment="Center" Foreground="#FF0068B5"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Text=":" FontSize="64" TextAlignment="Center" Foreground="#FF0068B5" VerticalAlignment="Center"/>
+                <TextBlock x:Name="hoursText" Grid.Row="0" Grid.Column="2" FontSize="64" TextAlignment="Center" Foreground="#FF0068B5"/>
+                <TextBlock Grid.Row="0" Grid.Column="3" Text=":" FontSize="64" TextAlignment="Center" Foreground="#FF0068B5" VerticalAlignment="Center"/>
+                <TextBlock x:Name="minutesText" Grid.Row="0" Grid.Column="4" FontSize="64" TextAlignment="Center" Foreground="#FF0068B5"/>
+                <TextBlock Grid.Row="0" Grid.Column="5" Text=":" FontSize="64" TextAlignment="Center" Foreground="#FF0068B5" VerticalAlignment="Center"/>
+                <TextBlock x:Name="secondsText" Grid.Row="0" Grid.Column="6" FontSize="64" TextAlignment="Center" Foreground="#FF0068B5"/>
 
                 <!-- Second row for labels -->
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="DAYS" FontSize="12" TextAlignment="Center" Foreground="#FF598BAF" VerticalAlignment="Top" Margin="0,10,0,0"/>
-                <TextBlock Grid.Row="1" Grid.Column="2" Text="HOURS" FontSize="12" TextAlignment="Center" Foreground="#FF598BAF" VerticalAlignment="Top" Margin="0,10,0,0"/>
-                <TextBlock Grid.Row="1" Grid.Column="4" Text="MINUTES" FontSize="12" TextAlignment="Center" Foreground="#FF598BAF" VerticalAlignment="Top" Margin="0,10,0,0"/>
-                <TextBlock Grid.Row="1" Grid.Column="6" Text="SECONDS" FontSize="12" TextAlignment="Center" Foreground="#FF598BAF" VerticalAlignment="Top" Margin="0,10,0,0"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="DAYS" FontSize="12" TextAlignment="Center" Foreground="#FF0068B5" VerticalAlignment="Top" Margin="0,10,0,0"/>
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="HOURS" FontSize="12" TextAlignment="Center" Foreground="#FF0068B5" VerticalAlignment="Top" Margin="0,10,0,0"/>
+                <TextBlock Grid.Row="1" Grid.Column="4" Text="MINUTES" FontSize="12" TextAlignment="Center" Foreground="#FF0068B5" VerticalAlignment="Top" Margin="0,10,0,0"/>
+                <TextBlock Grid.Row="1" Grid.Column="6" Text="SECONDS" FontSize="12" TextAlignment="Center" Foreground="#FF0068B5" VerticalAlignment="Top" Margin="0,10,0,0"/>
             </Grid>
         </StackPanel>
     </Grid>
