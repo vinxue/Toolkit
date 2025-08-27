@@ -20,7 +20,7 @@ openssl dgst -sha384 -sign private_key.pem -out signature.bin example.txt
 openssl dgst -sha384 -verify public_key.pem -signature signature.bin example.txt
 """
 
-def format_array(data, name):
+def format_array(data, name="default_array"):
     lines = []
     for i in range(0, len(data), 16):
         line = ', '.join(f'0x{byte:02x}' for byte in data[i:i+16])
@@ -87,7 +87,7 @@ def process_signature(der_signature_file):
 
     print(f"r/s signature written to {output_file}")
 
-def header_convert_binary(input_file_path):
+def header_to_binary(input_file_path):
     with open(input_file_path, 'r') as file:
         hex_data = file.read().strip()
 
@@ -99,11 +99,24 @@ def header_convert_binary(input_file_path):
 
     print(f"Binary data saved to {output_file_path}")
 
+def binary_to_header(input_file_path):
+    with open(input_file_path, 'rb') as file:
+        binary_data = file.read()
+
+    formatted_array = format_array(binary_data)
+    output_file_path = os.path.splitext(input_file_path)[0] + '.h'
+    with open(output_file_path, 'w') as header_file:
+        header_file.write(formatted_array)
+
+    print(f"Header file saved to {output_file_path}")
+    print(formatted_array)
+
 def main():
     parser = argparse.ArgumentParser(description='Process an EC public key or DER signature.')
     parser.add_argument('-p', '--public_key', type=str, help='Path to the public key PEM file')
     parser.add_argument('-s', '--signature', type=str, help='Path to the DER signature file')
-    parser.add_argument('-c', '--header2bin', type=str, help='Path to the header file')
+    parser.add_argument('-c', '--header2bin', type=str, help='Path to the C header file')
+    parser.add_argument('-b', '--bin2header', type=str, help='Path to the binary file to convert to C header')
 
     args = parser.parse_args()
 
@@ -112,7 +125,9 @@ def main():
     elif args.signature:
         process_signature(args.signature)
     elif args.header2bin:
-        header_convert_binary(args.header2bin)
+        header_to_binary(args.header2bin)
+    elif args.bin2header:
+        binary_to_header(args.bin2header)
     else:
         parser.print_help()
         sys.exit(1)
