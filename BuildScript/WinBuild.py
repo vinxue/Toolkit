@@ -14,6 +14,7 @@ solution_paths = [
     ("KbSim", "Win32"),
     ("PCIe", "Win32"),
     ("SecKit", "dotnet"),
+    ("StickyNotes", "Any CPU"),
     ("StopWatch", "Win32"),
     ("Timer", "Win32"),
     ("TimeTracker", "Any CPU"),

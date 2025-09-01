@@ -16,6 +16,7 @@ Welcome to the Toolkit project! This project contains a collection of Windows ap
 | `KbSim`         | A keyboard simulator application.                                     |
 | `PCIe`          | An application to calculate PCIe address.                             |
 | `SecKit`        | An application for AES encryption/decryption and hash calculating.    |
+| `StickyNotes`   | A sticky notes application.                                           |
 | `StopWatch`     | A simple stopwatch application.                                       |
 | `Timer`         | A timer application.                                                  |
 | `TimeTracker`   | A time tracking application.                                          |
@@ -41,7 +42,7 @@ Contributions are welcome. Please submit a Pull Request or report an Issue.
 
 ## License
 
-Copyright (c) Gavin Xue. All rights reserved.
+Copyright (c) 2025 Gavin Xue. All rights reserved.
 
 This project is licensed under the [BSD-2-Clause License](LICENSE).
 
