@@ -1,0 +1,116 @@
+﻿<Window x:Class="StickyNotes.SaveDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:StickyNotes"
+        mc:Ignorable="d"
+        Title="SaveDialog" Height="190" Width="360"
+        WindowStyle="None"
+        AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+    <Grid Margin="15">
+        <Grid.Effect>
+            <DropShadowEffect Color="Black" 
+                              Direction="270" 
+                              ShadowDepth="3" 
+                              BlurRadius="10" 
+                              Opacity="0.3"/>
+        </Grid.Effect>
+        <Border Background="#FFF2E5FF" BorderBrush="#FFD4C0EA" BorderThickness="2" CornerRadius="8">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Title -->
+                <TextBlock Grid.Row="0" 
+                           Text="Sticky Notes" 
+                           FontSize="16" 
+                           FontWeight="Bold"
+                           Foreground="#FF6A4C93"
+                           HorizontalAlignment="Left"
+                           Margin="10,10,0,15"/>
+
+                <!-- Question -->
+                <TextBlock Grid.Row="1" 
+                           Text="Do you want to save changes?" 
+                           FontSize="14"
+                           Foreground="#FF4A4A4A"
+                           HorizontalAlignment="Left"
+                           Margin="10,0,0,10"/>
+
+                <!-- Buttons -->
+                <StackPanel Grid.Row="3" 
+                            Orientation="Horizontal" 
+                            HorizontalAlignment="Center"
+                            Margin="0,10,0,0">
+
+                    <Button x:Name="SaveButton" 
+                            Content="Save" 
+                            Width="90" 
+                            Height="30"
+                            Margin="5"
+                            IsDefault="True"
+                            Click="SaveButton_Click"
+                            Style="{DynamicResource DialogButtonStyle}"/>
+
+                    <Button x:Name="DontSaveButton" 
+                            Content="Don't save" 
+                            Width="90" 
+                            Height="30"
+                            Margin="5"
+                            Click="DontSaveButton_Click"
+                            Style="{DynamicResource DialogButtonStyle}"/>
+
+                    <Button x:Name="CancelButton" 
+                            Content="Cancel" 
+                            Width="90" 
+                            Height="30"
+                            Margin="5"
+                            IsCancel="True"
+                            Click="CancelButton_Click"
+                            Style="{DynamicResource DialogButtonStyle}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+
+    <Window.Resources>
+        <Style x:Key="DialogButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#FFD4C0EA"/>
+            <Setter Property="Foreground" Value="#FF6A4C93"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#FF6A4C93"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FFC8A2C8"/>
+                            </Trigger>
+                            <Trigger Property="IsDefault" Value="True">
+                                <Setter Property="Background" Value="#FF6A4C93"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+</Window>

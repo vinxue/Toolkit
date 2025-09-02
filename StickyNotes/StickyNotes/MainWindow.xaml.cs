@@ -22,9 +22,13 @@ namespace StickyNotes
     /// </summary>
     public partial class MainWindow : Window
     {
+        private FileManager _fileManager;
+
         public MainWindow()
         {
             InitializeComponent();
+            // Initialize file manager
+            _fileManager = new FileManager(ContentRichTextBox);
             ContentRichTextBox.Focus();
             UpdateTitleDisplay();
             UpdateStatusBar();
@@ -49,6 +53,32 @@ namespace StickyNotes
             this.WindowState = WindowState.Minimized;
         }
 
+        // Override the closing event to show save confirmation
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            var result = _fileManager.ShowSaveConfirmationDialog(this);
+            switch (result)
+            {
+                case SaveDialogResult.Save:
+                    if (!_fileManager.SaveFile(this))
+                    {
+                        e.Cancel = true; // Save was cancelled
+                        return;
+                    }
+                    break;
+                case SaveDialogResult.Cancel:
+                    e.Cancel = true;
+                    return;
+                case SaveDialogResult.DontSave:
+                    // Continue closing
+                    break;
+                default:
+                    break;
+            }
+
+            base.OnClosing(e);
+        }
+
         // Toggle topmost state
         private void ToggleTopmost()
         {
@@ -59,13 +89,25 @@ namespace StickyNotes
         // Update title display
         private void UpdateTitleDisplay()
         {
+            string baseTitle = "Sticky Notes";
+
+            if (!string.IsNullOrEmpty(_fileManager.CurrentFileName))
+            {
+                baseTitle += $" - {_fileManager.CurrentFileName}";
+
+                if (_fileManager.IsContentChanged)
+                {
+                    baseTitle += "*";
+                }
+            }
+
             if (this.Topmost)
             {
-                TitleTextBlock.Text = "Sticky Notes 📌"; // Show pin icon for topmost
+                TitleTextBlock.Text = baseTitle + " 📌"; // Show pin icon for topmost
             }
             else
             {
-                TitleTextBlock.Text = "Sticky Notes";     // Normal state
+                TitleTextBlock.Text = baseTitle;     // Normal state
             }
         }
 
@@ -76,6 +118,27 @@ namespace StickyNotes
             if (e.Key == Key.P && Keyboard.Modifiers == ModifierKeys.Control)
             {
                 ToggleTopmost();
+                e.Handled = true;
+            }
+            // Ctrl+S to save
+            else if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                _fileManager.SaveFile(this);
+                UpdateTitleDisplay();
+                e.Handled = true;
+            }
+            // Ctrl+O to open
+            else if (e.Key == Key.O && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                _fileManager.OpenFile(this);
+                UpdateTitleDisplay();
+                e.Handled = true;
+            }
+            // Ctrl+N to new document
+            else if (e.Key == Key.N && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                _fileManager.NewDocument(this);
+                UpdateTitleDisplay();
                 e.Handled = true;
             }
 
@@ -173,6 +236,8 @@ namespace StickyNotes
 
         private void ContentRichTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            _fileManager.IsContentChanged = true;
+            UpdateTitleDisplay(); // Update title to show unsaved changes
             UpdateStatusBar(); // Update all status info when text changes
         }
 
