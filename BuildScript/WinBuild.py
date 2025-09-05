@@ -8,6 +8,7 @@ import concurrent.futures
 solution_paths = [
     ("BitViewer", "x64"),
     ("ClockApp", "Any CPU"),
+    ("HexViewer", "Any CPU"),
     ("IDCard", "Win32"),
     ("ImgConverter", "Win32"),
     ("Internal\IkgfDecode", "Any CPU"),
