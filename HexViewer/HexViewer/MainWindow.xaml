@@ -1,0 +1,167 @@
+﻿<Window x:Class="HexViewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HexViewer"
+        mc:Ignorable="d"
+        Title="Hex Viewer" Height="390" Width="890" Background="Transparent"
+        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize"
+        MouseDown="Window_MouseDown" Icon="AppIcon.ico">
+
+    <Window.Resources>
+        <Style x:Key="InputTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="InputTextBoxStyle" TargetType="TextBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="5,0,0,0"/>
+        </Style>
+
+        <Style x:Key="WinButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#FFFFFFFF"/>
+            <Setter Property="Foreground" Value="#FF000000"/>
+            <Setter Property="BorderBrush" Value="#FF8A8A8A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4"
+                            SnapsToDevicePixels="True">
+                            <ContentPresenter x:Name="contentPresenter"
+                                        Focusable="False"
+                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                        Margin="{TemplateBinding Padding}"
+                                        RecognizesAccessKey="True"
+                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <!-- Mouse Over -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#FFF6F6F6"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#FF7A7A7A"/>
+                            </Trigger>
+                            <!-- Pressed -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#FFF0F0F0"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#FF5C5C5C"/>
+                            </Trigger>
+                            <!-- Focused -->
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#FF0078D4"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="1"/>
+                            </Trigger>
+                            <!-- Disabled -->
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#FFF3F3F3"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#FFADADAD"/>
+                                <Setter Property="Foreground" Value="#FF838383"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title -->
+        <TextBlock Grid.Row="0" Text="Hex Viewer" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,20">
+            <TextBlock.Foreground>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#FF512BD4" Offset="0.0" />
+                    <GradientStop Color="#FFD600AA" Offset="1.0" />
+                </LinearGradientBrush>
+            </TextBlock.Foreground>
+        </TextBlock>
+
+        <!-- Input Section -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="25,0,0,10">
+            <TextBlock Text="Please input a hex data: 0x" Style="{StaticResource InputTextBlockStyle}"/>
+            <TextBox x:Name="txtHexInput" Style="{StaticResource InputTextBoxStyle}" Width="160" Height="25" MaxLength="16" />
+            <Button x:Name="btnDecode" Content="Decode" Width="80" Height="25"
+                    Margin="10,0,0,0" Click="BtnDecode_Click" Style="{StaticResource WinButtonStyle}"/>
+        </StackPanel>
+
+        <!-- BitField Section -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="25,0,0,20">
+            <TextBlock Text="Bitfield: BIT[" Style="{StaticResource InputTextBlockStyle}"/>
+
+            <TextBox x:Name="txtEndBit" Style="{StaticResource InputTextBoxStyle}" Width="30" Height="25"
+                     MaxLength="2" HorizontalContentAlignment="Center"/>
+
+            <TextBlock Text=":" Style="{StaticResource InputTextBlockStyle}" Margin="5,0,0,0"/>
+
+            <TextBox x:Name="txtStartBit" Style="{StaticResource InputTextBoxStyle}" Width="30" Height="25"
+                     MaxLength="2" HorizontalContentAlignment="Center"/>
+
+            <TextBlock Text="] = 0x" Style="{StaticResource InputTextBlockStyle}" Margin="5,0,0,0"/>
+
+            <TextBox x:Name="txtBitFieldValue" Style="{StaticResource InputTextBoxStyle}" Width="160" Height="25"
+                     MaxLength="16" IsEnabled="False"/>
+
+            <CheckBox x:Name="chkSetBitField" Content="" VerticalAlignment="Center" Margin="10,0,5,0"
+                      Checked="ChkSetBitField_Checked" Unchecked="ChkSetBitField_Unchecked"/>
+
+            <Button x:Name="btnSetBitField" Content="Set BitField" Width="80" Height="25" IsEnabled="False"
+                    Click="BtnSetBitField_Click" Style="{StaticResource WinButtonStyle}"/>
+        </StackPanel>
+
+        <!-- High 32 bits (63-32) -->
+        <Grid Grid.Row="3" HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Bit numbers for high 32 bits -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,2" x:Name="spHighBitNumbers"/>
+
+            <!-- Bit values for high 32 bits -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,5" x:Name="spHighBitValues"/>
+
+            <!-- Hex values for high 32 bits -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,20" x:Name="spHighHexValues"/>
+        </Grid>
+
+        <!-- Low 32 bits (31-0) -->
+        <Grid Grid.Row="4" HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Bit numbers for low 32 bits -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,2" x:Name="spLowBitNumbers"/>
+
+            <!-- Bit values for low 32 bits -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,5" x:Name="spLowBitValues"/>
+
+            <!-- Hex values for low 32 bits -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" x:Name="spLowHexValues"/>
+        </Grid>
+    </Grid>
+</Window>
