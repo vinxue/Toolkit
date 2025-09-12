@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HexViewer"
         mc:Ignorable="d"
-        Title="Hex Viewer" Height="390" Width="890" Background="Transparent"
+        Title="Hex Viewer" Height="390" Width="890"
         WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize"
         MouseDown="Window_MouseDown" Icon="AppIcon.ico">
 

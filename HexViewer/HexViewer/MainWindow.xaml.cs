@@ -49,11 +49,19 @@ namespace HexViewer
         }
 
         #region DWM API for Window Style
+
+        public enum DWM_SYSTEMBACKDROP_TYPE
+        {
+            DWMSBT_AUTO = 0,
+            DWMSBT_NONE = 1,
+            DWMSBT_MAINWINDOW = 2,         // Mica
+            DWMSBT_TRANSIENTWINDOW = 3,    // Acrylic
+            DWMSBT_TABBEDWINDOW = 4        // Mica Alt
+        }
+
         public static class DwmApi
         {
             public const int DWMWA_SYSTEMBACKDROP_TYPE = 38;
-            public const int DWMSBT_MAINWINDOW = 2;
-            public const int DWMSBT_TRANSIENTWINDOW = 3;
 
             [DllImport("dwmapi.dll", PreserveSig = true)]
             public static extern int DwmSetWindowAttribute(IntPtr hwnd, int dwAttribute, ref int pvAttribute, int cbAttribute);
@@ -74,18 +82,49 @@ namespace HexViewer
             public static extern int DwmExtendFrameIntoClientArea(IntPtr hwnd, ref MARGINS pMarInset);
         }
 
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private static bool IsWindowsVersionSupported(int minBuild = 22621)
         {
+            try
+            {
+                using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion"))
+                {
+                    var buildStr = key?.GetValue("CurrentBuild") as string;
+                    return int.TryParse(buildStr, out int buildNum) && buildNum >= minBuild;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void ApplyWindowBackdropEffect(DWM_SYSTEMBACKDROP_TYPE backdropType = DWM_SYSTEMBACKDROP_TYPE.DWMSBT_MAINWINDOW)
+        {
+            // Only apply for Windows 11 Build 22621 or later
+            if (!IsWindowsVersionSupported())
+            {
+                return;
+            }
+
+            // Set window background to transparent
+            this.Background = System.Windows.Media.Brushes.Transparent;
+
             var hwnd = new WindowInteropHelper(this).Handle;
 
-            int backdropType = DwmApi.DWMSBT_MAINWINDOW;
-            DwmApi.DwmSetWindowAttribute(hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE, ref backdropType, Marshal.SizeOf(typeof(int)));
+            int backdropTypeInt = (int)backdropType;
+            DwmApi.DwmSetWindowAttribute(hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE, ref backdropTypeInt, Marshal.SizeOf(typeof(int)));
 
             HwndSource mainWindowSrc = HwndSource.FromHwnd(hwnd);
             mainWindowSrc.CompositionTarget.BackgroundColor = Color.FromArgb(0, 0, 0, 0);
             NonClientRegionAPI.MARGINS margins = new NonClientRegionAPI.MARGINS { cxLeftWidth = -1, cxRightWidth = -1, cyTopHeight = -1, cyBottomHeight = -1 };
             NonClientRegionAPI.DwmExtendFrameIntoClientArea(hwnd, ref margins);
         }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            ApplyWindowBackdropEffect();
+        }
+
         #endregion
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
