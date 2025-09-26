@@ -243,6 +243,8 @@ namespace StickyNotes
 
         private void ContentRichTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            var rtb = sender as RichTextBox;
+
             if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
             {
                 if (e.Key == Key.OemCloseBrackets || e.Key == Key.OemOpenBrackets)
@@ -250,6 +252,43 @@ namespace StickyNotes
                     // Delay refresh to ensure command has been executed
                     Dispatcher.BeginInvoke(new Action(UpdateFontSizeInfo), DispatcherPriority.Background);
                 }
+                else if (e.Key == Key.V && (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift)
+                {
+                    PastePlainText(rtb);
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void PastePlainText(RichTextBox richTextBox)
+        {
+            if (richTextBox == null || !Clipboard.ContainsText())
+            {
+                return;
+            }
+
+            try
+            {
+                string plainText = Clipboard.ContainsText(TextDataFormat.UnicodeText)
+                    ? Clipboard.GetText(TextDataFormat.UnicodeText)
+                    : Clipboard.GetText();
+
+                if (!string.IsNullOrEmpty(plainText))
+                {
+                    if (!richTextBox.Selection.IsEmpty)
+                    {
+                        richTextBox.Selection.Text = plainText;
+                    }
+                    else
+                    {
+                        var caret = richTextBox.CaretPosition;
+                        caret.InsertTextInRun(plainText);
+                    }
+                }
+            }
+            catch
+            {
+                // Do nothing
             }
         }
 
