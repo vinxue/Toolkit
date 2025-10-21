@@ -90,19 +90,32 @@
             <RichTextBox Grid.Row="1" 
                          Name="ContentRichTextBox"
                          IsDocumentEnabled="True"
-                         Margin="10"
+                         Margin="2"
                          Background="Transparent"
                          BorderThickness="0"
                          FontSize="14"
                          AcceptsReturn="True"
                          AcceptsTab="True"
                          Foreground="#FF4A4A4A"
-                         VerticalScrollBarVisibility="Auto"
+                         VerticalScrollBarVisibility="Visible"
                          HorizontalScrollBarVisibility="Disabled"
                          Block.LineHeight="1.2"
                          SelectionChanged="ContentRichTextBox_SelectionChanged"
                          TextChanged="ContentRichTextBox_TextChanged"
                          PreviewKeyDown="ContentRichTextBox_PreviewKeyDown">
+                <RichTextBox.Resources>
+                    <Style TargetType="ScrollBar">
+                        <Setter Property="MinWidth" Value="0"/>
+                        <Setter Property="Width" Value="6"/>
+                        <Setter Property="Opacity" Value="0"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </RichTextBox.Resources>
             </RichTextBox>
 
             <!-- Status Bar -->
