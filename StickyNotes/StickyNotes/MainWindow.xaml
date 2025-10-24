@@ -16,7 +16,7 @@
             <Setter Property="Height" Value="25"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="10"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Foreground" Value="#FF6A4C93"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -72,15 +72,16 @@
                                 Margin="0,0,5,0">
                         
                         <!-- Minimize Button -->
-                        <Button Content="−" 
-                                Style="{StaticResource TitleBarButtonStyle}"
-                                FontSize="16"
-                                Margin="0,0,10,0"
+                        <Button Style="{StaticResource TitleBarButtonStyle}"
+                                FontFamily="Segoe MDL2 Assets"
+                                Content="&#xE921;"
+                                Margin="0,0,5,0"
                                 Click="MinimizeButton_Click"/>
                         
                         <!-- Close Button -->
-                        <Button Content="✕" 
-                                Style="{StaticResource TitleBarButtonStyle}"
+                        <Button Style="{StaticResource TitleBarButtonStyle}"
+                                FontFamily="Segoe MDL2 Assets"
+                                Content="&#xE8BB;"
                                 Click="CloseButton_Click"/>
                     </StackPanel>
                 </Grid>
