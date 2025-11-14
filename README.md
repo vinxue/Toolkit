@@ -8,6 +8,9 @@ Welcome to the Toolkit project! This project contains a collection of Windows ap
 
 ### Windows Applications
 
+> [!TIP]
+> **Download**: Pre-compiled executables are available [here](https://github.com/vinxue/ToolkitBin/archive/refs/heads/main.zip).
+
 | Application     | Description                                                           |
 |-----------------|-----------------------------------------------------------------------|
 | `BitViewer`     | An application for viewing bit data of a hex data.                    |
