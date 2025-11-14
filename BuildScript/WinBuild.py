@@ -11,7 +11,7 @@ solution_paths = [
     ("HexViewer", "Any CPU"),
     ("IDCard", "Win32"),
     ("ImgConverter", "Win32"),
-    ("Internal\IkgfDecode", "Any CPU"),
+    (r"Internal\IkgfDecode", "Any CPU"),
     ("KbSim", "Win32"),
     ("PCIe", "Win32"),
     ("SecKit", "dotnet"),
