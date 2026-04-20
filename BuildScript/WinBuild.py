@@ -14,6 +14,7 @@ solution_paths = [
     (r"Internal\IkgfDecode", "Any CPU"),
     ("KbSim", "Win32"),
     ("PCIe", "Win32"),
+    ("PdfKit", "Any CPU"),
     ("SecKit", "dotnet"),
     ("StickyNotes", "Any CPU"),
     ("StopWatch", "Win32"),
@@ -27,7 +28,7 @@ def build_solution(solution_path, platform, build_configuration="Release"):
     if platform == "dotnet":
         subprocess.run(["dotnet", "build", "-c", build_configuration, solution_path], check=True)
     else:
-        subprocess.run(["msbuild", "/m", f"/p:Configuration={build_configuration}", f"/p:Platform={platform}", solution_path], check=True)
+        subprocess.run(["msbuild", "/restore", "/m", f"/p:Configuration={build_configuration}", f"/p:Platform={platform}", solution_path], check=True)
 
 def build_special_bitviewer(build_configuration="Release"):
     print("Building BitViewer with ACRYLIC_SUPPORT...")

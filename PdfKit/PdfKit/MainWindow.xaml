@@ -1,0 +1,1709 @@
+<Window x:Class="PdfKit.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="{DynamicResource App_Title}"
+        Icon="appicon.ico"
+        Height="680" Width="960"
+        MinHeight="540" MinWidth="760"
+        WindowStartupLocation="CenterScreen"
+        Background="#ECF0F1"
+        FontFamily="Segoe UI, Microsoft YaHei UI, Microsoft JhengHei UI, Calibri, sans-serif"
+        UseLayoutRounding="True">
+
+    <Window.Resources>
+        <!-- ==- Brushes ======================================- -->
+        <SolidColorBrush x:Key="SidebarBg"       Color="#2C3E50"/>
+        <SolidColorBrush x:Key="SidebarHover"    Color="#34495E"/>
+        <SolidColorBrush x:Key="SidebarActive"   Color="#1A252F"/>
+        <SolidColorBrush x:Key="AccentBrush"     Color="#0078D4"/>
+        <SolidColorBrush x:Key="AccentHover"     Color="#106EBE"/>
+        <SolidColorBrush x:Key="AccentPress"     Color="#005A9E"/>
+        <SolidColorBrush x:Key="TextPrimary"     Color="#2C3E50"/>
+        <SolidColorBrush x:Key="TextSecondary"   Color="#7F8C8D"/>
+        <SolidColorBrush x:Key="TextMuted"       Color="#95A5A6"/>
+        <SolidColorBrush x:Key="BorderColor"     Color="#D5D8DC"/>
+        <SolidColorBrush x:Key="ContentBg"       Color="#ECF0F1"/>
+        <SolidColorBrush x:Key="CardBg"          Color="White"/>
+        <SolidColorBrush x:Key="SeparatorColor"  Color="#EAECEE"/>
+        <SolidColorBrush x:Key="InputBg"         Color="#FDFEFE"/>
+        <SolidColorBrush x:Key="SuccessBg"       Color="#EAFAF1"/>
+        <SolidColorBrush x:Key="SuccessBorder"   Color="#2ECC71"/>
+        <SolidColorBrush x:Key="SuccessText"     Color="#1E8449"/>
+        <SolidColorBrush x:Key="ErrorBg"         Color="#FDEDEC"/>
+        <SolidColorBrush x:Key="ErrorBorder"     Color="#0078D4"/>
+        <SolidColorBrush x:Key="ErrorText"       Color="#106EBE"/>
+
+        <!-- ==- Sidebar Nav Button ============================- -->
+        <Style x:Key="NavBtn" TargetType="RadioButton">
+            <Setter Property="Foreground"               Value="#95A5A6"/>
+            <Setter Property="BorderThickness"          Value="0"/>
+            <Setter Property="Cursor"                   Value="Hand"/>
+            <Setter Property="GroupName"                Value="Nav"/>
+            <Setter Property="HorizontalAlignment"      Value="Stretch"/>
+            <Setter Property="FocusVisualStyle"         Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bg" Background="Transparent">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border x:Name="bar" Grid.Column="0" Background="Transparent"/>
+                                <Border Grid.Column="1" Padding="18,13">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock x:Name="icon" Text="{TemplateBinding Tag}"
+                                                   FontSize="14" Width="20"
+                                                   Foreground="{TemplateBinding Foreground}"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="{TemplateBinding Content}"
+                                                   FontSize="13.5"
+                                                   Foreground="{TemplateBinding Foreground}"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg"  Property="Background" Value="#34495E"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bg"  Property="Background" Value="#1A252F"/>
+                                <Setter TargetName="bar" Property="Background" Value="#0078D4"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ==- Primary Action Button ========================- -->
+        <Style x:Key="PrimaryBtn" TargetType="Button">
+            <Setter Property="Background"       Value="#0078D4"/>
+            <Setter Property="Foreground"       Value="White"/>
+            <Setter Property="BorderThickness"  Value="0"/>
+            <Setter Property="Padding"          Value="28,10"/>
+            <Setter Property="FontSize"         Value="14"/>
+            <Setter Property="FontWeight"       Value="SemiBold"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#106EBE"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#005A9E"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd" Property="Background" Value="#BDC3C7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ==- Secondary / Ghost Button ====================== -->
+        <Style x:Key="SecondaryBtn" TargetType="Button">
+            <Setter Property="Background"       Value="White"/>
+            <Setter Property="Foreground"       Value="#2C3E50"/>
+            <Setter Property="BorderBrush"      Value="#D5D8DC"/>
+            <Setter Property="BorderThickness"  Value="1"/>
+            <Setter Property="Padding"          Value="14,7"/>
+            <Setter Property="FontSize"         Value="13"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background"    Value="#F2F3F4"/>
+                                <Setter TargetName="bd" Property="BorderBrush"   Value="#ABB2B9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#E5E8E8"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#BDC3C7"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#E5E8E8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ==- TextBox Input ================================== -->
+        <Style x:Key="InputBox" TargetType="TextBox">
+            <Setter Property="Background"       Value="#FDFEFE"/>
+            <Setter Property="BorderBrush"      Value="#D5D8DC"/>
+            <Setter Property="BorderThickness"  Value="1"/>
+            <Setter Property="Padding"          Value="10,7"/>
+            <Setter Property="FontSize"         Value="13"/>
+            <Setter Property="Foreground"       Value="#2C3E50"/>
+            <Setter Property="CaretBrush"       Value="#0078D4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#0078D4"/>
+                                <Setter TargetName="bd" Property="Background"  Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd" Property="Background" Value="#F2F3F4"/>
+                                <Setter Property="Foreground" Value="#ABB2B9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ==- ListBox Item ==================================- -->
+        <Style x:Key="FileItem" TargetType="ListBoxItem">
+            <Setter Property="Padding"          Value="14,9"/>
+            <Setter Property="Background"       Value="White"/>
+            <Setter Property="BorderThickness"  Value="0,0,0,1"/>
+            <Setter Property="BorderBrush"      Value="#F2F3F4"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Stretch"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#F2F6FF"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#D5E4FF"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#DCEBFF"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#9DBFF7"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="bd" Property="Background" Value="#CFE3FF"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#7FA9EB"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ==- Shared Text Styles ============================- -->
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize"     Value="12.5"/>
+            <Setter Property="FontWeight"   Value="SemiBold"/>
+            <Setter Property="Foreground"   Value="#2C3E50"/>
+            <Setter Property="Margin"       Value="0,0,0,5"/>
+        </Style>
+        <Style x:Key="HintText" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="11.5"/>
+            <Setter Property="Foreground" Value="#95A5A6"/>
+            <Setter Property="Margin"     Value="2,3,0,0"/>
+        </Style>
+        <Style x:Key="PageTitle" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="21"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Margin"     Value="0,0,0,3"/>
+        </Style>
+        <Style x:Key="PageSubtitle" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="13"/>
+            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="Margin"     Value="0,0,0,22"/>
+        </Style>
+
+        <!-- ==- Card Shadow ==================================== -->
+        <DropShadowEffect x:Key="CardShadow"
+                          Color="#000000" Opacity="0.07"
+                          BlurRadius="14" ShadowDepth="2" Direction="270"/>
+        <!-- ==- Position Selector Button ============================ -->
+        <Style x:Key="PosBtn" TargetType="RadioButton">
+            <Setter Property="Width"            Value="30"/>
+            <Setter Property="Height"           Value="30"/>
+            <Setter Property="Margin"           Value="2"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bd" Background="#F0F2F5"
+                                BorderBrush="#CDD1D7" BorderThickness="1" CornerRadius="3"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#D6E8FF"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#5A9FE0"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#2F6ECC"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#1A5CB5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ==- Color Swatch Button ==================================== -->
+        <Style x:Key="ColorBtn" TargetType="RadioButton">
+            <Setter Property="Width"            Value="30"/>
+            <Setter Property="Height"           Value="30"/>
+            <Setter Property="Margin"           Value="0,0,8,0"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                BorderBrush="#D5D8DC" BorderThickness="2" CornerRadius="4">
+                            <Border x:Name="dot" Width="8" Height="8" CornerRadius="4"
+                                    Background="White" HorizontalAlignment="Center"
+                                    VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bd"  Property="BorderBrush"    Value="#1A1A2E"/>
+                                <Setter TargetName="bd"  Property="BorderThickness" Value="3"/>
+                                <Setter TargetName="dot" Property="Visibility"     Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.82"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ==- Tab Toggle Button ================================== -->
+        <Style x:Key="TabBtn" TargetType="RadioButton">
+            <Setter Property="Background"       Value="#F0F2F5"/>
+            <Setter Property="Foreground"       Value="#7F8C8D"/>
+            <Setter Property="Padding"          Value="20,8"/>
+            <Setter Property="FontSize"         Value="13"/>
+            <Setter Property="FontWeight"       Value="SemiBold"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="Margin"           Value="0,0,8,0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                BorderBrush="#D5D8DC" BorderThickness="1"
+                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bd" Property="Background"  Value="#0078D4"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#0078D4"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#E5E8E8"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked"   Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="bd" Property="Background"  Value="#106EBE"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#106EBE"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ==- Language Button ======================================- -->
+        <Style x:Key="LangBtn" TargetType="RadioButton">
+            <Setter Property="Background"       Value="Transparent"/>
+            <Setter Property="Foreground"       Value="#9EAFBF"/>
+            <Setter Property="FontFamily"       Value="Segoe UI, Microsoft YaHei UI, Microsoft JhengHei UI, sans-serif"/>
+            <Setter Property="Padding"          Value="6,4"/>
+            <Setter Property="FontSize"         Value="11"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="Margin"           Value="1,0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                BorderBrush="Transparent" BorderThickness="1"
+                                CornerRadius="3" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#34495E"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bd" Property="Background"   Value="#0078D4"/>
+                                <Setter TargetName="bd" Property="BorderBrush"  Value="#0078D4"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ==- Password Input ====================================- -->
+        <Style x:Key="PwdBox" TargetType="PasswordBox">
+            <Setter Property="Background"       Value="#FDFEFE"/>
+            <Setter Property="BorderBrush"      Value="#D5D8DC"/>
+            <Setter Property="BorderThickness"  Value="1"/>
+            <Setter Property="Padding"          Value="10,7"/>
+            <Setter Property="FontSize"         Value="13"/>
+            <Setter Property="Foreground"       Value="#2C3E50"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="PasswordBox">
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#0078D4"/>
+                                <Setter TargetName="bd" Property="Background"  Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd" Property="Background" Value="#F2F3F4"/>
+                                <Setter Property="Foreground" Value="#ABB2B9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ======================================================
+             SIDEBAR
+        ====================================================== -->
+        <Border Grid.Column="0" Background="{StaticResource SidebarBg}">
+            <DockPanel>
+                <!-- Logo -->
+                <StackPanel DockPanel.Dock="Top" Margin="20,26,20,20">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="38" Height="38" Background="#0078D4" CornerRadius="8">
+                            <TextBlock Text="P" Foreground="White" FontSize="22" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="PdfKit" Foreground="White" FontSize="17" FontWeight="Bold"/>
+                            <TextBlock Text="{DynamicResource App_Subtitle}" Foreground="#566573" FontSize="11"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Divider -->
+                <Border DockPanel.Dock="Top" Height="1" Background="#34495E" Margin="0,0,0,4"/>
+
+                <!-- Version at bottom (must be declared before fill item in DockPanel) -->
+                <TextBlock DockPanel.Dock="Bottom" Text="v1.0.0" Foreground="#7F8FA4"
+                           FontSize="11" Margin="22,0,0,14"/>
+
+                <!-- Language switcher (Bottom — declared before nav fill item) -->
+                <Border DockPanel.Dock="Bottom" Margin="12,0,12,6">
+                    <StackPanel>
+                        <Border Height="1" Background="#34495E" Margin="0,0,0,8"/>
+                        <TextBlock Text="{DynamicResource Lang_Label}" Foreground="#8899AA"
+                                   FontSize="9.5" FontWeight="SemiBold" Margin="10,0,0,5"
+                                   FontFamily="Segoe UI, Microsoft YaHei UI, Microsoft JhengHei UI, sans-serif"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <RadioButton x:Name="LangEN"   Content="{DynamicResource Lang_EN}"
+                                         GroupName="Lang" IsChecked="True"
+                                         Style="{StaticResource LangBtn}"
+                                         Click="LangEN_Click"/>
+                            <RadioButton x:Name="LangZHCN" Content="{DynamicResource Lang_ZH_CN}"
+                                         GroupName="Lang"
+                                         Style="{StaticResource LangBtn}"
+                                         Click="LangZHCN_Click"/>
+                            <RadioButton x:Name="LangZHTW" Content="{DynamicResource Lang_ZH_TW}"
+                                         GroupName="Lang"
+                                         Style="{StaticResource LangBtn}"
+                                         Click="LangZHTW_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Nav items with groups (scrollable so bottom items are never covered) -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Focusable="False">
+                    <ScrollViewer.Resources>
+                        <Style TargetType="ScrollBar">
+                            <Setter Property="Width" Value="4"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ScrollBar">
+                                        <Grid Background="Transparent">
+                                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                                <Track.Thumb>
+                                                    <Thumb>
+                                                        <Thumb.Template>
+                                                            <ControlTemplate TargetType="Thumb">
+                                                                <Border Background="#4A5A6A" CornerRadius="2" Margin="0,2"/>
+                                                            </ControlTemplate>
+                                                        </Thumb.Template>
+                                                    </Thumb>
+                                                </Track.Thumb>
+                                            </Track>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ScrollViewer.Resources>
+                    <StackPanel>
+                        <!-- ORGANIZE group -->
+                        <TextBlock Text="{DynamicResource Nav_Organize}" Foreground="#566573"
+                                   FontSize="9.5" FontWeight="SemiBold" Margin="22,12,0,5"/>
+                        <RadioButton x:Name="NavExtract"  Tag="&#x2702;  " Content="{DynamicResource Nav_Extract}" Style="{StaticResource NavBtn}" IsChecked="True"
+                                     Click="NavExtract_Click"/>
+                        <RadioButton x:Name="NavSplit"    Tag="&#x229E;  " Content="{DynamicResource Nav_Split}" Style="{StaticResource NavBtn}"
+                                     Click="NavSplit_Click"/>
+                        <RadioButton x:Name="NavMerge"    Tag="&#x2295;  " Content="{DynamicResource Nav_Merge}" Style="{StaticResource NavBtn}"
+                                     Click="NavMerge_Click"/>
+                        <RadioButton x:Name="NavOrganize" Tag="&#x2261;  " Content="{DynamicResource Nav_Organize_Pages}" Style="{StaticResource NavBtn}"
+                                     Click="NavOrganize_Click"/>
+                        <RadioButton x:Name="NavRotate"   Tag="&#x21BB;  " Content="{DynamicResource Nav_Rotate}" Style="{StaticResource NavBtn}"
+                                     Click="NavRotate_Click"/>
+                        <!-- ENHANCE group -->
+                        <Border Height="1" Background="#34495E" Margin="0,6,0,0"/>
+                        <TextBlock Text="{DynamicResource Nav_Enhance}" Foreground="#566573"
+                                   FontSize="9.5" FontWeight="SemiBold" Margin="22,10,0,5"/>
+                        <RadioButton x:Name="NavWatermark" Tag="&#x25C8;  " Content="{DynamicResource Nav_Watermark}" Style="{StaticResource NavBtn}"
+                                     Click="NavWatermark_Click"/>
+                        <!-- DOCUMENT group -->
+                        <Border Height="1" Background="#34495E" Margin="0,6,0,0"/>
+                        <TextBlock Text="{DynamicResource Nav_Document}" Foreground="#566573"
+                                   FontSize="9.5" FontWeight="SemiBold" Margin="22,10,0,5"/>
+                        <RadioButton x:Name="NavMetadata" Tag="&#x24D8;  " Content="{DynamicResource Nav_Metadata}" Style="{StaticResource NavBtn}"
+                                     Click="NavMetadata_Click"/>
+                        <RadioButton x:Name="NavSecurity" Tag="&#x2299;  " Content="{DynamicResource Nav_Security}" Style="{StaticResource NavBtn}"
+                                     Click="NavSecurity_Click"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- ======================================================
+             CONTENT AREA
+        ====================================================== -->
+        <Grid Grid.Column="1" Background="{StaticResource ContentBg}">
+
+            <!-- == EXTRACT PANEL ============================- -->
+            <ScrollViewer x:Name="ExtractPanel" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="ExtractHost" Margin="42,30,42,36" MaxWidth="980" HorizontalAlignment="Stretch">
+
+                    <TextBlock Text="{DynamicResource Extract_Title}" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Text="{DynamicResource Extract_Subtitle}"
+                               Style="{StaticResource PageSubtitle}"/>
+
+                    <!-- Card -->
+                        <Border x:Name="ExtractCard" Background="{StaticResource CardBg}" CornerRadius="8" Padding="26" MinWidth="600"
+                            Effect="{StaticResource CardShadow}"
+                            HorizontalAlignment="Stretch">
+                        <StackPanel>
+
+                            <!-- Source -->
+                            <TextBlock Text="{DynamicResource Lbl_SourcePdf}" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="ExtractSourcePath" Style="{StaticResource InputBox}"
+                                         IsReadOnly="True" Margin="0,0,8,0"
+                                     Text="{DynamicResource Hint_BrowseSource}"/>
+                                <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                        Click="ExtractBrowseSource_Click"/>
+                            </Grid>
+                            <TextBlock x:Name="ExtractPageInfo" Style="{StaticResource HintText}"/>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Pages -->
+                            <TextBlock Text="{DynamicResource Lbl_PageRange}" Style="{StaticResource FieldLabel}"/>
+                            <TextBox x:Name="ExtractPages" Style="{StaticResource InputBox}"
+                                     ToolTip="{DynamicResource Extract_PageRangeTip}"/>
+                            <TextBlock Text="{DynamicResource Extract_PageRangeHint}"
+                                       Style="{StaticResource HintText}"/>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Output -->
+                            <TextBlock Text="{DynamicResource Lbl_OutputFile}" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="ExtractOutputPath" Style="{StaticResource InputBox}"
+                                         IsReadOnly="True" Margin="0,0,8,0"
+                                     Text="{DynamicResource Hint_BrowseOutput}"/>
+                                <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                        Click="ExtractBrowseOutput_Click"/>
+                            </Grid>
+
+                            <Separator Margin="0,20,0,20" Background="{StaticResource SeparatorColor}"/>
+
+                                <Button x:Name="ExtractBtn" Content="{DynamicResource Extract_Btn}" Style="{StaticResource PrimaryBtn}"
+                                    HorizontalAlignment="Left"
+                                    Click="ExtractExecute_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Status -->
+                    <Border x:Name="ExtractStatus" Margin="0,14,0,0"
+                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
+                        <TextBlock x:Name="ExtractStatusText" FontSize="13" TextWrapping="Wrap"/>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- == MERGE PANEL ==============================- -->
+            <ScrollViewer x:Name="MergePanel" VerticalScrollBarVisibility="Auto"
+                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="MergeHost" Margin="42,30,42,36" MaxWidth="980" HorizontalAlignment="Stretch">
+
+                    <TextBlock Text="{DynamicResource Merge_Title}" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Text="{DynamicResource Merge_Subtitle}"
+                               Style="{StaticResource PageSubtitle}"/>
+
+                    <!-- Card -->
+                        <Border x:Name="MergeCard" Background="{StaticResource CardBg}" CornerRadius="8" Padding="26" MinWidth="600"
+                            Effect="{StaticResource CardShadow}"
+                            HorizontalAlignment="Stretch">
+                        <StackPanel>
+
+                            <!-- File list header -->
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{DynamicResource Merge_FileList}" Style="{StaticResource FieldLabel}"
+                                           VerticalAlignment="Center" Margin="0"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button Content="{DynamicResource Merge_AddFiles}" Style="{StaticResource SecondaryBtn}"
+                                            Margin="0,0,8,0" Click="MergeAddFiles_Click"/>
+                                    <Button Content="{DynamicResource Merge_Clear}" Style="{StaticResource SecondaryBtn}"
+                                            Click="MergeClearAll_Click"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- List container -->
+                            <Border BorderBrush="{StaticResource BorderColor}"
+                                    BorderThickness="1" CornerRadius="4">
+                                <Grid>
+                                    <ListBox x:Name="MergeFileList" Height="200"
+                                             BorderThickness="0"
+                                             Background="#FBFCFE"
+                                             ItemContainerStyle="{StaticResource FileItem}"
+                                             SelectionChanged="MergeFileList_SelectionChanged"
+                                             AllowDrop="True"
+                                             Drop="MergeFileList_Drop">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="40"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <!-- Index badge -->
+                                                    <Border Grid.Column="0"
+                                                            Background="#E9F2FF" CornerRadius="4"
+                                                            Width="26" Height="24" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding DisplayIndex}"
+                                                                   FontSize="11" FontWeight="Bold"
+                                                                   Foreground="#2F6ECC"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <!-- File info -->
+                                                    <StackPanel Grid.Column="1" Margin="10,0,0,0"
+                                                                VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding FileName}"
+                                                                   FontSize="13" Foreground="#2C3E50"
+                                                                   FontWeight="Medium"
+                                                                   TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding PageInfo}"
+                                                                   FontSize="11" Foreground="#95A5A6"
+                                                                   Margin="0,2,0,0"/>
+                                                    </StackPanel>
+                                                    <!-- Page count -->
+                                                    <TextBlock Grid.Column="2"
+                                                               Text="{Binding PageCount, StringFormat={}{0} p}"
+                                                               FontSize="11.5" Foreground="#7B8A97"
+                                                               VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+
+                                    <!-- Empty state -->
+                                    <StackPanel x:Name="MergeEmptyState"
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Center"
+                                                Margin="0,40" IsHitTestVisible="False">
+                                        <TextBlock Text="{DynamicResource Merge_EmptyTitle}" FontSize="15"
+                                                   Foreground="#BDC3C7"
+                                                   HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{DynamicResource Merge_EmptyHint}"
+                                                   FontSize="12" Foreground="#BDC3C7"
+                                                   HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- List actions -->
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Button x:Name="MergeMoveUp"   Content="{DynamicResource Merge_Up}" Style="{StaticResource SecondaryBtn}"
+                                        Margin="0,0,6,0" IsEnabled="False"
+                                        Click="MergeMoveUp_Click"/>
+                                <Button x:Name="MergeMoveDown" Content="{DynamicResource Merge_Down}" Style="{StaticResource SecondaryBtn}"
+                                        Margin="0,0,6,0" IsEnabled="False"
+                                        Click="MergeMoveDown_Click"/>
+                                <Button x:Name="MergeRemoveBtn" Content="{DynamicResource Merge_Remove}"
+                                        Style="{StaticResource SecondaryBtn}"
+                                        IsEnabled="False"
+                                        Click="MergeRemove_Click"/>
+                            </StackPanel>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Output -->
+                            <TextBlock Text="{DynamicResource Lbl_OutputFile}" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="MergeOutputPath" Style="{StaticResource InputBox}"
+                                         IsReadOnly="True" Margin="0,0,8,0"
+                                     Text="{DynamicResource Hint_BrowseOutput}"/>
+                                <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                        Click="MergeBrowseOutput_Click"/>
+                            </Grid>
+
+                            <Separator Margin="0,20,0,20" Background="{StaticResource SeparatorColor}"/>
+
+                                <Button x:Name="MergeBtn" Content="{DynamicResource Merge_Btn}"
+                                    Style="{StaticResource PrimaryBtn}"
+                                    HorizontalAlignment="Left"
+                                    Click="MergeExecute_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Status -->
+                    <Border x:Name="MergeStatus" Margin="0,14,0,0"
+                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
+                        <TextBlock x:Name="MergeStatusText" FontSize="13" TextWrapping="Wrap"/>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- == ROTATE PANEL ============================== -->
+            <ScrollViewer x:Name="RotatePanel" VerticalScrollBarVisibility="Auto"
+                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="RotateHost" Margin="42,30,42,36" MaxWidth="980" HorizontalAlignment="Stretch">
+
+                    <TextBlock Text="{DynamicResource Rotate_Title}" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Text="{DynamicResource Rotate_Subtitle}"
+                               Style="{StaticResource PageSubtitle}"/>
+
+                    <!-- Card -->
+                        <Border x:Name="RotateCard" Background="{StaticResource CardBg}" CornerRadius="8" Padding="26" MinWidth="600"
+                            Effect="{StaticResource CardShadow}"
+                            HorizontalAlignment="Stretch">
+                        <StackPanel>
+
+                            <!-- Source -->
+                            <TextBlock Text="{DynamicResource Lbl_SourcePdf}" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="RotateSourcePath" Style="{StaticResource InputBox}"
+                                         IsReadOnly="True" Margin="0,0,8,0"
+                                     Text="{DynamicResource Hint_BrowseSource}"/>
+                                <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                        Click="RotateBrowseSource_Click"/>
+                            </Grid>
+                            <TextBlock x:Name="RotatePageInfo" Style="{StaticResource HintText}"/>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Page selection -->
+                            <TextBlock Text="{DynamicResource Lbl_PageRange}" Style="{StaticResource FieldLabel}"/>
+                            <CheckBox x:Name="RotateAllPagesChk" Content="{DynamicResource Rotate_AllPages}"
+                                      IsChecked="True" Margin="0,0,0,8"
+                                      FontSize="13" Foreground="{StaticResource TextPrimary}"
+                                      Checked="RotateAllPages_Checked"
+                                      Unchecked="RotateAllPages_Unchecked"/>
+                            <TextBox x:Name="RotatePages" Style="{StaticResource InputBox}"
+                                     IsEnabled="False"
+                                     ToolTip="{DynamicResource Wm_PageRangeTip}"/>
+                            <TextBlock Text="{DynamicResource Extract_PageRangeHint}"
+                                       Style="{StaticResource HintText}"/>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Rotation angle -->
+                            <TextBlock Text="{DynamicResource Rotate_Angle}" Style="{StaticResource FieldLabel}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <RadioButton x:Name="Rotate90"  Content="{DynamicResource Rotate_CW90}"
+                                             GroupName="Angle" IsChecked="True"
+                                             FontSize="13" Foreground="{StaticResource TextPrimary}"
+                                             Margin="0,0,24,0" VerticalContentAlignment="Center"/>
+                                <RadioButton x:Name="Rotate180" Content="180°"
+                                             GroupName="Angle"
+                                             FontSize="13" Foreground="{StaticResource TextPrimary}"
+                                             Margin="0,0,24,0" VerticalContentAlignment="Center"/>
+                                <RadioButton x:Name="Rotate270" Content="{DynamicResource Rotate_CCW90}"
+                                             GroupName="Angle"
+                                             FontSize="13" Foreground="{StaticResource TextPrimary}"
+                                             VerticalContentAlignment="Center"/>
+                            </StackPanel>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Output -->
+                            <TextBlock Text="{DynamicResource Lbl_OutputFile}" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="RotateOutputPath" Style="{StaticResource InputBox}"
+                                         IsReadOnly="True" Margin="0,0,8,0"
+                                     Text="{DynamicResource Hint_BrowseOutput}"/>
+                                <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                        Click="RotateBrowseOutput_Click"/>
+                            </Grid>
+
+                            <Separator Margin="0,20,0,20" Background="{StaticResource SeparatorColor}"/>
+
+                                <Button x:Name="RotateBtn" Content="{DynamicResource Rotate_Btn}" Style="{StaticResource PrimaryBtn}"
+                                    HorizontalAlignment="Left"
+                                    Click="RotateExecute_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Status -->
+                    <Border x:Name="RotateStatus" Margin="0,14,0,0"
+                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
+                        <TextBlock x:Name="RotateStatusText" FontSize="13" TextWrapping="Wrap"/>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- == ORGANIZE PANEL ============================== -->
+            <ScrollViewer x:Name="OrganizePanel" VerticalScrollBarVisibility="Auto"
+                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="OrganizeHost" Margin="42,30,42,36" MaxWidth="980" HorizontalAlignment="Stretch">
+
+                    <TextBlock Text="{DynamicResource Organize_Title}" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Text="{DynamicResource Organize_Subtitle}"
+                               Style="{StaticResource PageSubtitle}"/>
+
+                    <!-- Card -->
+                    <Border x:Name="OrganizeCard" Background="{StaticResource CardBg}" CornerRadius="8"
+                            Padding="26" MinWidth="600" Effect="{StaticResource CardShadow}"
+                            HorizontalAlignment="Stretch">
+                        <StackPanel>
+
+                            <!-- Source -->
+                            <TextBlock Text="{DynamicResource Lbl_SourcePdf}" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="OrganizeSourcePath" Style="{StaticResource InputBox}"
+                                         IsReadOnly="True" Margin="0,0,8,0"
+                                         Text="{DynamicResource Hint_BrowseSource}"/>
+                                <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                        Click="OrganizeBrowseSource_Click"/>
+                            </Grid>
+                            <TextBlock x:Name="OrganizePageInfo" Style="{StaticResource HintText}"/>
+
+                            <Separator Margin="0,18,0,14" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Toolbar -->
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{DynamicResource Organize_PageList}" Style="{StaticResource FieldLabel}"
+                                           VerticalAlignment="Center" Margin="0"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button x:Name="OrganizeMoveUp"   Content="{DynamicResource Organize_MoveUp}"
+                                            Style="{StaticResource SecondaryBtn}" Margin="0,0,6,0"
+                                            IsEnabled="False" Click="OrganizeMoveUp_Click"/>
+                                    <Button x:Name="OrganizeMoveDown" Content="{DynamicResource Organize_MoveDown}"
+                                            Style="{StaticResource SecondaryBtn}" Margin="0,0,6,0"
+                                            IsEnabled="False" Click="OrganizeMoveDown_Click"/>
+                                    <Button x:Name="OrganizeDeleteBtn" Content="{DynamicResource Organize_Delete}"
+                                            Style="{StaticResource SecondaryBtn}" Margin="0,0,6,0"
+                                            IsEnabled="False" Click="OrganizeDeleteSelected_Click"/>
+                                    <Button Content="{DynamicResource Organize_Insert}"
+                                            Style="{StaticResource SecondaryBtn}"
+                                            Click="OrganizeInsertToggle_Click"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Page list -->
+                            <Border BorderBrush="{StaticResource BorderColor}"
+                                    BorderThickness="1" CornerRadius="4">
+                                <Grid>
+                                    <ListBox x:Name="OrganizePageList" Height="280"
+                                             BorderThickness="0" Background="#FBFCFE"
+                                             ItemContainerStyle="{StaticResource FileItem}"
+                                             SelectionMode="Extended"
+                                             SelectionChanged="OrganizePageList_SelectionChanged">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="40"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <!-- Index badge -->
+                                                    <Border Grid.Column="0"
+                                                            Background="#E9F2FF" CornerRadius="4"
+                                                            Width="26" Height="24" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding DisplayNumber}"
+                                                                   FontSize="11" FontWeight="Bold"
+                                                                   Foreground="#2F6ECC"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <!-- Page info -->
+                                                    <StackPanel Grid.Column="1" Margin="10,0,12,0"
+                                                                VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding PageLabel}"
+                                                                   FontSize="13" Foreground="#2C3E50"
+                                                                   TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding SourceName}"
+                                                                   FontSize="11" Foreground="#95A5A6"
+                                                                   Margin="0,2,0,0"
+                                                                   TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+                                                    <!-- Size info -->
+                                                    <TextBlock Grid.Column="2"
+                                                               Text="{Binding SizeInfo}"
+                                                               FontSize="11" Foreground="#7B8A97"
+                                                               VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+
+                                    <!-- Empty state -->
+                                    <StackPanel x:Name="OrganizeEmptyState"
+                                                VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                Margin="0,40" IsHitTestVisible="False">
+                                        <TextBlock Text="{DynamicResource Organize_EmptyTitle}" FontSize="15"
+                                                   Foreground="#BDC3C7" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{DynamicResource Organize_EmptyHint}"
+                                                   FontSize="12" Foreground="#BDC3C7"
+                                                   HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Insert sub-panel (hidden until toggled) -->
+                            <Border x:Name="InsertSubPanel" Visibility="Collapsed"
+                                    Margin="0,12,0,0" Background="#F4F8FF"
+                                    BorderBrush="#C5D8F5" BorderThickness="1"
+                                    CornerRadius="6" Padding="16,14">
+                                <StackPanel>
+                                    <!-- Header -->
+                                    <Grid Margin="0,0,0,12">
+                                        <TextBlock Text="{DynamicResource Organize_InsertTitle}" FontSize="12.5"
+                                                   FontWeight="SemiBold" Foreground="#2C3E50"
+                                                   VerticalAlignment="Center"/>
+                                        <Button Content="{DynamicResource Btn_Close}" HorizontalAlignment="Right"
+                                                Style="{StaticResource SecondaryBtn}" Padding="10,4"
+                                                Click="OrganizeInsertToggle_Click"/>
+                                    </Grid>
+                                    <!-- Source file -->
+                                    <TextBlock Text="{DynamicResource Organize_InsertSource}" Style="{StaticResource FieldLabel}"/>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="InsertSourcePath" Style="{StaticResource InputBox}"
+                                                 IsReadOnly="True" Margin="0,0,8,0"
+                                                 Text="{DynamicResource Organize_InsertSourceHint}"/>
+                                        <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                                Click="InsertBrowseSource_Click"/>
+                                    </Grid>
+                                    <TextBlock x:Name="InsertSourceInfo" Style="{StaticResource HintText}"
+                                               Margin="2,3,0,0"/>
+                                    <!-- Range + position -->
+                                    <Grid Margin="0,12,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="16"/>
+                                            <ColumnDefinition Width="160"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{DynamicResource Organize_InsertPages}"
+                                                       Style="{StaticResource FieldLabel}"/>
+                                            <TextBox x:Name="InsertPageRange" Style="{StaticResource InputBox}"
+                                                     ToolTip="{DynamicResource Organize_InsertPagesTip}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="{DynamicResource Organize_InsertPosition}"
+                                                       Style="{StaticResource FieldLabel}"/>
+                                            <TextBox x:Name="InsertPosition" Style="{StaticResource InputBox}"
+                                                     ToolTip="{DynamicResource Organize_InsertPositionTip}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Button Content="{DynamicResource Organize_InsertBtn}"
+                                            Style="{StaticResource PrimaryBtn}"
+                                            HorizontalAlignment="Left" Margin="0,14,0,0"
+                                            Click="InsertAddToList_Click"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Output -->
+                            <TextBlock Text="{DynamicResource Lbl_OutputFile}" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="OrganizeOutputPath" Style="{StaticResource InputBox}"
+                                         IsReadOnly="True" Margin="0,0,8,0"
+                                         Text="{DynamicResource Hint_BrowseOutput}"/>
+                                <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                        Click="OrganizeBrowseOutput_Click"/>
+                            </Grid>
+
+                            <Separator Margin="0,20,0,20" Background="{StaticResource SeparatorColor}"/>
+
+                            <Button x:Name="OrganizeBtn" Content="{DynamicResource Organize_Btn}"
+                                    Style="{StaticResource PrimaryBtn}"
+                                    HorizontalAlignment="Left"
+                                    Click="OrganizeExecute_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Status -->
+                    <Border x:Name="OrganizeStatus" Margin="0,14,0,0"
+                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
+                        <TextBlock x:Name="OrganizeStatusText" FontSize="13" TextWrapping="Wrap"/>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- == WATERMARK PANEL ============================ -->
+            <ScrollViewer x:Name="WatermarkPanel" VerticalScrollBarVisibility="Auto"
+                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="WatermarkHost" Margin="42,30,42,36" MaxWidth="980"
+                            HorizontalAlignment="Stretch">
+
+                    <TextBlock Text="{DynamicResource Wm_Title}" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Text="{DynamicResource Wm_Subtitle}"
+                               Style="{StaticResource PageSubtitle}"/>
+
+                    <Border x:Name="WatermarkCard" Background="{StaticResource CardBg}" CornerRadius="8"
+                            Padding="26" MinWidth="600" Effect="{StaticResource CardShadow}"
+                            HorizontalAlignment="Stretch">
+                        <StackPanel>
+
+                            <!-- Source -->
+                            <TextBlock Text="{DynamicResource Lbl_SourcePdf}" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="WmSourcePath" Style="{StaticResource InputBox}"
+                                         IsReadOnly="True" Margin="0,0,8,0"
+                                         Text="{DynamicResource Hint_BrowseSource}"/>
+                                <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                        Click="WmBrowseSource_Click"/>
+                            </Grid>
+                            <TextBlock x:Name="WmPageInfo" Style="{StaticResource HintText}"/>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Watermark text + Bold -->
+                            <TextBlock Text="{DynamicResource Wm_Text}" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="WmText" Style="{StaticResource InputBox}"
+                                         Text="CONFIDENTIAL" Margin="0,0,10,0"/>
+                                <CheckBox x:Name="WmBoldChk" Grid.Column="1" Content="{DynamicResource Wm_Bold}"
+                                          FontSize="13" FontWeight="SemiBold"
+                                          Foreground="{StaticResource TextPrimary}"
+                                          VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Font size + Opacity -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="24"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{DynamicResource Wm_FontSize}" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="WmFontSize" Style="{StaticResource InputBox}" Text="60"
+                                             ToolTip="{DynamicResource Wm_FontSizeTip}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="{DynamicResource Wm_Opacity}" Style="{StaticResource FieldLabel}"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="46"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="WmOpacity"
+                                                Minimum="5" Maximum="100" Value="30"
+                                                SmallChange="5" LargeChange="10"
+                                                VerticalAlignment="Center"
+                                                ValueChanged="WmOpacity_ValueChanged"/>
+                                        <TextBlock x:Name="WmOpacityLabel" Grid.Column="1"
+                                                   Text="30%" FontSize="12.5" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimary}"
+                                                   VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Color swatches -->
+                            <TextBlock Text="{DynamicResource Wm_Color}" Style="{StaticResource FieldLabel}"/>
+                            <WrapPanel Orientation="Horizontal">
+                                <RadioButton x:Name="WmColorLightGray" GroupName="WmColor"
+                                             Background="#A0A0A0" IsChecked="True"
+                                             Style="{StaticResource ColorBtn}"
+                                             ToolTip="Light Gray"/>
+                                <RadioButton x:Name="WmColorDarkGray" GroupName="WmColor"
+                                             Background="#404040"
+                                             Style="{StaticResource ColorBtn}"
+                                             ToolTip="Dark Gray"/>
+                                <RadioButton x:Name="WmColorBlack" GroupName="WmColor"
+                                             Background="#111111"
+                                             Style="{StaticResource ColorBtn}"
+                                             ToolTip="Black"/>
+                                <RadioButton x:Name="WmColorRed" GroupName="WmColor"
+                                             Background="#E74C3C"
+                                             Style="{StaticResource ColorBtn}"
+                                             ToolTip="Red"/>
+                                <RadioButton x:Name="WmColorOrange" GroupName="WmColor"
+                                             Background="#E67E22"
+                                             Style="{StaticResource ColorBtn}"
+                                             ToolTip="Orange"/>
+                                <RadioButton x:Name="WmColorYellow" GroupName="WmColor"
+                                             Background="#F1C40F"
+                                             Style="{StaticResource ColorBtn}"
+                                             ToolTip="Yellow"/>
+                                <RadioButton x:Name="WmColorGreen" GroupName="WmColor"
+                                             Background="#27AE60"
+                                             Style="{StaticResource ColorBtn}"
+                                             ToolTip="Green"/>
+                                <RadioButton x:Name="WmColorTeal" GroupName="WmColor"
+                                             Background="#16A085"
+                                             Style="{StaticResource ColorBtn}"
+                                             ToolTip="Teal"/>
+                                <RadioButton x:Name="WmColorBlue" GroupName="WmColor"
+                                             Background="#2980B9"
+                                             Style="{StaticResource ColorBtn}"
+                                             ToolTip="Blue"/>
+                                <RadioButton x:Name="WmColorNavy" GroupName="WmColor"
+                                             Background="#1A3A6B"
+                                             Style="{StaticResource ColorBtn}"
+                                             ToolTip="Navy"/>
+                                <RadioButton x:Name="WmColorPurple" GroupName="WmColor"
+                                             Background="#8E44AD"
+                                             Style="{StaticResource ColorBtn}"
+                                             ToolTip="Purple"/>
+                                <RadioButton x:Name="WmColorPink" GroupName="WmColor"
+                                             Background="#E91E8C"
+                                             Style="{StaticResource ColorBtn}"
+                                             ToolTip="Pink"/>
+                            </WrapPanel>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Position grid + Rotation -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="28"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- 3x3 position selector -->
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{DynamicResource Wm_Position}" Style="{StaticResource FieldLabel}"/>
+                                    <Grid Width="102" HorizontalAlignment="Left">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="34"/>
+                                            <RowDefinition Height="34"/>
+                                            <RowDefinition Height="34"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="34"/>
+                                            <ColumnDefinition Width="34"/>
+                                            <ColumnDefinition Width="34"/>
+                                        </Grid.ColumnDefinitions>
+                                        <RadioButton x:Name="WmPos_TL" GroupName="WmPos" Style="{StaticResource PosBtn}" Grid.Row="0" Grid.Column="0"/>
+                                        <RadioButton x:Name="WmPos_TC" GroupName="WmPos" Style="{StaticResource PosBtn}" Grid.Row="0" Grid.Column="1"/>
+                                        <RadioButton x:Name="WmPos_TR" GroupName="WmPos" Style="{StaticResource PosBtn}" Grid.Row="0" Grid.Column="2"/>
+                                        <RadioButton x:Name="WmPos_ML" GroupName="WmPos" Style="{StaticResource PosBtn}" Grid.Row="1" Grid.Column="0"/>
+                                        <RadioButton x:Name="WmPos_C"  GroupName="WmPos" Style="{StaticResource PosBtn}" Grid.Row="1" Grid.Column="1" IsChecked="True"/>
+                                        <RadioButton x:Name="WmPos_MR" GroupName="WmPos" Style="{StaticResource PosBtn}" Grid.Row="1" Grid.Column="2"/>
+                                        <RadioButton x:Name="WmPos_BL" GroupName="WmPos" Style="{StaticResource PosBtn}" Grid.Row="2" Grid.Column="0"/>
+                                        <RadioButton x:Name="WmPos_BC" GroupName="WmPos" Style="{StaticResource PosBtn}" Grid.Row="2" Grid.Column="1"/>
+                                        <RadioButton x:Name="WmPos_BR" GroupName="WmPos" Style="{StaticResource PosBtn}" Grid.Row="2" Grid.Column="2"/>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Rotation radio buttons -->
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="{DynamicResource Wm_Rotation}" Style="{StaticResource FieldLabel}"/>
+                                    <StackPanel>
+                                        <RadioButton x:Name="WmRotN45" Content="{DynamicResource Wm_RotN45}" GroupName="WmRot"
+                                                     IsChecked="True" FontSize="13"
+                                                     Foreground="{StaticResource TextPrimary}"
+                                                     Margin="0,0,0,8" VerticalContentAlignment="Center"/>
+                                        <RadioButton x:Name="WmRot0"   Content="{DynamicResource Wm_Rot0}" GroupName="WmRot"
+                                                     FontSize="13" Foreground="{StaticResource TextPrimary}"
+                                                     Margin="0,0,0,8" VerticalContentAlignment="Center"/>
+                                        <RadioButton x:Name="WmRot45"  Content="{DynamicResource Wm_Rot45}" GroupName="WmRot"
+                                                     FontSize="13" Foreground="{StaticResource TextPrimary}"
+                                                     Margin="0,0,0,8" VerticalContentAlignment="Center"/>
+                                        <RadioButton x:Name="WmRot90"  Content="{DynamicResource Wm_Rot90}" GroupName="WmRot"
+                                                     FontSize="13" Foreground="{StaticResource TextPrimary}"
+                                                     VerticalContentAlignment="Center"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Page range -->
+                            <TextBlock Text="{DynamicResource Lbl_PageRange}" Style="{StaticResource FieldLabel}"/>
+                            <CheckBox x:Name="WmAllPagesChk" Content="{DynamicResource Wm_AllPages}"
+                                      IsChecked="True" Margin="0,0,0,8"
+                                      FontSize="13" Foreground="{StaticResource TextPrimary}"
+                                      Checked="WmAllPages_Checked"
+                                      Unchecked="WmAllPages_Unchecked"/>
+                            <TextBox x:Name="WmPageRange" Style="{StaticResource InputBox}"
+                                     IsEnabled="False" ToolTip="{DynamicResource Wm_PageRangeTip}"/>
+                            <TextBlock Text="{DynamicResource Wm_PageRangeHint}"
+                                       Style="{StaticResource HintText}"/>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Output -->
+                            <TextBlock Text="{DynamicResource Lbl_OutputFile}" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="WmOutputPath" Style="{StaticResource InputBox}"
+                                         IsReadOnly="True" Margin="0,0,8,0"
+                                         Text="{DynamicResource Hint_BrowseOutput}"/>
+                                <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                        Click="WmBrowseOutput_Click"/>
+                            </Grid>
+
+                            <Separator Margin="0,20,0,20" Background="{StaticResource SeparatorColor}"/>
+
+                            <Button x:Name="WmBtn" Content="{DynamicResource Wm_Btn}"
+                                    Style="{StaticResource PrimaryBtn}"
+                                    HorizontalAlignment="Left"
+                                    Click="WmExecute_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Status -->
+                    <Border x:Name="WatermarkStatus" Margin="0,14,0,0"
+                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
+                        <TextBlock x:Name="WatermarkStatusText" FontSize="13" TextWrapping="Wrap"/>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- == SECURITY PANEL ============================ -->
+            <ScrollViewer x:Name="SecurityPanel" VerticalScrollBarVisibility="Auto"
+                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="SecurityHost" Margin="42,30,42,36" MaxWidth="980"
+                            HorizontalAlignment="Stretch">
+
+                    <TextBlock Text="{DynamicResource Sec_Title}" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Text="{DynamicResource Sec_Subtitle}"
+                               Style="{StaticResource PageSubtitle}"/>
+
+                    <Border x:Name="SecurityCard" Background="{StaticResource CardBg}" CornerRadius="8"
+                            Padding="26" MinWidth="600" Effect="{StaticResource CardShadow}"
+                            HorizontalAlignment="Stretch">
+                        <StackPanel>
+
+                            <!-- Tab toggle -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,22">
+                                <RadioButton x:Name="SecTabEncrypt" Content="{DynamicResource Sec_TabEncrypt}" GroupName="SecTab" IsChecked="True"
+                                             Style="{StaticResource TabBtn}"
+                                             Checked="SecTabEncrypt_Checked"/>
+                                <RadioButton x:Name="SecTabRemove" Content="{DynamicResource Sec_TabRemove}" GroupName="SecTab"
+                                             Style="{StaticResource TabBtn}"
+                                             Checked="SecTabRemove_Checked"/>
+                            </StackPanel>
+
+                            <!-- ==- ENCRYPT SUB-PANEL ======================- -->
+                            <StackPanel x:Name="EncryptSubPanel">
+
+                                <TextBlock Text="{DynamicResource Lbl_SourcePdf}" Style="{StaticResource FieldLabel}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="EncSourcePath" Style="{StaticResource InputBox}"
+                                             IsReadOnly="True" Margin="0,0,8,0"
+                                             Text="{DynamicResource Hint_BrowseSource}"/>
+                                    <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                            Click="EncBrowseSource_Click"/>
+                                </Grid>
+                                <TextBlock x:Name="EncPageInfo" Style="{StaticResource HintText}"/>
+
+                                <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                                <TextBlock Text="{DynamicResource Sec_CurrentPwd}"
+                                           Style="{StaticResource FieldLabel}"/>
+                                <PasswordBox x:Name="EncSourcePwd" Style="{StaticResource PwdBox}"/>
+
+                                <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{DynamicResource Sec_UserPwd}"
+                                                   Style="{StaticResource FieldLabel}"/>
+                                        <PasswordBox x:Name="EncUserPwd" Style="{StaticResource PwdBox}"/>
+                                        <TextBlock Text="{DynamicResource Sec_ConfirmPwd}" Style="{StaticResource FieldLabel}"
+                                                   Margin="0,12,0,5"/>
+                                        <PasswordBox x:Name="EncUserPwdConfirm" Style="{StaticResource PwdBox}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="{DynamicResource Sec_OwnerPwd}"
+                                                   Style="{StaticResource FieldLabel}"/>
+                                        <PasswordBox x:Name="EncOwnerPwd" Style="{StaticResource PwdBox}"/>
+                                        <TextBlock Text="{DynamicResource Sec_OwnerPwdHint}"
+                                                   Style="{StaticResource HintText}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                                <TextBlock Text="{DynamicResource Sec_Permissions}"
+                                           Style="{StaticResource FieldLabel}"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                    <CheckBox x:Name="EncPermitPrint" Content="{DynamicResource Sec_AllowPrint}"
+                                              IsChecked="True" FontSize="13"
+                                              Foreground="{StaticResource TextPrimary}"
+                                              Margin="0,0,24,0" VerticalContentAlignment="Center"/>
+                                    <CheckBox x:Name="EncPermitCopy" Content="{DynamicResource Sec_AllowCopy}"
+                                              IsChecked="True" FontSize="13"
+                                              Foreground="{StaticResource TextPrimary}"
+                                              Margin="0,0,24,0" VerticalContentAlignment="Center"/>
+                                    <CheckBox x:Name="EncPermitModify" Content="{DynamicResource Sec_AllowModify}"
+                                              FontSize="13" Foreground="{StaticResource TextPrimary}"
+                                              VerticalContentAlignment="Center"/>
+                                </StackPanel>
+
+                                <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                                <TextBlock Text="{DynamicResource Lbl_OutputFile}" Style="{StaticResource FieldLabel}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="EncOutputPath" Style="{StaticResource InputBox}"
+                                             IsReadOnly="True" Margin="0,0,8,0"
+                                             Text="{DynamicResource Hint_BrowseOutput}"/>
+                                    <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                            Click="EncBrowseOutput_Click"/>
+                                </Grid>
+
+                                <Separator Margin="0,20,0,20" Background="{StaticResource SeparatorColor}"/>
+
+                                <Button x:Name="EncBtn" Content="{DynamicResource Sec_EncBtn}" Style="{StaticResource PrimaryBtn}"
+                                        HorizontalAlignment="Left"
+                                        Click="EncExecute_Click"/>
+                            </StackPanel>
+
+                            <!-- ==- REMOVE PASSWORD SUB-PANEL ==============- -->
+                            <StackPanel x:Name="RemovePassSubPanel" Visibility="Collapsed">
+
+                                <TextBlock Text="{DynamicResource Sec_RemTitle}" Style="{StaticResource FieldLabel}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="RemSourcePath" Style="{StaticResource InputBox}"
+                                             IsReadOnly="True" Margin="0,0,8,0"
+                                             Text="{DynamicResource Sec_RemSourceHint}"/>
+                                    <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                            Click="RemBrowseSource_Click"/>
+                                </Grid>
+                                <TextBlock x:Name="RemPageInfo" Style="{StaticResource HintText}"/>
+
+                                <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                                <TextBlock Text="{DynamicResource Sec_RemCurrentPwd}" Style="{StaticResource FieldLabel}"/>
+                                <PasswordBox x:Name="RemPwd" Style="{StaticResource PwdBox}"/>
+                                <TextBlock Text="{DynamicResource Sec_RemCurrentPwdHint}"
+                                           Style="{StaticResource HintText}"/>
+
+                                <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                                <TextBlock Text="{DynamicResource Lbl_OutputFile}" Style="{StaticResource FieldLabel}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="RemOutputPath" Style="{StaticResource InputBox}"
+                                             IsReadOnly="True" Margin="0,0,8,0"
+                                             Text="{DynamicResource Hint_BrowseOutput}"/>
+                                    <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                            Click="RemBrowseOutput_Click"/>
+                                </Grid>
+
+                                <Separator Margin="0,20,0,20" Background="{StaticResource SeparatorColor}"/>
+
+                                <Button x:Name="RemBtn" Content="{DynamicResource Sec_RemBtn}" Style="{StaticResource PrimaryBtn}"
+                                        HorizontalAlignment="Left"
+                                        Click="RemExecute_Click"/>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Status -->
+                    <Border x:Name="SecurityStatus" Margin="0,14,0,0"
+                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
+                        <TextBlock x:Name="SecurityStatusText" FontSize="13" TextWrapping="Wrap"/>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- == SPLIT PANEL ============================- -->
+            <ScrollViewer x:Name="SplitPanel" VerticalScrollBarVisibility="Auto"
+                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="SplitHost" Margin="42,30,42,36" MaxWidth="980"
+                            HorizontalAlignment="Stretch">
+
+                    <TextBlock Text="{DynamicResource Split_Title}" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Text="{DynamicResource Split_Subtitle}"
+                               Style="{StaticResource PageSubtitle}"/>
+
+                    <Border x:Name="SplitCard" Background="{StaticResource CardBg}" CornerRadius="8"
+                            Padding="26" MinWidth="600" Effect="{StaticResource CardShadow}"
+                            HorizontalAlignment="Stretch">
+                        <StackPanel>
+
+                            <!-- Source -->
+                            <TextBlock Text="{DynamicResource Lbl_SourcePdf}" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="SplitSourcePath" Style="{StaticResource InputBox}"
+                                         IsReadOnly="True" Margin="0,0,8,0"
+                                         Text="{DynamicResource Hint_BrowseSource}"/>
+                                <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                        Click="SplitBrowseSource_Click"/>
+                            </Grid>
+                            <TextBlock x:Name="SplitPageInfo" Style="{StaticResource HintText}"/>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Tab toggle -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                <RadioButton x:Name="SplitTabCount" Content="{DynamicResource Split_TabCount}"
+                                             GroupName="SplitTab" IsChecked="True"
+                                             Style="{StaticResource TabBtn}"
+                                             Checked="SplitTabCount_Checked"/>
+                                <RadioButton x:Name="SplitTabRanges" Content="{DynamicResource Split_TabRanges}"
+                                             GroupName="SplitTab"
+                                             Style="{StaticResource TabBtn}"
+                                             Checked="SplitTabRanges_Checked"/>
+                            </StackPanel>
+
+                            <!-- By Count sub-panel -->
+                            <StackPanel x:Name="SplitCountPanel">
+                                <TextBlock Text="{DynamicResource Split_PagesPerFile}" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="SplitPagesPerFile" Style="{StaticResource InputBox}"
+                                         Text="1" ToolTip="{DynamicResource Split_PagesPerFileTip}"/>
+                                <TextBlock Text="{DynamicResource Split_PagesPerFileHint}"
+                                           Style="{StaticResource HintText}"/>
+                            </StackPanel>
+
+                            <!-- By Ranges sub-panel -->
+                            <StackPanel x:Name="SplitRangesPanel" Visibility="Collapsed">
+                                <TextBlock Text="{DynamicResource Split_PageRanges}" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="SplitRangesInput" Style="{StaticResource InputBox}"
+                                         ToolTip="{DynamicResource Split_PageRangesTip}"/>
+                                <TextBlock Text="{DynamicResource Split_PageRangesHint}"
+                                           Style="{StaticResource HintText}"/>
+                            </StackPanel>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Output folder + prefix -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="180"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{DynamicResource Split_OutputFolder}" Style="{StaticResource FieldLabel}"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="SplitOutputFolder" Style="{StaticResource InputBox}"
+                                                 IsReadOnly="True" Margin="0,0,8,0"
+                                                 Text="{DynamicResource Split_BrowseFolder}"/>
+                                        <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                                Click="SplitBrowseOutputFolder_Click"/>
+                                    </Grid>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="{DynamicResource Split_Prefix}" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="SplitPrefix" Style="{StaticResource InputBox}"
+                                             ToolTip="{DynamicResource Split_PrefixTip}"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Separator Margin="0,20,0,20" Background="{StaticResource SeparatorColor}"/>
+
+                            <Button x:Name="SplitBtn" Content="{DynamicResource Split_Btn}" Style="{StaticResource PrimaryBtn}"
+                                    HorizontalAlignment="Left"
+                                    Click="SplitExecute_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Status -->
+                    <Border x:Name="SplitStatus" Margin="0,14,0,0"
+                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
+                        <TextBlock x:Name="SplitStatusText" FontSize="13" TextWrapping="Wrap"/>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- == METADATA PANEL ========================== -->
+            <ScrollViewer x:Name="MetadataPanel" VerticalScrollBarVisibility="Auto"
+                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="MetadataHost" Margin="42,30,42,36" MaxWidth="980"
+                            HorizontalAlignment="Stretch">
+
+                    <TextBlock Text="{DynamicResource Meta_Title}" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Text="{DynamicResource Meta_Subtitle}"
+                               Style="{StaticResource PageSubtitle}"/>
+
+                    <Border x:Name="MetadataCard" Background="{StaticResource CardBg}" CornerRadius="8"
+                            Padding="26" MinWidth="600" Effect="{StaticResource CardShadow}"
+                            HorizontalAlignment="Stretch">
+                        <StackPanel>
+
+                            <!-- Source + Load -->
+                            <TextBlock Text="{DynamicResource Lbl_SourcePdf}" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="MetaSourcePath" Style="{StaticResource InputBox}"
+                                         IsReadOnly="True" Margin="0,0,8,0"
+                                         Text="{DynamicResource Hint_BrowseSource}"/>
+                                <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                        Margin="0,0,8,0"
+                                        Click="MetaBrowseSource_Click"/>
+                                <Button Grid.Column="2" Content="{DynamicResource Meta_Load}"
+                                        Style="{StaticResource SecondaryBtn}"
+                                        Click="MetaLoad_Click"/>
+                            </Grid>
+                            <TextBlock x:Name="MetaPageInfo" Style="{StaticResource HintText}"/>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Editable fields 2-column -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{DynamicResource Meta_FieldTitle}" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="MetaTitle" Style="{StaticResource InputBox}" Margin="0,0,0,14"/>
+                                    <TextBlock Text="{DynamicResource Meta_Subject}" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="MetaSubject" Style="{StaticResource InputBox}" Margin="0,0,0,14"/>
+                                    <TextBlock Text="{DynamicResource Meta_Creator}" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="MetaCreator" Style="{StaticResource InputBox}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="{DynamicResource Meta_Author}" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="MetaAuthor" Style="{StaticResource InputBox}" Margin="0,0,0,14"/>
+                                    <TextBlock Text="{DynamicResource Meta_Keywords}" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="MetaKeywords" Style="{StaticResource InputBox}"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Read-only info -->
+                            <TextBlock Text="{DynamicResource Meta_ReadOnly}" Style="{StaticResource FieldLabel}"
+                                       Foreground="{StaticResource TextMuted}"/>
+                            <Grid Margin="0,6,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{DynamicResource Meta_Producer}" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="MetaProducer" Style="{StaticResource InputBox}" IsReadOnly="True"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="{DynamicResource Meta_CreationDate}" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox x:Name="MetaCreationDate" Style="{StaticResource InputBox}" IsReadOnly="True"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
+
+                            <!-- Output -->
+                            <TextBlock Text="{DynamicResource Lbl_OutputFile}" Style="{StaticResource FieldLabel}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="MetaOutputPath" Style="{StaticResource InputBox}"
+                                         IsReadOnly="True" Margin="0,0,8,0"
+                                         Text="{DynamicResource Hint_BrowseOutput}"/>
+                                <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
+                                        Click="MetaBrowseOutput_Click"/>
+                            </Grid>
+
+                            <Separator Margin="0,20,0,20" Background="{StaticResource SeparatorColor}"/>
+
+                            <Button x:Name="MetaBtn" Content="{DynamicResource Meta_Btn}"
+                                    Style="{StaticResource PrimaryBtn}"
+                                    HorizontalAlignment="Left"
+                                    Click="MetaExecute_Click"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Status -->
+                    <Border x:Name="MetadataStatus" Margin="0,14,0,0"
+                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
+                        <TextBlock x:Name="MetadataStatusText" FontSize="13" TextWrapping="Wrap"/>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+        </Grid><!-- end content grid -->
+    </Grid>
+</Window>
+
