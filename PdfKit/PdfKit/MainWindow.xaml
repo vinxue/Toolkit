@@ -9,15 +9,15 @@
         Height="680" Width="960"
         MinHeight="540" MinWidth="760"
         WindowStartupLocation="CenterScreen"
-        Background="#ECF0F1"
+        Background="#FFFFFF"
         FontFamily="Segoe UI, Microsoft YaHei UI, Microsoft JhengHei UI, Calibri, sans-serif"
         UseLayoutRounding="True">
 
     <Window.Resources>
         <!-- ==- Brushes ======================================- -->
-        <SolidColorBrush x:Key="SidebarBg"       Color="#2C3E50"/>
-        <SolidColorBrush x:Key="SidebarHover"    Color="#34495E"/>
-        <SolidColorBrush x:Key="SidebarActive"   Color="#1A252F"/>
+        <SolidColorBrush x:Key="SidebarBg"       Color="#F3F3F3"/>
+        <SolidColorBrush x:Key="SidebarHover"    Color="#E5E5E5"/>
+        <SolidColorBrush x:Key="SidebarActive"   Color="#E0EEFF"/>
         <SolidColorBrush x:Key="AccentBrush"     Color="#0078D4"/>
         <SolidColorBrush x:Key="AccentHover"     Color="#106EBE"/>
         <SolidColorBrush x:Key="AccentPress"     Color="#005A9E"/>
@@ -25,8 +25,8 @@
         <SolidColorBrush x:Key="TextSecondary"   Color="#7F8C8D"/>
         <SolidColorBrush x:Key="TextMuted"       Color="#95A5A6"/>
         <SolidColorBrush x:Key="BorderColor"     Color="#D5D8DC"/>
-        <SolidColorBrush x:Key="ContentBg"       Color="#ECF0F1"/>
-        <SolidColorBrush x:Key="CardBg"          Color="White"/>
+        <SolidColorBrush x:Key="ContentBg"       Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="CardBg"          Color="#FAFAFA"/>
         <SolidColorBrush x:Key="SeparatorColor"  Color="#EAECEE"/>
         <SolidColorBrush x:Key="InputBg"         Color="#FDFEFE"/>
         <SolidColorBrush x:Key="SuccessBg"       Color="#EAFAF1"/>
@@ -38,7 +38,7 @@
 
         <!-- ==- Sidebar Nav Button ============================- -->
         <Style x:Key="NavBtn" TargetType="RadioButton">
-            <Setter Property="Foreground"               Value="#95A5A6"/>
+            <Setter Property="Foreground"               Value="#4A4A4A"/>
             <Setter Property="BorderThickness"          Value="0"/>
             <Setter Property="Cursor"                   Value="Hand"/>
             <Setter Property="GroupName"                Value="Nav"/>
@@ -70,13 +70,13 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg"  Property="Background" Value="#34495E"/>
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter TargetName="bg"  Property="Background" Value="#E5E5E5"/>
+                                <Setter Property="Foreground" Value="#1A1A1A"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="bg"  Property="Background" Value="#1A252F"/>
+                                <Setter TargetName="bg"  Property="Background" Value="#E0EEFF"/>
                                 <Setter TargetName="bar" Property="Background" Value="#0078D4"/>
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="Foreground" Value="#003E92"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -98,7 +98,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="bd" Background="{TemplateBinding Background}"
-                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -134,7 +134,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                CornerRadius="5" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -171,12 +171,25 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="4">
-                            <ScrollViewer x:Name="PART_ContentHost"
-                                          Margin="{TemplateBinding Padding}"
-                                          VerticalAlignment="Center"/>
+                                CornerRadius="5">
+                            <Grid>
+                                <ScrollViewer x:Name="PART_ContentHost"
+                                              Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Center"/>
+                                <TextBlock x:Name="Placeholder"
+                                           Text="{TemplateBinding Tag}"
+                                           Foreground="#ABABAB"
+                                           FontSize="{TemplateBinding FontSize}"
+                                           Margin="{TemplateBinding Padding}"
+                                           VerticalAlignment="Center"
+                                           IsHitTestVisible="False"
+                                           Visibility="Collapsed"/>
+                            </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
+                            </Trigger>
                             <Trigger Property="IsFocused" Value="True">
                                 <Setter TargetName="bd" Property="BorderBrush" Value="#0078D4"/>
                                 <Setter TargetName="bd" Property="Background"  Value="White"/>
@@ -258,8 +271,8 @@
 
         <!-- ==- Card Shadow ==================================== -->
         <DropShadowEffect x:Key="CardShadow"
-                          Color="#000000" Opacity="0.07"
-                          BlurRadius="14" ShadowDepth="2" Direction="270"/>
+                          Color="#000000" Opacity="0.04"
+                          BlurRadius="8" ShadowDepth="1" Direction="270"/>
         <!-- ==- Position Selector Button ============================ -->
         <Style x:Key="PosBtn" TargetType="RadioButton">
             <Setter Property="Width"            Value="30"/>
@@ -363,7 +376,7 @@
         <!-- ==- Language Button ======================================- -->
         <Style x:Key="LangBtn" TargetType="RadioButton">
             <Setter Property="Background"       Value="Transparent"/>
-            <Setter Property="Foreground"       Value="#9EAFBF"/>
+            <Setter Property="Foreground"       Value="#555555"/>
             <Setter Property="FontFamily"       Value="Segoe UI, Microsoft YaHei UI, Microsoft JhengHei UI, sans-serif"/>
             <Setter Property="Padding"          Value="6,4"/>
             <Setter Property="FontSize"         Value="11"/>
@@ -380,8 +393,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#34495E"/>
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter TargetName="bd" Property="Background" Value="#E0EEFF"/>
+                                <Setter Property="Foreground" Value="#003E92"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="bd" Property="Background"   Value="#0078D4"/>
@@ -439,7 +452,8 @@
         <!-- ======================================================
              SIDEBAR
         ====================================================== -->
-        <Border Grid.Column="0" Background="{StaticResource SidebarBg}">
+        <Border Grid.Column="0" Background="{StaticResource SidebarBg}"
+                BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
             <DockPanel>
                 <!-- Logo -->
                 <StackPanel DockPanel.Dock="Top" Margin="20,26,20,20">
@@ -449,24 +463,24 @@
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="PdfKit" Foreground="White" FontSize="17" FontWeight="Bold"/>
-                            <TextBlock Text="{DynamicResource App_Subtitle}" Foreground="#566573" FontSize="11"/>
+                            <TextBlock Text="PdfKit" Foreground="#1A1A1A" FontSize="17" FontWeight="Bold"/>
+                            <TextBlock Text="{DynamicResource App_Subtitle}" Foreground="#888888" FontSize="11"/>
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
 
                 <!-- Divider -->
-                <Border DockPanel.Dock="Top" Height="1" Background="#34495E" Margin="0,0,0,4"/>
+                <Border DockPanel.Dock="Top" Height="1" Background="#DCDCDC" Margin="0,0,0,4"/>
 
                 <!-- Version at bottom (must be declared before fill item in DockPanel) -->
-                <TextBlock DockPanel.Dock="Bottom" Text="v1.0.0" Foreground="#7F8FA4"
+                <TextBlock x:Name="VersionLabel" DockPanel.Dock="Bottom" Text="v1.0.0.0" Foreground="#888888"
                            FontSize="11" Margin="22,0,0,14"/>
 
                 <!-- Language switcher (Bottom — declared before nav fill item) -->
                 <Border DockPanel.Dock="Bottom" Margin="12,0,12,6">
                     <StackPanel>
-                        <Border Height="1" Background="#34495E" Margin="0,0,0,8"/>
-                        <TextBlock Text="{DynamicResource Lang_Label}" Foreground="#8899AA"
+                        <Border Height="1" Background="#DCDCDC" Margin="0,0,0,8"/>
+                        <TextBlock Text="{DynamicResource Lang_Label}" Foreground="#888888"
                                    FontSize="9.5" FontWeight="SemiBold" Margin="10,0,0,5"
                                    FontFamily="Segoe UI, Microsoft YaHei UI, Microsoft JhengHei UI, sans-serif"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -517,7 +531,7 @@
                     </ScrollViewer.Resources>
                     <StackPanel>
                         <!-- ORGANIZE group -->
-                        <TextBlock Text="{DynamicResource Nav_Organize}" Foreground="#566573"
+                        <TextBlock Text="{DynamicResource Nav_Organize}" Foreground="#888888"
                                    FontSize="9.5" FontWeight="SemiBold" Margin="22,12,0,5"/>
                         <RadioButton x:Name="NavExtract"  Tag="&#x2702;  " Content="{DynamicResource Nav_Extract}" Style="{StaticResource NavBtn}" IsChecked="True"
                                      Click="NavExtract_Click"/>
@@ -530,14 +544,14 @@
                         <RadioButton x:Name="NavRotate"   Tag="&#x21BB;  " Content="{DynamicResource Nav_Rotate}" Style="{StaticResource NavBtn}"
                                      Click="NavRotate_Click"/>
                         <!-- ENHANCE group -->
-                        <Border Height="1" Background="#34495E" Margin="0,6,0,0"/>
-                        <TextBlock Text="{DynamicResource Nav_Enhance}" Foreground="#566573"
+                        <Border Height="1" Background="#DCDCDC" Margin="0,6,0,0"/>
+                        <TextBlock Text="{DynamicResource Nav_Enhance}" Foreground="#888888"
                                    FontSize="9.5" FontWeight="SemiBold" Margin="22,10,0,5"/>
                         <RadioButton x:Name="NavWatermark" Tag="&#x25C8;  " Content="{DynamicResource Nav_Watermark}" Style="{StaticResource NavBtn}"
                                      Click="NavWatermark_Click"/>
                         <!-- DOCUMENT group -->
-                        <Border Height="1" Background="#34495E" Margin="0,6,0,0"/>
-                        <TextBlock Text="{DynamicResource Nav_Document}" Foreground="#566573"
+                        <Border Height="1" Background="#DCDCDC" Margin="0,6,0,0"/>
+                        <TextBlock Text="{DynamicResource Nav_Document}" Foreground="#888888"
                                    FontSize="9.5" FontWeight="SemiBold" Margin="22,10,0,5"/>
                         <RadioButton x:Name="NavMetadata" Tag="&#x24D8;  " Content="{DynamicResource Nav_Metadata}" Style="{StaticResource NavBtn}"
                                      Click="NavMetadata_Click"/>
@@ -563,6 +577,7 @@
 
                     <!-- Card -->
                         <Border x:Name="ExtractCard" Background="{StaticResource CardBg}" CornerRadius="8" Padding="26" MinWidth="600"
+                            BorderBrush="#E5E5E5" BorderThickness="1"
                             Effect="{StaticResource CardShadow}"
                             HorizontalAlignment="Stretch">
                         <StackPanel>
@@ -576,7 +591,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="ExtractSourcePath" Style="{StaticResource InputBox}"
                                          IsReadOnly="True" Margin="0,0,8,0"
-                                     Text="{DynamicResource Hint_BrowseSource}"/>
+                                     Tag="{DynamicResource Hint_BrowseSource}"/>
                                 <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                         Click="ExtractBrowseSource_Click"/>
                             </Grid>
@@ -602,7 +617,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="ExtractOutputPath" Style="{StaticResource InputBox}"
                                          IsReadOnly="True" Margin="0,0,8,0"
-                                     Text="{DynamicResource Hint_BrowseOutput}"/>
+                                     Tag="{DynamicResource Hint_BrowseOutput}"/>
                                 <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                         Click="ExtractBrowseOutput_Click"/>
                             </Grid>
@@ -634,6 +649,7 @@
 
                     <!-- Card -->
                         <Border x:Name="MergeCard" Background="{StaticResource CardBg}" CornerRadius="8" Padding="26" MinWidth="600"
+                            BorderBrush="#E5E5E5" BorderThickness="1"
                             Effect="{StaticResource CardShadow}"
                             HorizontalAlignment="Stretch">
                         <StackPanel>
@@ -744,7 +760,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="MergeOutputPath" Style="{StaticResource InputBox}"
                                          IsReadOnly="True" Margin="0,0,8,0"
-                                     Text="{DynamicResource Hint_BrowseOutput}"/>
+                                     Tag="{DynamicResource Hint_BrowseOutput}"/>
                                 <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                         Click="MergeBrowseOutput_Click"/>
                             </Grid>
@@ -777,6 +793,7 @@
 
                     <!-- Card -->
                         <Border x:Name="RotateCard" Background="{StaticResource CardBg}" CornerRadius="8" Padding="26" MinWidth="600"
+                            BorderBrush="#E5E5E5" BorderThickness="1"
                             Effect="{StaticResource CardShadow}"
                             HorizontalAlignment="Stretch">
                         <StackPanel>
@@ -790,7 +807,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="RotateSourcePath" Style="{StaticResource InputBox}"
                                          IsReadOnly="True" Margin="0,0,8,0"
-                                     Text="{DynamicResource Hint_BrowseSource}"/>
+                                     Tag="{DynamicResource Hint_BrowseSource}"/>
                                 <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                         Click="RotateBrowseSource_Click"/>
                             </Grid>
@@ -841,7 +858,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="RotateOutputPath" Style="{StaticResource InputBox}"
                                          IsReadOnly="True" Margin="0,0,8,0"
-                                     Text="{DynamicResource Hint_BrowseOutput}"/>
+                                     Tag="{DynamicResource Hint_BrowseOutput}"/>
                                 <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                         Click="RotateBrowseOutput_Click"/>
                             </Grid>
@@ -874,6 +891,7 @@
                     <!-- Card -->
                     <Border x:Name="OrganizeCard" Background="{StaticResource CardBg}" CornerRadius="8"
                             Padding="26" MinWidth="600" Effect="{StaticResource CardShadow}"
+                            BorderBrush="#E5E5E5" BorderThickness="1"
                             HorizontalAlignment="Stretch">
                         <StackPanel>
 
@@ -886,7 +904,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="OrganizeSourcePath" Style="{StaticResource InputBox}"
                                          IsReadOnly="True" Margin="0,0,8,0"
-                                         Text="{DynamicResource Hint_BrowseSource}"/>
+                                         Tag="{DynamicResource Hint_BrowseSource}"/>
                                 <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                         Click="OrganizeBrowseSource_Click"/>
                             </Grid>
@@ -1003,7 +1021,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBox x:Name="InsertSourcePath" Style="{StaticResource InputBox}"
                                                  IsReadOnly="True" Margin="0,0,8,0"
-                                                 Text="{DynamicResource Organize_InsertSourceHint}"/>
+                                                 Tag="{DynamicResource Organize_InsertSourceHint}"/>
                                         <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                                 Click="InsertBrowseSource_Click"/>
                                     </Grid>
@@ -1047,7 +1065,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="OrganizeOutputPath" Style="{StaticResource InputBox}"
                                          IsReadOnly="True" Margin="0,0,8,0"
-                                         Text="{DynamicResource Hint_BrowseOutput}"/>
+                                         Tag="{DynamicResource Hint_BrowseOutput}"/>
                                 <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                         Click="OrganizeBrowseOutput_Click"/>
                             </Grid>
@@ -1081,6 +1099,7 @@
 
                     <Border x:Name="WatermarkCard" Background="{StaticResource CardBg}" CornerRadius="8"
                             Padding="26" MinWidth="600" Effect="{StaticResource CardShadow}"
+                            BorderBrush="#E5E5E5" BorderThickness="1"
                             HorizontalAlignment="Stretch">
                         <StackPanel>
 
@@ -1093,7 +1112,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="WmSourcePath" Style="{StaticResource InputBox}"
                                          IsReadOnly="True" Margin="0,0,8,0"
-                                         Text="{DynamicResource Hint_BrowseSource}"/>
+                                         Tag="{DynamicResource Hint_BrowseSource}"/>
                                 <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                         Click="WmBrowseSource_Click"/>
                             </Grid>
@@ -1289,7 +1308,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="WmOutputPath" Style="{StaticResource InputBox}"
                                          IsReadOnly="True" Margin="0,0,8,0"
-                                         Text="{DynamicResource Hint_BrowseOutput}"/>
+                                         Tag="{DynamicResource Hint_BrowseOutput}"/>
                                 <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                         Click="WmBrowseOutput_Click"/>
                             </Grid>
@@ -1323,6 +1342,7 @@
 
                     <Border x:Name="SecurityCard" Background="{StaticResource CardBg}" CornerRadius="8"
                             Padding="26" MinWidth="600" Effect="{StaticResource CardShadow}"
+                            BorderBrush="#E5E5E5" BorderThickness="1"
                             HorizontalAlignment="Stretch">
                         <StackPanel>
 
@@ -1347,7 +1367,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBox x:Name="EncSourcePath" Style="{StaticResource InputBox}"
                                              IsReadOnly="True" Margin="0,0,8,0"
-                                             Text="{DynamicResource Hint_BrowseSource}"/>
+                                             Tag="{DynamicResource Hint_BrowseSource}"/>
                                     <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                             Click="EncBrowseSource_Click"/>
                                 </Grid>
@@ -1412,7 +1432,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBox x:Name="EncOutputPath" Style="{StaticResource InputBox}"
                                              IsReadOnly="True" Margin="0,0,8,0"
-                                             Text="{DynamicResource Hint_BrowseOutput}"/>
+                                             Tag="{DynamicResource Hint_BrowseOutput}"/>
                                     <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                             Click="EncBrowseOutput_Click"/>
                                 </Grid>
@@ -1435,7 +1455,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBox x:Name="RemSourcePath" Style="{StaticResource InputBox}"
                                              IsReadOnly="True" Margin="0,0,8,0"
-                                             Text="{DynamicResource Sec_RemSourceHint}"/>
+                                             Tag="{DynamicResource Sec_RemSourceHint}"/>
                                     <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                             Click="RemBrowseSource_Click"/>
                                 </Grid>
@@ -1458,7 +1478,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBox x:Name="RemOutputPath" Style="{StaticResource InputBox}"
                                              IsReadOnly="True" Margin="0,0,8,0"
-                                             Text="{DynamicResource Hint_BrowseOutput}"/>
+                                             Tag="{DynamicResource Hint_BrowseOutput}"/>
                                     <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                             Click="RemBrowseOutput_Click"/>
                                 </Grid>
@@ -1493,6 +1513,7 @@
 
                     <Border x:Name="SplitCard" Background="{StaticResource CardBg}" CornerRadius="8"
                             Padding="26" MinWidth="600" Effect="{StaticResource CardShadow}"
+                            BorderBrush="#E5E5E5" BorderThickness="1"
                             HorizontalAlignment="Stretch">
                         <StackPanel>
 
@@ -1505,7 +1526,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="SplitSourcePath" Style="{StaticResource InputBox}"
                                          IsReadOnly="True" Margin="0,0,8,0"
-                                         Text="{DynamicResource Hint_BrowseSource}"/>
+                                         Tag="{DynamicResource Hint_BrowseSource}"/>
                                 <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                         Click="SplitBrowseSource_Click"/>
                             </Grid>
@@ -1561,7 +1582,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBox x:Name="SplitOutputFolder" Style="{StaticResource InputBox}"
                                                  IsReadOnly="True" Margin="0,0,8,0"
-                                                 Text="{DynamicResource Split_BrowseFolder}"/>
+                                                 Tag="{DynamicResource Split_BrowseFolder}"/>
                                         <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                                 Click="SplitBrowseOutputFolder_Click"/>
                                     </Grid>
@@ -1601,6 +1622,7 @@
 
                     <Border x:Name="MetadataCard" Background="{StaticResource CardBg}" CornerRadius="8"
                             Padding="26" MinWidth="600" Effect="{StaticResource CardShadow}"
+                            BorderBrush="#E5E5E5" BorderThickness="1"
                             HorizontalAlignment="Stretch">
                         <StackPanel>
 
@@ -1614,7 +1636,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="MetaSourcePath" Style="{StaticResource InputBox}"
                                          IsReadOnly="True" Margin="0,0,8,0"
-                                         Text="{DynamicResource Hint_BrowseSource}"/>
+                                         Tag="{DynamicResource Hint_BrowseSource}"/>
                                 <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                         Margin="0,0,8,0"
                                         Click="MetaBrowseSource_Click"/>
@@ -1681,7 +1703,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="MetaOutputPath" Style="{StaticResource InputBox}"
                                          IsReadOnly="True" Margin="0,0,8,0"
-                                         Text="{DynamicResource Hint_BrowseOutput}"/>
+                                         Tag="{DynamicResource Hint_BrowseOutput}"/>
                                 <Button Grid.Column="1" Content="{DynamicResource Btn_Browse}" Style="{StaticResource SecondaryBtn}"
                                         Click="MetaBrowseOutput_Click"/>
                             </Grid>

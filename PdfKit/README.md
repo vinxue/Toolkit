@@ -8,7 +8,7 @@ A lightweight desktop PDF toolkit built with WPF (.NET 4.8) and [PDFsharp](http:
 
 ## Screenshots
 
-App screenshots (click to enlarge):
+Application screenshot:
 
 ![Main window](Assets/Screenshot.png)
 

@@ -28,6 +28,8 @@ namespace PdfKit
         public MainWindow()
         {
             InitializeComponent();
+            var ver = System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            VersionLabel.Text = $"v{ver.FileMajorPart}.{ver.FileMinorPart}.{ver.FileBuildPart}.{ver.FilePrivatePart}";
             MergeFileList.ItemsSource = _mergeFiles;
             _mergeFiles.CollectionChanged += (s, e) => RefreshMergeEmptyState();
             RefreshMergeEmptyState();
