@@ -15,6 +15,7 @@
 
     <Window.Resources>
         <!-- ==- Brushes ======================================- -->
+        <!-- <SolidColorBrush x:Key="SidebarBg"       Color="#CCF3F3F3"/> -->
         <SolidColorBrush x:Key="SidebarBg"       Color="#F3F3F3"/>
         <SolidColorBrush x:Key="SidebarHover"    Color="#E5E5E5"/>
         <SolidColorBrush x:Key="SidebarActive"   Color="#E0EEFF"/>
@@ -70,10 +71,12 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
+                                <!-- <Setter TargetName="bg"  Property="Background" Value="#70E5E5E5"/> -->
                                 <Setter TargetName="bg"  Property="Background" Value="#E5E5E5"/>
                                 <Setter Property="Foreground" Value="#1A1A1A"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
+                                <!-- <Setter TargetName="bg"  Property="Background" Value="#90E0EEFF"/> -->
                                 <Setter TargetName="bg"  Property="Background" Value="#E0EEFF"/>
                                 <Setter TargetName="bar" Property="Background" Value="#0078D4"/>
                                 <Setter Property="Foreground" Value="#003E92"/>

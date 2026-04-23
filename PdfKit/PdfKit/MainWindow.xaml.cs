@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
 using System.Windows.Media;
 using Microsoft.Win32;
 using PdfKit.Models;
@@ -39,6 +41,9 @@ namespace PdfKit
             ShowPanel(ExtractPanel);
             SizeChanged += MainWindow_SizeChanged;
             ApplyResponsiveLayout();
+#if ENABLE_ACRYLIC
+            Loaded += MainWindow_Loaded;
+#endif
         }
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -1062,5 +1067,86 @@ namespace PdfKit
             catch (Exception ex) { ShowError(MetadataStatus, MetadataStatusText, "Failed: " + ex.Message); }
             finally { SetBusy(MetaBtn, false); }
         }
+
+#if ENABLE_ACRYLIC
+        #region DWM Acrylic Backdrop (Windows 11 22H2+)
+
+        public enum DWM_SYSTEMBACKDROP_TYPE
+        {
+            DWMSBT_AUTO            = 0,
+            DWMSBT_NONE            = 1,
+            DWMSBT_MAINWINDOW      = 2,  // Mica
+            DWMSBT_TRANSIENTWINDOW = 3,  // Acrylic
+            DWMSBT_TABBEDWINDOW    = 4   // Mica Alt
+        }
+
+        private static class DwmApi
+        {
+            public const int DWMWA_SYSTEMBACKDROP_TYPE = 38;
+            public const int DWMWA_CAPTION_COLOR       = 35;  // Win11 Build 22000+
+
+            [DllImport("dwmapi.dll", PreserveSig = true)]
+            public static extern int DwmSetWindowAttribute(IntPtr hwnd, int dwAttribute, ref int pvAttribute, int cbAttribute);
+        }
+
+        private static class NonClientRegionAPI
+        {
+            [StructLayout(LayoutKind.Sequential)]
+            public struct MARGINS
+            {
+                public int cxLeftWidth;
+                public int cxRightWidth;
+                public int cyTopHeight;
+                public int cyBottomHeight;
+            }
+
+            [DllImport("dwmapi.dll")]
+            public static extern int DwmExtendFrameIntoClientArea(IntPtr hwnd, ref MARGINS pMarInset);
+        }
+
+        private static bool IsWindowsVersionSupported(int minBuild = 22621)
+        {
+            try
+            {
+                using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion"))
+                {
+                    var buildStr = key?.GetValue("CurrentBuild") as string;
+                    return int.TryParse(buildStr, out int buildNum) && buildNum >= minBuild;
+                }
+            }
+            catch { return false; }
+        }
+
+        private void ApplyAcrylicBackdrop()
+        {
+            if (!IsWindowsVersionSupported())
+                return;
+
+            this.Background = Brushes.Transparent;
+
+            var hwnd = new WindowInteropHelper(this).Handle;
+
+            int backdropType = (int)DWM_SYSTEMBACKDROP_TYPE.DWMSBT_TRANSIENTWINDOW;
+            DwmApi.DwmSetWindowAttribute(hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE, ref backdropType, Marshal.SizeOf(typeof(int)));
+
+            // Give the title bar a solid colour so it is not acrylic-transparent.
+            // COLORREF is 0x00BBGGRR; #F3F3F3 → R=G=B=0xF3, so value is 0x00F3F3F3.
+            int captionColor = 0x00F3F3F3;
+            DwmApi.DwmSetWindowAttribute(hwnd, DwmApi.DWMWA_CAPTION_COLOR, ref captionColor, Marshal.SizeOf(typeof(int)));
+
+            HwndSource src = HwndSource.FromHwnd(hwnd);
+            src.CompositionTarget.BackgroundColor = Color.FromArgb(0, 0, 0, 0);
+
+            var margins = new NonClientRegionAPI.MARGINS { cxLeftWidth = -1, cxRightWidth = -1, cyTopHeight = -1, cyBottomHeight = -1 };
+            NonClientRegionAPI.DwmExtendFrameIntoClientArea(hwnd, ref margins);
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            ApplyAcrylicBackdrop();
+        }
+
+        #endregion
+#endif // ENABLE_ACRYLIC
     }
 }
