@@ -19,6 +19,7 @@ Welcome to the Toolkit project! This project contains a collection of Windows ap
 | `ImgConverter`  | An image conversion tool supporting multiple image formats.           |
 | `KbSim`         | A keyboard simulator application.                                     |
 | `PCIe`          | An application to calculate PCIe address.                             |
+| `PdfKit`        | A lightweight PDF toolkit.                                            |
 | `SecKit`        | An application for AES encryption/decryption and hash calculating.    |
 | `StickyNotes`   | A sticky notes application.                                           |
 | `StopWatch`     | A simple stopwatch application.                                       |
