@@ -58,7 +58,8 @@
                                 <Border Grid.Column="1" Padding="18,13">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock x:Name="icon" Text="{TemplateBinding Tag}"
-                                                   FontSize="14" Width="20"
+                                                   FontFamily="Segoe MDL2 Assets"
+                                                   FontSize="15" Width="22"
                                                    Foreground="{TemplateBinding Foreground}"
                                                    VerticalAlignment="Center"/>
                                         <TextBlock Text="{TemplateBinding Content}"
@@ -536,29 +537,29 @@
                         <!-- ORGANIZE group -->
                         <TextBlock Text="{DynamicResource Nav_Organize}" Foreground="#888888"
                                    FontSize="9.5" FontWeight="SemiBold" Margin="22,12,0,5"/>
-                        <RadioButton x:Name="NavExtract"  Tag="&#x2702;  " Content="{DynamicResource Nav_Extract}" Style="{StaticResource NavBtn}" IsChecked="True"
+                        <RadioButton x:Name="NavExtract"  Tag="&#xE8C8;" Content="{DynamicResource Nav_Extract}" Style="{StaticResource NavBtn}" IsChecked="True"
                                      Click="NavExtract_Click"/>
-                        <RadioButton x:Name="NavSplit"    Tag="&#x229E;  " Content="{DynamicResource Nav_Split}" Style="{StaticResource NavBtn}"
+                        <RadioButton x:Name="NavSplit"    Tag="&#xE8C6;" Content="{DynamicResource Nav_Split}" Style="{StaticResource NavBtn}"
                                      Click="NavSplit_Click"/>
-                        <RadioButton x:Name="NavMerge"    Tag="&#x2295;  " Content="{DynamicResource Nav_Merge}" Style="{StaticResource NavBtn}"
+                        <RadioButton x:Name="NavMerge"    Tag="&#xE77F;" Content="{DynamicResource Nav_Merge}" Style="{StaticResource NavBtn}"
                                      Click="NavMerge_Click"/>
-                        <RadioButton x:Name="NavOrganize" Tag="&#x2261;  " Content="{DynamicResource Nav_Organize_Pages}" Style="{StaticResource NavBtn}"
+                        <RadioButton x:Name="NavOrganize" Tag="&#xE8CB;" Content="{DynamicResource Nav_Organize_Pages}" Style="{StaticResource NavBtn}"
                                      Click="NavOrganize_Click"/>
-                        <RadioButton x:Name="NavRotate"   Tag="&#x21BB;  " Content="{DynamicResource Nav_Rotate}" Style="{StaticResource NavBtn}"
+                        <RadioButton x:Name="NavRotate"   Tag="&#xE7AD;" Content="{DynamicResource Nav_Rotate}" Style="{StaticResource NavBtn}"
                                      Click="NavRotate_Click"/>
                         <!-- ENHANCE group -->
                         <Border Height="1" Background="#DCDCDC" Margin="0,6,0,0"/>
                         <TextBlock Text="{DynamicResource Nav_Enhance}" Foreground="#888888"
                                    FontSize="9.5" FontWeight="SemiBold" Margin="22,10,0,5"/>
-                        <RadioButton x:Name="NavWatermark" Tag="&#x25C8;  " Content="{DynamicResource Nav_Watermark}" Style="{StaticResource NavBtn}"
+                        <RadioButton x:Name="NavWatermark" Tag="&#xE70F;" Content="{DynamicResource Nav_Watermark}" Style="{StaticResource NavBtn}"
                                      Click="NavWatermark_Click"/>
                         <!-- DOCUMENT group -->
                         <Border Height="1" Background="#DCDCDC" Margin="0,6,0,0"/>
                         <TextBlock Text="{DynamicResource Nav_Document}" Foreground="#888888"
                                    FontSize="9.5" FontWeight="SemiBold" Margin="22,10,0,5"/>
-                        <RadioButton x:Name="NavMetadata" Tag="&#x24D8;  " Content="{DynamicResource Nav_Metadata}" Style="{StaticResource NavBtn}"
+                        <RadioButton x:Name="NavMetadata" Tag="&#xE946;" Content="{DynamicResource Nav_Metadata}" Style="{StaticResource NavBtn}"
                                      Click="NavMetadata_Click"/>
-                        <RadioButton x:Name="NavSecurity" Tag="&#x2299;  " Content="{DynamicResource Nav_Security}" Style="{StaticResource NavBtn}"
+                        <RadioButton x:Name="NavSecurity" Tag="&#xE72E;" Content="{DynamicResource Nav_Security}" Style="{StaticResource NavBtn}"
                                      Click="NavSecurity_Click"/>
                     </StackPanel>
                 </ScrollViewer>
@@ -1384,6 +1385,9 @@
 
                                 <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
 
+                                <TextBlock Text="{DynamicResource Sec_PwdAtLeastOne}"
+                                           Style="{StaticResource HintText}" Margin="0,0,0,12"/>
+
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -1394,6 +1398,8 @@
                                         <TextBlock Text="{DynamicResource Sec_UserPwd}"
                                                    Style="{StaticResource FieldLabel}"/>
                                         <PasswordBox x:Name="EncUserPwd" Style="{StaticResource PwdBox}"/>
+                                        <TextBlock Text="{DynamicResource Sec_UserPwdHint}"
+                                                   Style="{StaticResource HintText}"/>
                                         <TextBlock Text="{DynamicResource Sec_ConfirmPwd}" Style="{StaticResource FieldLabel}"
                                                    Margin="0,12,0,5"/>
                                         <PasswordBox x:Name="EncUserPwdConfirm" Style="{StaticResource PwdBox}"/>

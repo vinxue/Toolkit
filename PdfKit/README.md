@@ -40,9 +40,9 @@ Application screenshot:
 
 The UI supports three languages and can be switched at runtime without restarting the application:
 
-- 🇺🇸 English
-- 🇨🇳 简体中文 (Simplified Chinese)
-- 🇹🇼 繁體中文 (Traditional Chinese)
+- English
+- 简体中文 (Simplified Chinese)
+- 繁體中文 (Traditional Chinese)
 
 Language is auto-detected from the system locale on startup.
 

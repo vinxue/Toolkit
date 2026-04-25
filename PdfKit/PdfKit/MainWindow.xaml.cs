@@ -714,12 +714,12 @@ namespace PdfKit
             string ownerPwd = EncOwnerPwd.Password;
 
             if (!ValidateSource(src)) return;
-            if (string.IsNullOrEmpty(userPwd))
+            if (string.IsNullOrEmpty(userPwd) && string.IsNullOrEmpty(ownerPwd))
             {
-                ShowError(SecurityStatus, SecurityStatusText, App.S("Err_UserPwdRequired"));
+                ShowError(SecurityStatus, SecurityStatusText, App.S("Err_NoPwdProvided"));
                 return;
             }
-            if (userPwd != userPwd2)
+            if (!string.IsNullOrEmpty(userPwd) && userPwd != userPwd2)
             {
                 ShowError(SecurityStatus, SecurityStatusText, App.S("Err_PwdMismatch"));
                 return;

@@ -131,10 +131,12 @@
     <s:String x:Key="Sec_TabEncrypt">加密 PDF</s:String>
     <s:String x:Key="Sec_TabRemove">移除密碼</s:String>
     <s:String x:Key="Sec_CurrentPwd">目前密碼  (未加密請留空)</s:String>
-    <s:String x:Key="Sec_UserPwd">使用者密碼  (開啟文件時需要)</s:String>
-    <s:String x:Key="Sec_ConfirmPwd">確認密碼</s:String>
+    <s:String x:Key="Sec_UserPwd">使用者密碼  (選填)</s:String>
+    <s:String x:Key="Sec_UserPwdHint">設定後需要此密碼才能開啟文件。</s:String>
+    <s:String x:Key="Sec_ConfirmPwd">確認使用者密碼</s:String>
     <s:String x:Key="Sec_OwnerPwd">擁有者密碼  (選填)</s:String>
     <s:String x:Key="Sec_OwnerPwdHint">設定後可限制編輯、複製、列印權限。</s:String>
+    <s:String x:Key="Sec_PwdAtLeastOne">使用者密碼和擁有者密碼至少需要設定一項。</s:String>
     <s:String x:Key="Sec_Permissions">權限  (以使用者密碼開啟時生效)</s:String>
     <s:String x:Key="Sec_AllowPrint">允許列印</s:String>
     <s:String x:Key="Sec_AllowCopy">允許複製文字</s:String>
@@ -181,6 +183,7 @@
     <s:String x:Key="Err_NoPagesPerFile">每個檔案的頁數必須是大於等於 1 的整數。</s:String>
     <s:String x:Key="Err_NoRanges">請輸入頁面範圍。</s:String>
     <s:String x:Key="Err_UserPwdRequired">加密時必須設定使用者密碼。</s:String>
+    <s:String x:Key="Err_NoPwdProvided">請至少提供一項密碼（使用者密碼或擁有者密碼）。</s:String>
     <s:String x:Key="Err_PwdMismatch">兩次輸入的密碼不一致，請重新確認。</s:String>
 
     <s:String x:Key="Ok_Extracted">已擷取 {0} 頁 → {1}</s:String>

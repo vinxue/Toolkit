@@ -131,10 +131,12 @@
     <s:String x:Key="Sec_TabEncrypt">Encrypt PDF</s:String>
     <s:String x:Key="Sec_TabRemove">Remove Password</s:String>
     <s:String x:Key="Sec_CurrentPwd">Current Password  (leave blank if source is not encrypted)</s:String>
-    <s:String x:Key="Sec_UserPwd">User Password  (required to open the document)</s:String>
-    <s:String x:Key="Sec_ConfirmPwd">Confirm Password</s:String>
+    <s:String x:Key="Sec_UserPwd">User Password  (optional)</s:String>
+    <s:String x:Key="Sec_UserPwdHint">When set, required to open the document.</s:String>
+    <s:String x:Key="Sec_ConfirmPwd">Confirm User Password</s:String>
     <s:String x:Key="Sec_OwnerPwd">Owner Password  (optional)</s:String>
-    <s:String x:Key="Sec_OwnerPwdHint">Sets edit / copy / print restrictions when provided.</s:String>
+    <s:String x:Key="Sec_OwnerPwdHint">When set, controls edit / copy / print restrictions.</s:String>
+    <s:String x:Key="Sec_PwdAtLeastOne">At least one password (user or owner) must be provided.</s:String>
     <s:String x:Key="Sec_Permissions">Permissions  (enforced when opening with user password)</s:String>
     <s:String x:Key="Sec_AllowPrint">Allow Printing</s:String>
     <s:String x:Key="Sec_AllowCopy">Allow Copying Text</s:String>
@@ -181,6 +183,7 @@
     <s:String x:Key="Err_NoPagesPerFile">Pages per file must be a whole number >= 1.</s:String>
     <s:String x:Key="Err_NoRanges">Please enter page ranges.</s:String>
     <s:String x:Key="Err_UserPwdRequired">User password is required for encryption.</s:String>
+    <s:String x:Key="Err_NoPwdProvided">Please enter at least one password (user or owner).</s:String>
     <s:String x:Key="Err_PwdMismatch">Passwords do not match — please confirm the user password.</s:String>
 
     <s:String x:Key="Ok_Extracted">Extracted {0} pages → {1}</s:String>
