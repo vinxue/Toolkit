@@ -28,12 +28,16 @@ namespace PdfKit
             return "en";
         }
 
+        /// <summary>Currently active language code ("en", "zh-CN", or "zh-TW").</summary>
+        public static string CurrentLang { get; private set; } = "en";
+
         /// <summary>
         /// Swap the language ResourceDictionary at runtime.
         /// Call this from MainWindow to switch language without restart.
         /// </summary>
         public static void ApplyLanguage(string lang)
         {
+            CurrentLang = lang;
             string uri = $"Resources/Strings.{lang}.xaml";
             var dict = new ResourceDictionary { Source = new Uri(uri, UriKind.Relative) };
 

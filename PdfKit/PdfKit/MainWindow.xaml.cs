@@ -39,6 +39,7 @@ namespace PdfKit
             _organizePages.CollectionChanged += (s, e) => RefreshOrganizeEmptyState();
             RefreshOrganizeEmptyState();
             ShowPanel(ExtractPanel);
+            SyncLangButtons(App.CurrentLang);
             SizeChanged += MainWindow_SizeChanged;
             ApplyResponsiveLayout();
 #if ENABLE_ACRYLIC
@@ -103,6 +104,13 @@ namespace PdfKit
         private void NavSecurity_Click(object sender, RoutedEventArgs e) => ShowPanel(SecurityPanel);
 
         // ── Language switcher ────────────────────────────────────────────────
+        private void SyncLangButtons(string lang)
+        {
+            LangEN.IsChecked   = lang == "en";
+            LangZHCN.IsChecked = lang == "zh-CN";
+            LangZHTW.IsChecked = lang == "zh-TW";
+        }
+
         private void LangEN_Click(object sender, RoutedEventArgs e)
         {
             App.ApplyLanguage("en");
