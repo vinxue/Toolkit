@@ -137,7 +137,7 @@
     <s:String x:Key="Sec_OwnerPwd">擁有者密碼  (選填)</s:String>
     <s:String x:Key="Sec_OwnerPwdHint">設定後可限制編輯、複製、列印權限。</s:String>
     <s:String x:Key="Sec_PwdAtLeastOne">使用者密碼和擁有者密碼至少需要設定一項。</s:String>
-    <s:String x:Key="Sec_Permissions">權限  (以使用者密碼開啟時生效)</s:String>
+    <s:String x:Key="Sec_Permissions">權限  (設定擁有者密碼後生效)</s:String>
     <s:String x:Key="Sec_AllowPrint">允許列印</s:String>
     <s:String x:Key="Sec_AllowCopy">允許複製文字</s:String>
     <s:String x:Key="Sec_AllowModify">允許修改</s:String>

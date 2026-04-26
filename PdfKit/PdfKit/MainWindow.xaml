@@ -34,8 +34,8 @@
         <SolidColorBrush x:Key="SuccessBorder"   Color="#2ECC71"/>
         <SolidColorBrush x:Key="SuccessText"     Color="#1E8449"/>
         <SolidColorBrush x:Key="ErrorBg"         Color="#FDEDEC"/>
-        <SolidColorBrush x:Key="ErrorBorder"     Color="#0078D4"/>
-        <SolidColorBrush x:Key="ErrorText"       Color="#106EBE"/>
+        <SolidColorBrush x:Key="ErrorBorder"     Color="#E74C3C"/>
+        <SolidColorBrush x:Key="ErrorText"       Color="#C0392B"/>
 
         <!-- ==- Sidebar Nav Button ============================- -->
         <Style x:Key="NavBtn" TargetType="RadioButton">
@@ -445,6 +445,31 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- ==- Thin scrollbar (global) =========================- -->
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="4"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="#C4C7CB" CornerRadius="2" Margin="0,2"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -508,31 +533,6 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled"
                               Focusable="False">
-                    <ScrollViewer.Resources>
-                        <Style TargetType="ScrollBar">
-                            <Setter Property="Width" Value="4"/>
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ScrollBar">
-                                        <Grid Background="Transparent">
-                                            <Track x:Name="PART_Track" IsDirectionReversed="True">
-                                                <Track.Thumb>
-                                                    <Thumb>
-                                                        <Thumb.Template>
-                                                            <ControlTemplate TargetType="Thumb">
-                                                                <Border Background="#4A5A6A" CornerRadius="2" Margin="0,2"/>
-                                                            </ControlTemplate>
-                                                        </Thumb.Template>
-                                                    </Thumb>
-                                                </Track.Thumb>
-                                            </Track>
-                                        </Grid>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ScrollViewer.Resources>
                     <StackPanel>
                         <!-- ORGANIZE group -->
                         <TextBlock Text="{DynamicResource Nav_Organize}" Foreground="#888888"
@@ -1410,26 +1410,21 @@
                                         <PasswordBox x:Name="EncOwnerPwd" Style="{StaticResource PwdBox}"/>
                                         <TextBlock Text="{DynamicResource Sec_OwnerPwdHint}"
                                                    Style="{StaticResource HintText}"/>
+                                        <TextBlock Text="{DynamicResource Sec_Permissions}"
+                                                   Style="{StaticResource FieldLabel}" Margin="0,16,0,6"/>
+                                        <CheckBox x:Name="EncPermitPrint" Content="{DynamicResource Sec_AllowPrint}"
+                                                  IsChecked="True" FontSize="13"
+                                                  Foreground="{StaticResource TextPrimary}"
+                                                  Margin="0,0,0,7" VerticalContentAlignment="Center"/>
+                                        <CheckBox x:Name="EncPermitCopy" Content="{DynamicResource Sec_AllowCopy}"
+                                                  IsChecked="True" FontSize="13"
+                                                  Foreground="{StaticResource TextPrimary}"
+                                                  Margin="0,0,0,7" VerticalContentAlignment="Center"/>
+                                        <CheckBox x:Name="EncPermitModify" Content="{DynamicResource Sec_AllowModify}"
+                                                  FontSize="13" Foreground="{StaticResource TextPrimary}"
+                                                  VerticalContentAlignment="Center"/>
                                     </StackPanel>
                                 </Grid>
-
-                                <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
-
-                                <TextBlock Text="{DynamicResource Sec_Permissions}"
-                                           Style="{StaticResource FieldLabel}"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                    <CheckBox x:Name="EncPermitPrint" Content="{DynamicResource Sec_AllowPrint}"
-                                              IsChecked="True" FontSize="13"
-                                              Foreground="{StaticResource TextPrimary}"
-                                              Margin="0,0,24,0" VerticalContentAlignment="Center"/>
-                                    <CheckBox x:Name="EncPermitCopy" Content="{DynamicResource Sec_AllowCopy}"
-                                              IsChecked="True" FontSize="13"
-                                              Foreground="{StaticResource TextPrimary}"
-                                              Margin="0,0,24,0" VerticalContentAlignment="Center"/>
-                                    <CheckBox x:Name="EncPermitModify" Content="{DynamicResource Sec_AllowModify}"
-                                              FontSize="13" Foreground="{StaticResource TextPrimary}"
-                                              VerticalContentAlignment="Center"/>
-                                </StackPanel>
 
                                 <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
 

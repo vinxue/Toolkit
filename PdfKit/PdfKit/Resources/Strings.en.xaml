@@ -137,7 +137,7 @@
     <s:String x:Key="Sec_OwnerPwd">Owner Password  (optional)</s:String>
     <s:String x:Key="Sec_OwnerPwdHint">When set, controls edit / copy / print restrictions.</s:String>
     <s:String x:Key="Sec_PwdAtLeastOne">At least one password (user or owner) must be provided.</s:String>
-    <s:String x:Key="Sec_Permissions">Permissions  (enforced when opening with user password)</s:String>
+    <s:String x:Key="Sec_Permissions">Permissions  (applied when Owner Password is set)</s:String>
     <s:String x:Key="Sec_AllowPrint">Allow Printing</s:String>
     <s:String x:Key="Sec_AllowCopy">Allow Copying Text</s:String>
     <s:String x:Key="Sec_AllowModify">Allow Modifications</s:String>
