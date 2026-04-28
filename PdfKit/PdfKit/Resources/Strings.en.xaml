@@ -64,11 +64,11 @@
     <s:String x:Key="Merge_Title">Merge Documents</s:String>
     <s:String x:Key="Merge_Subtitle">Merge multiple PDF files into one document in order.</s:String>
     <s:String x:Key="Merge_FileList">PDF File List</s:String>
-    <s:String x:Key="Merge_AddFiles">+ Add Files</s:String>
+    <s:String x:Key="Merge_AddFiles">+  Add Files</s:String>
     <s:String x:Key="Merge_Clear">Clear</s:String>
-    <s:String x:Key="Merge_Up">Up</s:String>
-    <s:String x:Key="Merge_Down">Down</s:String>
-    <s:String x:Key="Merge_Remove">Remove</s:String>
+    <s:String x:Key="Merge_Up">&#x2191;  Up</s:String>
+    <s:String x:Key="Merge_Down">&#x2193;  Down</s:String>
+    <s:String x:Key="Merge_Remove">&#x2715;  Remove</s:String>
     <s:String x:Key="Merge_EmptyTitle">No files yet</s:String>
     <s:String x:Key="Merge_EmptyHint">Click Add Files or drag and drop PDFs here</s:String>
     <s:String x:Key="Merge_Btn">Merge PDFs</s:String>
@@ -92,7 +92,7 @@
     <s:String x:Key="Organize_MoveUp">&#x2191;  Up</s:String>
     <s:String x:Key="Organize_MoveDown">&#x2193;  Down</s:String>
     <s:String x:Key="Organize_Delete">&#x2715;  Delete</s:String>
-    <s:String x:Key="Organize_Insert">&#x2295;  Insert from PDF...</s:String>
+    <s:String x:Key="Organize_Insert">+  Insert from PDF...</s:String>
     <s:String x:Key="Organize_EmptyTitle">No pages loaded</s:String>
     <s:String x:Key="Organize_EmptyHint">Open a source PDF to start organizing</s:String>
     <s:String x:Key="Organize_InsertTitle">Insert Pages from PDF</s:String>

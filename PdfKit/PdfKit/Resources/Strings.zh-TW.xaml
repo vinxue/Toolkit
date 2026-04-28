@@ -64,11 +64,11 @@
     <s:String x:Key="Merge_Title">合併文件</s:String>
     <s:String x:Key="Merge_Subtitle">依順序將多個 PDF 檔案合併為一個文件。</s:String>
     <s:String x:Key="Merge_FileList">PDF 檔案清單</s:String>
-    <s:String x:Key="Merge_AddFiles">+ 新增檔案</s:String>
+    <s:String x:Key="Merge_AddFiles">+  新增檔案</s:String>
     <s:String x:Key="Merge_Clear">清空</s:String>
-    <s:String x:Key="Merge_Up">上移</s:String>
-    <s:String x:Key="Merge_Down">下移</s:String>
-    <s:String x:Key="Merge_Remove">移除</s:String>
+    <s:String x:Key="Merge_Up">&#x2191;  上移</s:String>
+    <s:String x:Key="Merge_Down">&#x2193;  下移</s:String>
+    <s:String x:Key="Merge_Remove">&#x2715;  移除</s:String>
     <s:String x:Key="Merge_EmptyTitle">尚無檔案</s:String>
     <s:String x:Key="Merge_EmptyHint">點擊「新增檔案」或將 PDF 拖曳至此</s:String>
     <s:String x:Key="Merge_Btn">合併 PDF</s:String>
@@ -92,7 +92,7 @@
     <s:String x:Key="Organize_MoveUp">&#x2191;  上移</s:String>
     <s:String x:Key="Organize_MoveDown">&#x2193;  下移</s:String>
     <s:String x:Key="Organize_Delete">&#x2715;  刪除</s:String>
-    <s:String x:Key="Organize_Insert">&#x2295;  從 PDF 插入...</s:String>
+    <s:String x:Key="Organize_Insert">+  從 PDF 插入...</s:String>
     <s:String x:Key="Organize_EmptyTitle">未載入頁面</s:String>
     <s:String x:Key="Organize_EmptyHint">開啟來源 PDF 以開始整理</s:String>
     <s:String x:Key="Organize_InsertTitle">從 PDF 插入頁面</s:String>
