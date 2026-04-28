@@ -121,4 +121,13 @@
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+  <Target Name="PostBuildCleanup" AfterTargets="Build">
+    <ItemGroup>
+      <_FilesToDelete Include="$(OutputPath)PdfSharp.Charting.dll" />
+    </ItemGroup>
+    <Delete Files="@(_FilesToDelete)" />
+    <RemoveDir Directories="$(OutputPath)de" />
+  </Target>
+
 </Project>
