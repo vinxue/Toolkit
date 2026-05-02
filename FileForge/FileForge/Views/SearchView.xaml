@@ -1,0 +1,105 @@
+<UserControl x:Class="FileForge.Views.SearchView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             AllowDrop="True" Drop="View_Drop" DragOver="View_DragOver">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Disabled">
+            <StackPanel Margin="0,20,0,0">
+
+                <TextBlock Text="Search &amp; Replace" Style="{StaticResource SectionHeaderStyle}"/>
+                <TextBlock Text="Find hex byte patterns (use ?? for wildcards) and optionally replace all occurrences."
+                           Style="{StaticResource SectionSubtitleStyle}"/>
+
+                <!-- Source File -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="SOURCE FILE" Style="{StaticResource FieldLabelStyle}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtInput" Grid.Column="0" Margin="0,0,8,0"/>
+                            <Button Grid.Column="1" Content="Browse…" Width="90"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="BtnBrowse_Click"/>
+                        </Grid>
+                        <TextBlock x:Name="txtInputInfo" Foreground="#616161" FontSize="12" Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Pattern -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="SEARCH PATTERN  (hex bytes, space-separated; ?? = wildcard)"
+                                   Style="{StaticResource FieldLabelStyle}"/>
+                        <TextBox x:Name="txtSearch" FontFamily="Consolas"
+                                 Text="DE AD BE EF" Margin="0,0,0,12"/>
+
+                        <CheckBox x:Name="chkReplace" Content="Replace matches"
+                                  Checked="ChkReplace_Changed" Unchecked="ChkReplace_Changed"
+                                  Margin="0,0,0,12"/>
+
+                        <StackPanel x:Name="panelReplace" Visibility="Collapsed">
+                            <TextBlock Text="REPLACEMENT BYTES  (hex, no wildcards)"
+                                       Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox x:Name="txtReplace" FontFamily="Consolas"
+                                     Text="00 00 00 00" Margin="0,0,0,12"/>
+                            <TextBlock Text="OUTPUT FILE" Style="{StaticResource FieldLabelStyle}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="txtOutput" Grid.Column="0" Margin="0,0,8,0"/>
+                                <Button Grid.Column="1" Content="Browse…" Width="90"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Click="BtnBrowseOut_Click"/>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Actions + Status -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <Button x:Name="btnSearch" Content="Search" Width="110" Height="36"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Click="BtnSearch_Click"/>
+                    <Button x:Name="btnReplace" Content="Replace All" Width="120" Height="36"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Margin="8,0,0,0" Visibility="Collapsed"
+                            Click="BtnReplaceAll_Click"/>
+                    <TextBlock x:Name="txtStatus" VerticalAlignment="Center"
+                               Margin="12,0,0,0" FontSize="13" TextWrapping="Wrap"/>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Results list -->
+        <Border Grid.Row="1" Margin="0,8,0,20" Style="{StaticResource CardStyle}" Padding="0">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" Padding="12,8"
+                        BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+                    <Grid>
+                        <TextBlock x:Name="txtMatchCount" Text="Matches"
+                                   FontWeight="SemiBold" FontSize="12" Foreground="#616161"
+                                   VerticalAlignment="Center"/>
+                        <Button Content="Copy List" HorizontalAlignment="Right"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="10,0" Height="26" Click="BtnCopyList_Click"/>
+                    </Grid>
+                </Border>
+                <ListBox x:Name="lstMatches" BorderThickness="0" Background="Transparent"
+                         FontFamily="Consolas" FontSize="12"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         VirtualizingStackPanel.IsVirtualizing="True"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

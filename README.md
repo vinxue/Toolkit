@@ -15,6 +15,7 @@ Welcome to the Toolkit project! This project contains a collection of Windows ap
 |-----------------|-----------------------------------------------------------------------|
 | `BitViewer`     | An application for viewing bit data of a hex data.                    |
 | `ClockApp`      | A simple clock application.                                           |
+| `FileForge`     | A binary file operation tool.                                         |
 | `HexViewer`     | The WPF version of BitViewer.                                         |
 | `ImgConverter`  | An image conversion tool supporting multiple image formats.           |
 | `KbSim`         | A keyboard simulator application.                                     |

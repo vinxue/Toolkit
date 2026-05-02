@@ -1,0 +1,125 @@
+<UserControl x:Class="FileForge.Views.HashView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             AllowDrop="True" Drop="View_Drop" DragOver="View_DragOver">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="0,20">
+
+            <TextBlock Text="Hash &amp; Checksum" Style="{StaticResource SectionHeaderStyle}"/>
+            <TextBlock Text="Compute MD5, SHA-1, SHA-256, SHA-512, and CRC-32 for a file or a byte region."
+                       Style="{StaticResource SectionSubtitleStyle}"/>
+
+            <!-- Source File -->
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock Text="SOURCE FILE" Style="{StaticResource FieldLabelStyle}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtInput" Grid.Column="0" Margin="0,0,8,0"/>
+                        <Button Grid.Column="1" Content="Browse…" Width="90"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="BtnBrowse_Click"/>
+                    </Grid>
+                    <TextBlock x:Name="txtInputInfo" Foreground="#616161" FontSize="12" Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Region (optional) -->
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <CheckBox x:Name="chkRegion" Content="Hash a specific region only"
+                                  Checked="ChkRegion_Changed" Unchecked="ChkRegion_Changed"/>
+                    </StackPanel>
+                    <Grid x:Name="panelRegion" IsEnabled="False">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                            <TextBlock Text="OFFSET  (0x… or decimal)"
+                                       Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox x:Name="txtOffset" Text="0x0000"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="SIZE  (bytes, 0 = to end)"
+                                       Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox x:Name="txtSize" Text="0"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Algorithms -->
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock Text="ALGORITHMS" Style="{StaticResource FieldLabelStyle}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <CheckBox x:Name="chkMD5"    Content="MD5"    IsChecked="True" Margin="0,0,16,0"/>
+                        <CheckBox x:Name="chkSHA1"   Content="SHA-1"  IsChecked="True" Margin="0,0,16,0"/>
+                        <CheckBox x:Name="chkSHA256" Content="SHA-256" IsChecked="True" Margin="0,0,16,0"/>
+                        <CheckBox x:Name="chkSHA512" Content="SHA-512" Margin="0,0,16,0"/>
+                        <CheckBox x:Name="chkCRC32"  Content="CRC-32"  IsChecked="True"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Actions -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                <Button Content="Compute" Width="120" Height="36"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Click="BtnCompute_Click"/>
+            </StackPanel>
+
+            <!-- Results -->
+            <Border x:Name="panelResults" Style="{StaticResource CardStyle}" Visibility="Collapsed">
+                <StackPanel>
+                    <Grid Margin="0,0,0,8">
+                        <TextBlock Text="RESULTS" Style="{StaticResource FieldLabelStyle}"
+                                   VerticalAlignment="Center"/>
+                        <Button Content="Copy All" HorizontalAlignment="Right"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="12,0" Height="28"
+                                Click="BtnCopyAll_Click"/>
+                    </Grid>
+                    <ItemsControl x:Name="lstResults">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Label}"
+                                                   FontWeight="SemiBold" FontSize="12"
+                                                   VerticalAlignment="Center" Foreground="#616161"/>
+                                        <TextBox Grid.Column="1"
+                                                 Text="{Binding Value}"
+                                                 FontFamily="Consolas" FontSize="12"
+                                                 IsReadOnly="True" BorderThickness="0"
+                                                 Background="Transparent"
+                                                 VerticalContentAlignment="Center"/>
+                                        <Button Grid.Column="2" Content="Copy"
+                                                Tag="{Binding Value}"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Padding="8,0" Height="26"
+                                                Click="BtnCopyHash_Click"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <TextBlock x:Name="txtStatus" TextWrapping="Wrap" Margin="0,4,0,0" FontSize="13"/>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

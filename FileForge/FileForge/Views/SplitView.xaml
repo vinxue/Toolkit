@@ -1,0 +1,121 @@
+<UserControl x:Class="FileForge.Views.SplitView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             AllowDrop="True" Drop="View_Drop" DragOver="View_DragOver">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="0,20">
+
+                <TextBlock Text="Split File" Style="{StaticResource SectionHeaderStyle}"/>
+                <TextBlock Text="Cut a file into multiple parts by equal chunk size or at specific byte offsets."
+                           Style="{StaticResource SectionSubtitleStyle}"/>
+
+                <!-- Source File -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="SOURCE FILE" Style="{StaticResource FieldLabelStyle}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtInput" Grid.Column="0" Margin="0,0,8,0"/>
+                            <Button Grid.Column="1" Content="Browse…" Width="90"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="BtnBrowseInput_Click"/>
+                        </Grid>
+                        <TextBlock x:Name="txtInputInfo" Foreground="#616161" FontSize="12" Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Split Mode -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="SPLIT MODE" Style="{StaticResource FieldLabelStyle}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                            <RadioButton x:Name="rdoBySize" Content="By chunk size"
+                                         GroupName="SplitMode" IsChecked="True"
+                                         Checked="SplitMode_Changed"/>
+                            <RadioButton x:Name="rdoByOffset" Content="By offsets"
+                                         GroupName="SplitMode"
+                                         Checked="SplitMode_Changed"/>
+                        </StackPanel>
+
+                        <!-- By size panel -->
+                        <StackPanel x:Name="panelBySize">
+                            <TextBlock Text="CHUNK SIZE" Style="{StaticResource FieldLabelStyle}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox x:Name="txtChunkSize" Width="140" Text="1024"/>
+                                <ComboBox x:Name="cboChunkUnit" Width="80" Margin="8,0,0,0" SelectedIndex="1">
+                                    <ComboBoxItem Content="Bytes"/>
+                                    <ComboBoxItem Content="KB"/>
+                                    <ComboBoxItem Content="MB"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- By offset panel -->
+                        <StackPanel x:Name="panelByOffset" Visibility="Collapsed">
+                            <TextBlock Text="OFFSETS  (one per line, hex 0x… or decimal)"
+                                       Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox x:Name="txtOffsets" Height="100" AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto"
+                                     FontFamily="Consolas" FontSize="13"
+                                     Text="0x00010000&#x0a;0x00020000"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Output Settings -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="OUTPUT DIRECTORY" Style="{StaticResource FieldLabelStyle}"/>
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtOutputDir" Grid.Column="0" Margin="0,0,8,0"/>
+                            <Button Grid.Column="1" Content="Browse…" Width="90"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="BtnBrowseDir_Click"/>
+                        </Grid>
+
+                        <TextBlock Text="NAMING PATTERN  ({name} = original name, {n} = part number, {ext} = extension)"
+                                   Style="{StaticResource FieldLabelStyle}"/>
+                        <TextBox x:Name="txtNamePattern" Width="320" HorizontalAlignment="Left"
+                                 Text="{}{name}_part{n}.{ext}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Actions -->
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Execute" Width="120" Height="36"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Click="BtnExecute_Click"/>
+                </StackPanel>
+
+                <TextBlock x:Name="txtStatus" TextWrapping="Wrap" Margin="0,10,0,6" FontSize="13"/>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Results -->
+        <Border Grid.Row="1" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0"
+                MaxHeight="200" Visibility="{Binding ElementName=lstResults, Path=Visibility}">
+            <DockPanel Margin="0,8">
+                <TextBlock DockPanel.Dock="Top" Text="OUTPUT FILES" Style="{StaticResource FieldLabelStyle}"
+                           Margin="0,4,0,6"/>
+                <ListBox x:Name="lstResults" Visibility="Collapsed"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         FontFamily="Consolas" FontSize="12"
+                         BorderThickness="0" Background="Transparent"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

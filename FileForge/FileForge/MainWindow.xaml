@@ -1,0 +1,120 @@
+﻿<Window x:Class="FileForge.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FileForge"
+        mc:Ignorable="d"
+        Title="FileForge - Binary File Toolkit"
+        Icon="appicon.ico"
+        Width="1120" Height="800" MinWidth="860" MinHeight="660"
+        WindowStartupLocation="CenterScreen"
+        Background="#F9FAFB"
+        UseLayoutRounding="True"
+        FontFamily="Segoe UI Variable,Segoe UI">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="210"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="#F3F3F3"
+                BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
+            <DockPanel>
+
+                <!-- App header -->
+                <Border DockPanel.Dock="Top" Padding="16,18,16,14"
+                        BorderBrush="#D5D5D5" BorderThickness="0,0,0,1">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="34" Height="34" Background="#0078D4" CornerRadius="6">
+                            <TextBlock Text="F" Foreground="White" FontWeight="Bold"
+                                       FontSize="18" HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Margin="10,0,0,0">
+                            <TextBlock Text="FileForge" FontSize="15" FontWeight="SemiBold"
+                                       Foreground="#1A1A1A"/>
+                            <TextBlock Text="Binary File Toolkit" FontSize="11"
+                                       Foreground="#888"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Version -->
+                <TextBlock x:Name="txtVersion" DockPanel.Dock="Bottom" Text="v1.0.0.0"
+                           Foreground="#A0A0A0" FontSize="11" Margin="18,10"/>
+
+                <!-- Navigation -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,6,0,0">
+
+                        <TextBlock Text="CORE OPERATIONS"
+                                   Style="{StaticResource NavGroupHeaderStyle}"/>
+
+                        <RadioButton x:Name="navAppend" GroupName="Nav"
+                                     Style="{StaticResource NavItemStyle}"
+                                     IsChecked="True" Click="NavButton_Click"
+                                     Tag="&#xE8C8;" Content="Append / Prepend"/>
+
+                        <RadioButton x:Name="navSplit" GroupName="Nav"
+                                     Style="{StaticResource NavItemStyle}"
+                                     Click="NavButton_Click"
+                                     Tag="&#xE8C6;" Content="Split File"/>
+
+                        <RadioButton x:Name="navMerge" GroupName="Nav"
+                                     Style="{StaticResource NavItemStyle}"
+                                     Click="NavButton_Click"
+                                     Tag="&#xE77F;" Content="Merge Files"/>
+
+                        <RadioButton x:Name="navRegion" GroupName="Nav"
+                                     Style="{StaticResource NavItemStyle}"
+                                     Click="NavButton_Click"
+                                     Tag="&#xE70F;" Content="Region Edit"/>
+
+                        <RadioButton x:Name="navAlign" GroupName="Nav"
+                                     Style="{StaticResource NavItemStyle}"
+                                     Click="NavButton_Click"
+                                     Tag="&#xE8B3;" Content="Align &amp; Pad"/>
+
+                        <Rectangle Height="1" Fill="#D5D5D5" Margin="0,6,0,0"/>
+
+                        <TextBlock Text="ANALYSIS"
+                                   Style="{StaticResource NavGroupHeaderStyle}"/>
+
+                        <RadioButton x:Name="navHash" GroupName="Nav"
+                                     Style="{StaticResource NavItemStyle}"
+                                     Click="NavButton_Click"
+                                     Tag="&#xEA18;" Content="Hash &amp; Checksum"/>
+
+                        <RadioButton x:Name="navSearch" GroupName="Nav"
+                                     Style="{StaticResource NavItemStyle}"
+                                     Click="NavButton_Click"
+                                     Tag="&#xE721;" Content="Search &amp; Replace"/>
+
+                        <RadioButton x:Name="navHex" GroupName="Nav"
+                                     Style="{StaticResource NavItemStyle}"
+                                     Click="NavButton_Click"
+                                     Tag="&#xE7C3;" Content="Hex Viewer"/>
+
+                        <RadioButton x:Name="navDiff" GroupName="Nav"
+                                     Style="{StaticResource NavItemStyle}"
+                                     Click="NavButton_Click"
+                                     Tag="&#xE8F4;" Content="File Diff"/>
+
+                        <RadioButton x:Name="navPatch" GroupName="Nav"
+                                     Style="{StaticResource NavItemStyle}"
+                                     Click="NavButton_Click"
+                                     Tag="&#xE90F;" Content="Patch"/>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- Content area -->
+        <Border Grid.Column="1" Background="#F9FAFB" Padding="{StaticResource PageSidePadding}">
+            <ContentControl x:Name="contentArea"/>
+        </Border>
+    </Grid>
+</Window>

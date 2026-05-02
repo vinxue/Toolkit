@@ -1,0 +1,112 @@
+<UserControl x:Class="FileForge.Views.PatchView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             AllowDrop="True" Drop="View_Drop" DragOver="View_DragOver">
+    <DockPanel>
+        <!-- Header -->
+        <StackPanel DockPanel.Dock="Top" Margin="0,20,0,0">
+            <TextBlock Text="Patch" Style="{StaticResource SectionHeaderStyle}"/>
+            <TextBlock Text="Define a list of byte patches (offset → new bytes) and apply them to produce a new file."
+                       Style="{StaticResource SectionSubtitleStyle}"/>
+        </StackPanel>
+
+        <!-- Source file -->
+        <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Margin="0,0">
+            <StackPanel>
+                <TextBlock Text="SOURCE FILE" Style="{StaticResource FieldLabelStyle}"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="txtInput" Grid.Column="0" Margin="0,0,8,0"/>
+                    <Button Grid.Column="1" Content="Browse…" Width="90"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Click="BtnBrowseInput_Click"/>
+                </Grid>
+                <TextBlock x:Name="txtInputInfo" Foreground="#616161" FontSize="12" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Patch toolbar -->
+        <Border DockPanel.Dock="Top" Background="#FAFAFA"
+                BorderBrush="#E0E0E0" BorderThickness="0,0,0,1"
+                Padding="28,8" Margin="0">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Add Entry…" Style="{StaticResource SecondaryButtonStyle}"
+                        Padding="12,0" Click="BtnAddEntry_Click"/>
+                <Button Content="Edit…" Style="{StaticResource SecondaryButtonStyle}"
+                        Padding="12,0" Margin="6,0,0,0" Click="BtnEditEntry_Click"/>
+                <Button Content="Remove" Style="{StaticResource SecondaryButtonStyle}"
+                        Padding="12,0" Margin="6,0,0,0" Click="BtnRemoveEntry_Click"/>
+                <Rectangle Width="1" Fill="#E0E0E0" Margin="10,4"/>
+                <Button Content="Import Script…" Style="{StaticResource SecondaryButtonStyle}"
+                        Padding="12,0" Click="BtnImport_Click"/>
+                <Button Content="Export Script…" Style="{StaticResource SecondaryButtonStyle}"
+                        Padding="12,0" Margin="6,0,0,0" Click="BtnExport_Click"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Bottom action bar -->
+        <Border DockPanel.Dock="Bottom" Background="#FAFAFA"
+                BorderBrush="#E0E0E0" BorderThickness="0,1,0,0"
+                Padding="28,10">
+            <StackPanel>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="OUTPUT FILE" Style="{StaticResource FieldLabelStyle}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtOutput" Grid.Column="0" Margin="0,0,8,0"/>
+                            <Button Grid.Column="1" Content="Browse…" Width="90"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="BtnBrowseOutput_Click"/>
+                        </Grid>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Apply Patch" Width="130" Height="36"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            VerticalAlignment="Bottom" Margin="16,0,0,0"
+                            Click="BtnApply_Click"/>
+                </Grid>
+                <TextBlock x:Name="txtStatus" FontSize="13" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Patch list -->
+        <Border Margin="0,8" Style="{StaticResource CardStyle}" Padding="0">
+            <DataGrid x:Name="gridPatches"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column"
+                      BorderThickness="0"
+                      Background="Transparent"
+                      RowBackground="White"
+                      AlternatingRowBackground="#F9F9F9"
+                      ColumnHeaderHeight="34"
+                      RowHeight="28"
+                      FontFamily="Consolas" FontSize="12"
+                      SelectionMode="Single">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Offset" Binding="{Binding OffsetDisplay}" Width="110"/>
+                    <DataGridTextColumn Header="Size" Binding="{Binding SizeDisplay}" Width="80"/>
+                    <DataGridTextColumn Header="New Bytes" Binding="{Binding BytesDisplay}" Width="250"/>
+                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontFamily" Value="Segoe UI Variable,Segoe UI"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </DockPanel>
+</UserControl>
