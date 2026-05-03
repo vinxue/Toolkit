@@ -1,0 +1,130 @@
+<UserControl x:Class="FileForge.Views.TimestampView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             AllowDrop="True" Drop="View_Drop" DragOver="View_DragOver">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="0,20">
+
+            <TextBlock Text="File Timestamps" Style="{StaticResource SectionHeaderStyle}"/>
+            <TextBlock Text="View and modify the creation, modification, and last-access timestamps of any file."
+                       Style="{StaticResource SectionSubtitleStyle}"/>
+
+            <!-- Source File -->
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock Text="FILE" Style="{StaticResource FieldLabelStyle}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtInput" Grid.Column="0" Margin="0,0,8,0"
+                                 ToolTip="File path — or drag a file onto the window"/>
+                        <Button Grid.Column="1" Content="Browse…" Width="90"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="BtnBrowse_Click"/>
+                    </Grid>
+                    <TextBlock x:Name="txtFileInfo" Foreground="#616161" FontSize="12" Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Timestamps -->
+            <Border x:Name="panelTimestamps" Style="{StaticResource CardStyle}" Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock Text="TIMESTAMPS  (date  /  HH:mm:ss)" Style="{StaticResource FieldLabelStyle}"
+                               Margin="0,0,0,10"/>
+
+                    <!-- Header row -->
+                    <Grid Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="105"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="60"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="1" Text="Date" FontSize="11" Foreground="#9E9E9E"/>
+                        <TextBlock Grid.Column="2" Text="Time (HH:mm:ss)" FontSize="11" Foreground="#9E9E9E"/>
+                    </Grid>
+
+                    <!-- Created -->
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="105"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="60"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Created" VerticalAlignment="Center"
+                                   FontSize="13" Foreground="#2C3E50"/>
+                        <DatePicker x:Name="dpCreated" Grid.Column="1" Width="160"
+                                    Margin="0,0,16,0" VerticalAlignment="Center"/>
+                        <TextBox x:Name="txtCreatedTime" Grid.Column="2" Margin="0,0,8,0"
+                                 FontFamily="Consolas" ToolTip="Time in HH:mm:ss format"/>
+                        <Button Grid.Column="3" Content="Now"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="8,0" Click="BtnNowCreated_Click"
+                                ToolTip="Set to current date and time"/>
+                    </Grid>
+
+                    <!-- Modified -->
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="105"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="60"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Modified" VerticalAlignment="Center"
+                                   FontSize="13" Foreground="#2C3E50"/>
+                        <DatePicker x:Name="dpModified" Grid.Column="1" Width="160"
+                                    Margin="0,0,16,0" VerticalAlignment="Center"/>
+                        <TextBox x:Name="txtModifiedTime" Grid.Column="2" Margin="0,0,8,0"
+                                 FontFamily="Consolas" ToolTip="Time in HH:mm:ss format"/>
+                        <Button Grid.Column="3" Content="Now"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="8,0" Click="BtnNowModified_Click"
+                                ToolTip="Set to current date and time"/>
+                    </Grid>
+
+                    <!-- Accessed -->
+                    <Grid Margin="0,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="105"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="60"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Accessed" VerticalAlignment="Center"
+                                   FontSize="13" Foreground="#2C3E50"/>
+                        <DatePicker x:Name="dpAccessed" Grid.Column="1" Width="160"
+                                    Margin="0,0,16,0" VerticalAlignment="Center"/>
+                        <TextBox x:Name="txtAccessedTime" Grid.Column="2" Margin="0,0,8,0"
+                                 FontFamily="Consolas" ToolTip="Time in HH:mm:ss format"/>
+                        <Button Grid.Column="3" Content="Now"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="8,0" Click="BtnNowAccessed_Click"
+                                ToolTip="Set to current date and time"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Actions -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                <Button x:Name="btnApply" Content="Apply Changes" Width="140" Height="36"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        IsEnabled="False"
+                        Click="BtnApply_Click"
+                        ToolTip="Write the timestamps above to the file"/>
+                <Button x:Name="btnReset" Content="Reset" Width="90" Height="36" Margin="10,0,0,0"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        IsEnabled="False"
+                        Click="BtnReset_Click"
+                        ToolTip="Revert all fields to the values last read from disk"/>
+            </StackPanel>
+
+            <!-- Status -->
+            <TextBlock x:Name="txtStatus" FontSize="13" Margin="0,0,0,20"/>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

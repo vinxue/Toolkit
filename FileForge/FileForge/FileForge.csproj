@@ -177,6 +177,14 @@
       <DependentUpon>AlignView.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\TimestampView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="Views\TimestampView.xaml.cs">
+      <DependentUpon>TimestampView.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
     <Page Include="Views\HashView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

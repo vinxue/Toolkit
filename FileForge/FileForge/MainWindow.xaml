@@ -77,6 +77,11 @@
                                      Click="NavButton_Click"
                                      Tag="&#xE8B3;" Content="Align &amp; Pad"/>
 
+                        <RadioButton x:Name="navTimestamp" GroupName="Nav"
+                                     Style="{StaticResource NavItemStyle}"
+                                     Click="NavButton_Click"
+                                     Tag="&#xE787;" Content="File Timestamps"/>
+
                         <Rectangle Height="1" Fill="#D5D5D5" Margin="0,6,0,0"/>
 
                         <TextBlock Text="ANALYSIS"

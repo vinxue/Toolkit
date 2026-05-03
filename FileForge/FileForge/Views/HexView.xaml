@@ -24,6 +24,8 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="130"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBox x:Name="txtInput" Grid.Column="0" Margin="0,0,8,0"
                          ToolTip="File path — or drag a file onto the window"/>
@@ -41,6 +43,11 @@
                 <Button Grid.Column="5" Content="Go"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Padding="16,0" Margin="6,0,0,0" Click="BtnJump_Click"/>
+                <Rectangle Grid.Column="6" Width="1" Fill="#E0E0E0" Margin="12,4"/>
+                <Button Grid.Column="7" Content="Export as C Header…"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Padding="14,0" Click="BtnExportHeader_Click"
+                        ToolTip="Export the loaded file (or current selection) as a C/C++ header array"/>
             </Grid>
         </Border>
 

@@ -21,16 +21,17 @@ namespace FileForge
 
         private void InitViews()
         {
-            _views[navAppend] = new Lazy<UserControl>(() => new AppendView());
-            _views[navSplit]  = new Lazy<UserControl>(() => new SplitView());
-            _views[navMerge]  = new Lazy<UserControl>(() => new MergeView());
-            _views[navRegion] = new Lazy<UserControl>(() => new RegionView());
-            _views[navAlign]  = new Lazy<UserControl>(() => new AlignView());
-            _views[navHash]   = new Lazy<UserControl>(() => new HashView());
-            _views[navSearch] = new Lazy<UserControl>(() => new SearchView());
-            _views[navHex]    = new Lazy<UserControl>(() => new HexView());
-            _views[navDiff]   = new Lazy<UserControl>(() => new DiffView());
-            _views[navPatch]  = new Lazy<UserControl>(() => new PatchView());
+            _views[navAppend]    = new Lazy<UserControl>(() => new AppendView());
+            _views[navSplit]     = new Lazy<UserControl>(() => new SplitView());
+            _views[navMerge]     = new Lazy<UserControl>(() => new MergeView());
+            _views[navRegion]    = new Lazy<UserControl>(() => new RegionView());
+            _views[navAlign]     = new Lazy<UserControl>(() => new AlignView());
+            _views[navTimestamp] = new Lazy<UserControl>(() => new TimestampView());
+            _views[navHash]      = new Lazy<UserControl>(() => new HashView());
+            _views[navSearch]    = new Lazy<UserControl>(() => new SearchView());
+            _views[navHex]       = new Lazy<UserControl>(() => new HexView());
+            _views[navDiff]      = new Lazy<UserControl>(() => new DiffView());
+            _views[navPatch]     = new Lazy<UserControl>(() => new PatchView());
 
             // Load the default (Append) view immediately to avoid a blank content area.
             contentArea.Content = _views[navAppend].Value;

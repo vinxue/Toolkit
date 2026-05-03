@@ -23,6 +23,7 @@ A desktop binary file toolkit built with WPF (.NET 4.8). Provides the most commo
 | **Merge Files** | Combine multiple files into one. Drag-and-drop reordering, optional separator bytes between files. |
 | **Region Edit** | Five operations on byte regions within a file: **Extract** a range to a new file, **Insert** bytes at an offset, **Delete** a range, **Overwrite** a range with fill data, **Truncate** the file to a given size. |
 | **Align & Pad** | Pad a file to the next multiple of a specified alignment boundary. |
+| **File Timestamps** | View and modify the **creation**, **last-modified**, and **last-access** timestamps of any file. Supports manual date/time entry, per-field "Now" buttons, and one-click reset to the values last read from disk. |
 
 ### Analysis
 
@@ -30,7 +31,7 @@ A desktop binary file toolkit built with WPF (.NET 4.8). Provides the most commo
 |---|---|
 | **Hash & Checksum** | Compute MD5, SHA-1, SHA-256, SHA-512 and CRC-32 for an entire file or a specific byte region. One-click copy per hash or copy all. |
 | **Search & Replace** | Search a binary file for a hex pattern (supports `??` wildcards). Optionally replace all matches with a different byte sequence. Results list with copy-to-clipboard. |
-| **Hex Viewer** | Full-file binary viewer using memory-mapped I/O — works on files of any size without loading into RAM. Features: byte selection, hex/string search with wildcard support, Go-to-Offset navigation, drag-and-drop file open. |
+| **Hex Viewer** | Full-file binary viewer using memory-mapped I/O — works on files of any size without loading into RAM. Features: byte selection, hex/string search with wildcard support, Go-to-Offset navigation, drag-and-drop file open, and **Export as C Header** (converts the whole file or the current byte selection into a `.h` array ready to embed in firmware or C/C++ projects). |
 | **File Diff** | Byte-by-byte comparison of two files. Lists every differing offset with hex and ASCII values. Export diff report to text. |
 | **Patch** | Apply a list of patch entries (offset + new bytes) to a file. Import/export patch scripts in `.fpatch` tab-delimited format. |
 
