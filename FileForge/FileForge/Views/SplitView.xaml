@@ -12,7 +12,7 @@
             <StackPanel Margin="0,20">
 
                 <TextBlock Text="Split File" Style="{StaticResource SectionHeaderStyle}"/>
-                <TextBlock Text="Cut a file into multiple parts by equal chunk size or at specific byte offsets."
+                <TextBlock Text="Cut a file into multiple parts by equal chunk size, by a custom size list, or at specific byte offsets."
                            Style="{StaticResource SectionSubtitleStyle}"/>
 
                 <!-- Source File -->
@@ -41,12 +41,15 @@
                             <RadioButton x:Name="rdoBySize" Content="By chunk size"
                                          GroupName="SplitMode" IsChecked="True"
                                          Checked="SplitMode_Changed"/>
+                            <RadioButton x:Name="rdoBySizeList" Content="By size list"
+                                         GroupName="SplitMode"
+                                         Checked="SplitMode_Changed"/>
                             <RadioButton x:Name="rdoByOffset" Content="By offsets"
                                          GroupName="SplitMode"
                                          Checked="SplitMode_Changed"/>
                         </StackPanel>
 
-                        <!-- By size panel -->
+                        <!-- By chunk size panel -->
                         <StackPanel x:Name="panelBySize">
                             <TextBlock Text="CHUNK SIZE" Style="{StaticResource FieldLabelStyle}"/>
                             <StackPanel Orientation="Horizontal">
@@ -57,6 +60,54 @@
                                     <ComboBoxItem Content="MB"/>
                                 </ComboBox>
                             </StackPanel>
+                        </StackPanel>
+
+                        <!-- By size list panel -->
+                        <StackPanel x:Name="panelBySizeList" Visibility="Collapsed">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}"
+                                       Text="PART SIZE LIST  (parts created in order; remaining bytes → last file)"/>
+                            <!-- Size entries list -->
+                            <Border MinHeight="68" MaxHeight="170" Margin="0,0,0,8"
+                                    BorderBrush="#D5D8DC" BorderThickness="1" CornerRadius="5"
+                                    Background="#FDFEFE" SnapsToDevicePixels="True">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="2">
+                                    <ListBox x:Name="lstSizes" BorderThickness="0"
+                                             Background="Transparent"
+                                             FontFamily="Consolas" FontSize="12"
+                                             SelectionMode="Single"
+                                             VirtualizingStackPanel.IsVirtualizing="False">
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="ListBoxItem">
+                                                <Setter Property="Padding" Value="8,4"/>
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
+                                    </ListBox>
+                                </ScrollViewer>
+                            </Border>
+                            <!-- Add / remove row -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBox x:Name="txtSizeEntry" Width="110" Text="512"
+                                         ToolTip="Enter a size value"
+                                         KeyDown="TxtSizeEntry_KeyDown"/>
+                                <ComboBox x:Name="cboSizeEntryUnit" Width="80" Margin="6,0,0,0" SelectedIndex="1">
+                                    <ComboBoxItem Content="Bytes"/>
+                                    <ComboBoxItem Content="KB"/>
+                                    <ComboBoxItem Content="MB"/>
+                                </ComboBox>
+                                <Button Content="＋ Add" Padding="14,0" Height="34" Margin="8,0,0,0"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Click="BtnAddSize_Click"/>
+                                <Button Content="Remove" Padding="10,0" Height="34" Margin="6,0,0,0"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Click="BtnRemoveSize_Click"/>
+                                <Button Content="Clear" Padding="10,0" Height="34" Margin="6,0,0,0"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Click="BtnClearSizes_Click"/>
+                            </StackPanel>
+                            <TextBlock x:Name="txtSizeListSummary"
+                                       Foreground="#7F8C8D" FontSize="12" TextWrapping="Wrap"/>
                         </StackPanel>
 
                         <!-- By offset panel -->

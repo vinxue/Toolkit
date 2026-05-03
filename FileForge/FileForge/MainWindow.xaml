@@ -44,6 +44,8 @@
                 <!-- Version -->
                 <TextBlock x:Name="txtVersion" DockPanel.Dock="Bottom" Text="v1.0.0.0"
                            Foreground="#A0A0A0" FontSize="11" Margin="18,10"/>
+                <!-- Separator between nav and version -->
+                <Border DockPanel.Dock="Bottom" Height="1" Background="#D5D5D5" Margin="0"/>
 
                 <!-- Navigation -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto">

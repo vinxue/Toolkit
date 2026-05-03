@@ -10,8 +10,10 @@ namespace FileForge.Views
 {
     public partial class AlignView : UserControl
     {
+        // Indices MUST match the ComboBox items in AlignView.xaml exactly:
+        //   0: 512 B   1: 4 KB   2: 64 KB   3: 512 KB   4: 1 MB   5: 4 MB   6: Custom
         private static readonly long[] AlignValues =
-            { 512, 1024, 4096, 65536, 524288, 1048576, 4194304, 0 }; // 0 = custom
+            { 512, 4096, 65536, 524288, 1048576, 4194304, 0 }; // 0 = custom
 
         public AlignView()
         {
@@ -49,7 +51,8 @@ namespace FileForge.Views
         private void CboAlign_Changed(object sender, SelectionChangedEventArgs e)
         {
             if (panelCustomAlign == null) return;
-            bool custom = cboAlign.SelectedIndex == AlignValues.Length - 1 || cboAlign.SelectedIndex == 6;
+            // "Custom…" is always the last item (index == AlignValues.Length - 1 == 6)
+            bool custom = cboAlign.SelectedIndex == AlignValues.Length - 1;
             panelCustomAlign.Visibility = custom ? Visibility.Visible : Visibility.Collapsed;
             UpdatePreview();
         }
@@ -119,28 +122,35 @@ namespace FileForge.Views
 
         private void BtnExecute_Click(object sender, RoutedEventArgs e)
         {
+            try { _ = ExecuteAsync(sender as Button); }
+            catch (Exception ex) { ShowError(ex.Message); }
+        }
+
+        private async Task ExecuteAsync(Button btn)
+        {
+            string input  = txtInput.Text.Trim();
+            string output = txtOutput.Text.Trim();
+
+            if (!File.Exists(input))  throw new Exception("Input file not found.");
+            if (string.IsNullOrWhiteSpace(output)) throw new Exception("Specify an output file.");
+            if (string.Equals(input, output, StringComparison.OrdinalIgnoreCase))
+                throw new Exception("Input and output paths must be different.");
+
+            long alignment = GetAlignment();
+            if (alignment <= 0) throw new Exception("Invalid alignment value.");
+            byte fillByte = GetFillByte();
+
+            if (btn != null) btn.IsEnabled = false;
+            ShowInfo("Working…");
             try
             {
-                string input  = txtInput.Text.Trim();
-                string output = txtOutput.Text.Trim();
-
-                if (!File.Exists(input))  throw new Exception("Input file not found.");
-                if (string.IsNullOrWhiteSpace(output)) throw new Exception("Specify an output file.");
-                if (string.Equals(input, output, StringComparison.OrdinalIgnoreCase))
-                    throw new Exception("Input and output paths must be different.");
-
-                long alignment = GetAlignment();
-                if (alignment <= 0) throw new Exception("Invalid alignment value.");
-                byte fillByte = GetFillByte();
-
-                long padded = FileEngine.AlignFile(input, output, alignment, fillByte);
+                long padded = await Task.Run(() => FileEngine.AlignFile(input, output, alignment, fillByte));
                 long newSize = new FileInfo(output).Length;
-
                 ShowSuccess(padded == 0
                     ? $"File was already aligned — copied as-is ({FileEngine.FormatSize(newSize)})"
                     : $"Added {FileEngine.FormatSize(padded)} of padding → {FileEngine.FormatSize(newSize)}");
             }
-            catch (Exception ex) { ShowError(ex.Message); }
+            finally { if (btn != null) btn.IsEnabled = true; }
         }
 
         private void View_Drop(object sender, DragEventArgs e)
