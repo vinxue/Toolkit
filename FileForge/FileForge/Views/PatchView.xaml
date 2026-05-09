@@ -1,6 +1,7 @@
 <UserControl x:Class="FileForge.Views.PatchView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:FileForge.Views"
              AllowDrop="True" Drop="View_Drop" DragOver="View_DragOver">
     <DockPanel>
         <!-- Header -->
@@ -75,7 +76,7 @@
                             VerticalAlignment="Bottom" Margin="16,0,0,0"
                             Click="BtnApply_Click"/>
                 </Grid>
-                <TextBlock x:Name="txtStatus" FontSize="13" TextWrapping="Wrap"/>
+                <local:StatusBanner x:Name="statusBanner" Margin="0,6,0,0"/>
             </StackPanel>
         </Border>
 

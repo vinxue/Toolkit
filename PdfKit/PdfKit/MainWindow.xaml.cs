@@ -92,7 +92,7 @@ namespace PdfKit
                 card.Padding = padding;
         }
 
-        // ── Navigation ──────────────────────────────────────────────────
+        // -- Navigation --------------------------------------------------
 
         private void NavExtract_Click(object sender, RoutedEventArgs e)  => ShowPanel(ExtractPanel);
         private void NavSplit_Click(object sender, RoutedEventArgs e)    => ShowPanel(SplitPanel);
@@ -103,7 +103,7 @@ namespace PdfKit
         private void NavMetadata_Click(object sender, RoutedEventArgs e) => ShowPanel(MetadataPanel);
         private void NavSecurity_Click(object sender, RoutedEventArgs e) => ShowPanel(SecurityPanel);
 
-        // ── Language switcher ────────────────────────────────────────────────
+        // -- Language switcher ------------------------------------------------
         private void SyncLangButtons(string lang)
         {
             LangEN.IsChecked   = lang == "en";
@@ -140,7 +140,7 @@ namespace PdfKit
             target.Visibility         = Visibility.Visible;
         }
 
-        // ── Extract ─────────────────────────────────────────────────────
+        // -- Extract -----------------------------------------------------
 
         private void ExtractBrowseSource_Click(object sender, RoutedEventArgs e)
         {
@@ -157,6 +157,11 @@ namespace PdfKit
                 ExtractPageInfo.Text = App.S("Rt_UnableToRead");
                 _extractPageCount = 0;
             }
+            if (string.IsNullOrWhiteSpace(ExtractOutputPath.Text))
+            {
+                string name = Path.GetFileNameWithoutExtension(path) + "_extracted.pdf";
+                ExtractOutputPath.Text = Path.Combine(Path.GetDirectoryName(path), name);
+            }
         }
 
         private void ExtractBrowseOutput_Click(object sender, RoutedEventArgs e)
@@ -172,26 +177,25 @@ namespace PdfKit
             string rangeStr = ExtractPages.Text.Trim();
 
             if (!ValidateSource(src)) return;
-            if (string.IsNullOrEmpty(rangeStr)) { ShowError(ExtractStatus, ExtractStatusText, App.S("Err_NoPageRange")); return; }
+            if (string.IsNullOrEmpty(rangeStr)) { ExtractStatus.ShowError(App.S("Err_NoPageRange")); return; }
             if (!ValidateOutput(dst)) return;
-            if (_extractPageCount == 0) { ShowError(ExtractStatus, ExtractStatusText, App.S("Err_NoSourcePdf")); return; }
+            if (_extractPageCount == 0) { ExtractStatus.ShowError(App.S("Err_NoSourcePdf")); return; }
 
             System.Collections.Generic.List<int> pages;
             try { pages = PdfService.ParsePageRange(rangeStr, _extractPageCount); }
-            catch (Exception ex) { ShowError(ExtractStatus, ExtractStatusText, ex.Message); return; }
+            catch (Exception ex) { ExtractStatus.ShowError(ex.Message); return; }
 
             SetBusy(ExtractBtn, true);
             try
             {
                 await Task.Run(() => _pdf.ExtractPages(src, pages, dst));
-                ShowSuccess(ExtractStatus, ExtractStatusText,
-                    string.Format(App.S("Ok_Extracted"), pages.Count, Path.GetFileName(dst)));
+                ExtractStatus.ShowSuccess(string.Format(App.S("Ok_Extracted"), pages.Count, Path.GetFileName(dst)));
             }
-            catch (Exception ex) { ShowError(ExtractStatus, ExtractStatusText, $"Extraction failed: {ex.Message}"); }
+            catch (Exception ex) { ExtractStatus.ShowError($"Extraction failed: {ex.Message}"); }
             finally { SetBusy(ExtractBtn, false); }
         }
 
-        // ── Merge ────────────────────────────────────────────────────────
+        // -- Merge --------------------------------------------------------
 
         private void MergeAddFiles_Click(object sender, RoutedEventArgs e)
         {
@@ -280,7 +284,7 @@ namespace PdfKit
         {
             if (_mergeFiles.Count < 2)
             {
-                ShowError(MergeStatus, MergeStatusText, "Add at least 2 PDF files.");
+                MergeStatus.ShowError("Add at least 2 PDF files.");
                 return;
             }
             string dst = MergeOutputPath.Text.Trim();
@@ -292,10 +296,9 @@ namespace PdfKit
             try
             {
                 await Task.Run(() => _pdf.MergePdfs(paths, dst));
-                ShowSuccess(MergeStatus, MergeStatusText,
-                    string.Format(App.S("Ok_Merged"), paths.Count, totalPages, Path.GetFileName(dst)));
+                MergeStatus.ShowSuccess(string.Format(App.S("Ok_Merged"), paths.Count, totalPages, Path.GetFileName(dst)));
             }
-            catch (Exception ex) { ShowError(MergeStatus, MergeStatusText, $"Merge failed: {ex.Message}"); }
+            catch (Exception ex) { MergeStatus.ShowError($"Merge failed: {ex.Message}"); }
             finally { SetBusy(MergeBtn, false); }
         }
 
@@ -313,7 +316,7 @@ namespace PdfKit
                 ? Visibility.Visible : Visibility.Hidden;
         }
 
-        // ── Rotate ───────────────────────────────────────────────────────
+        // -- Rotate -------------------------------------------------------
 
         private void RotateBrowseSource_Click(object sender, RoutedEventArgs e)
         {
@@ -329,6 +332,11 @@ namespace PdfKit
             {
                 RotatePageInfo.Text = App.S("Rt_UnableToRead");
                 _rotatePageCount = 0;
+            }
+            if (string.IsNullOrWhiteSpace(RotateOutputPath.Text))
+            {
+                string name = Path.GetFileNameWithoutExtension(path) + "_rotated.pdf";
+                RotateOutputPath.Text = Path.Combine(Path.GetDirectoryName(path), name);
             }
         }
 
@@ -354,7 +362,7 @@ namespace PdfKit
             string dst = RotateOutputPath.Text.Trim();
 
             if (!ValidateSource(src)) return;
-            if (_rotatePageCount == 0) { ShowError(RotateStatus, RotateStatusText, App.S("Err_NoSourcePdf")); return; }
+            if (_rotatePageCount == 0) { RotateStatus.ShowError(App.S("Err_NoSourcePdf")); return; }
             if (!ValidateOutput(dst)) return;
 
             int degrees = Rotate90.IsChecked == true ? 90
@@ -365,9 +373,9 @@ namespace PdfKit
             if (!allPages)
             {
                 string rangeStr = RotatePages.Text.Trim();
-                if (string.IsNullOrEmpty(rangeStr)) { ShowError(RotateStatus, RotateStatusText, App.S("Err_EnterPagesOrAll")); return; }
+                if (string.IsNullOrEmpty(rangeStr)) { RotateStatus.ShowError(App.S("Err_EnterPagesOrAll")); return; }
                 try { pages = PdfService.ParsePageRange(rangeStr, _rotatePageCount); }
-                catch (Exception ex) { ShowError(RotateStatus, RotateStatusText, ex.Message); return; }
+                catch (Exception ex) { RotateStatus.ShowError(ex.Message); return; }
             }
 
             SetBusy(RotateBtn, true);
@@ -375,14 +383,206 @@ namespace PdfKit
             try
             {
                 await Task.Run(() => _pdf.RotatePages(src, pages, degrees, dst));
-                ShowSuccess(RotateStatus, RotateStatusText,
-                    string.Format(App.S("Ok_Rotated"), pageCount, degrees, Path.GetFileName(dst)));
+                RotateStatus.ShowSuccess(string.Format(App.S("Ok_Rotated"), pageCount, degrees, Path.GetFileName(dst)));
             }
-            catch (Exception ex) { ShowError(RotateStatus, RotateStatusText, $"Rotation failed: {ex.Message}"); }
+            catch (Exception ex) { RotateStatus.ShowError($"Rotation failed: {ex.Message}"); }
             finally { SetBusy(RotateBtn, false); }
         }
 
-        // ── Helpers ──────────────────────────────────────────────────────
+        // -- Drag-and-Drop ------------------------------------------------
+
+        private static string GetDroppedPdf(DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return null;
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            return files?.FirstOrDefault(f => f.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase));
+        }
+
+        private void Panel_DragOver(object sender, DragEventArgs e)
+        {
+            e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.Copy : DragDropEffects.None;
+            e.Handled = true;
+        }
+
+        private void ExtractPanel_Drop(object sender, DragEventArgs e)
+        {
+            string path = GetDroppedPdf(e);
+            if (path == null) return;
+            ExtractSourcePath.Text = path;
+            try
+            {
+                _extractPageCount = _pdf.GetPageCount(path);
+                ExtractPageInfo.Text = string.Format(App.S("Rt_PagesDetected"), _extractPageCount);
+            }
+            catch
+            {
+                ExtractPageInfo.Text = App.S("Rt_UnableToRead");
+                _extractPageCount = 0;
+            }
+            if (string.IsNullOrWhiteSpace(ExtractOutputPath.Text))
+            {
+                string name = Path.GetFileNameWithoutExtension(path) + "_extracted.pdf";
+                ExtractOutputPath.Text = Path.Combine(Path.GetDirectoryName(path), name);
+            }
+            ExtractStatus.Visibility = Visibility.Collapsed;
+        }
+
+        private void RotatePanel_Drop(object sender, DragEventArgs e)
+        {
+            string path = GetDroppedPdf(e);
+            if (path == null) return;
+            RotateSourcePath.Text = path;
+            try
+            {
+                _rotatePageCount = _pdf.GetPageCount(path);
+                RotatePageInfo.Text = string.Format(App.S("Rt_PagesDetected"), _rotatePageCount);
+            }
+            catch
+            {
+                RotatePageInfo.Text = App.S("Rt_UnableToRead");
+                _rotatePageCount = 0;
+            }
+            if (string.IsNullOrWhiteSpace(RotateOutputPath.Text))
+            {
+                string name = Path.GetFileNameWithoutExtension(path) + "_rotated.pdf";
+                RotateOutputPath.Text = Path.Combine(Path.GetDirectoryName(path), name);
+            }
+            RotateStatus.Visibility = Visibility.Collapsed;
+        }
+
+        private void WatermarkPanel_Drop(object sender, DragEventArgs e)
+        {
+            string path = GetDroppedPdf(e);
+            if (path == null) return;
+            WmSourcePath.Text = path;
+            try
+            {
+                _watermarkPageCount = _pdf.GetPageCount(path);
+                WmPageInfo.Text = string.Format(App.S("Rt_PagesDetected"), _watermarkPageCount);
+            }
+            catch
+            {
+                WmPageInfo.Text = App.S("Rt_UnableToRead");
+                _watermarkPageCount = 0;
+            }
+            if (string.IsNullOrWhiteSpace(WmOutputPath.Text))
+            {
+                string name = Path.GetFileNameWithoutExtension(path) + "_watermarked.pdf";
+                WmOutputPath.Text = Path.Combine(Path.GetDirectoryName(path), name);
+            }
+            WatermarkStatus.Visibility = Visibility.Collapsed;
+        }
+
+        private void SplitPanel_Drop(object sender, DragEventArgs e)
+        {
+            string path = GetDroppedPdf(e);
+            if (path == null) return;
+            SplitSourcePath.Text = path;
+            SplitPrefix.Text = Path.GetFileNameWithoutExtension(path);
+            try
+            {
+                _splitPageCount = _pdf.GetPageCount(path);
+                SplitPageInfo.Text = string.Format(App.S("Rt_PagesDetected"), _splitPageCount);
+            }
+            catch
+            {
+                SplitPageInfo.Text = App.S("Rt_UnableToRead");
+                _splitPageCount = 0;
+            }
+            if (string.IsNullOrWhiteSpace(SplitOutputFolder.Text))
+                SplitOutputFolder.Text = Path.GetDirectoryName(path);
+            SplitStatus.Visibility = Visibility.Collapsed;
+        }
+
+        private void MetadataPanel_Drop(object sender, DragEventArgs e)
+        {
+            string path = GetDroppedPdf(e);
+            if (path == null) return;
+            MetaSourcePath.Text = path;
+            MetaPageInfo.Text = App.S("Rt_ClickLoadMeta");
+            if (string.IsNullOrWhiteSpace(MetaOutputPath.Text))
+            {
+                string name = Path.GetFileNameWithoutExtension(path) + "_metadata.pdf";
+                MetaOutputPath.Text = Path.Combine(Path.GetDirectoryName(path), name);
+            }
+            MetadataStatus.Visibility = Visibility.Collapsed;
+        }
+
+        private void SecurityPanel_Drop(object sender, DragEventArgs e)
+        {
+            string path = GetDroppedPdf(e);
+            if (path == null) return;
+
+            // Detect which sub-tab is active
+            bool isEncrypt = EncryptSubPanel.Visibility == Visibility.Visible;
+            if (isEncrypt)
+            {
+                EncSourcePath.Text = path;
+                try
+                {
+                    int count = _pdf.GetPageCount(path);
+                    EncPageInfo.Text = string.Format(App.S("Rt_PagesDetected"), count);
+                }
+                catch { EncPageInfo.Text = App.S("Rt_PasswordProtected"); }
+                if (string.IsNullOrWhiteSpace(EncOutputPath.Text))
+                {
+                    string name = Path.GetFileNameWithoutExtension(path) + "_encrypted.pdf";
+                    EncOutputPath.Text = Path.Combine(Path.GetDirectoryName(path), name);
+                }
+            }
+            else
+            {
+                RemSourcePath.Text = path;
+                RemPageInfo.Text = App.S("Rt_EnterPwdToRemove");
+                if (string.IsNullOrWhiteSpace(RemOutputPath.Text))
+                {
+                    string name = Path.GetFileNameWithoutExtension(path) + "_decrypted.pdf";
+                    RemOutputPath.Text = Path.Combine(Path.GetDirectoryName(path), name);
+                }
+            }
+            SecurityStatus.Visibility = Visibility.Collapsed;
+        }
+
+        private void OrganizePanel_Drop(object sender, DragEventArgs e)
+        {
+            string path = GetDroppedPdf(e);
+            if (path == null) return;
+            OrganizeSourcePath.Text = path;
+            try
+            {
+                var details = _pdf.GetPageDetails(path);
+                _organizePages.Clear();
+                for (int i = 0; i < details.Count; i++)
+                {
+                    var d = details[i];
+                    string sz = (int)d.WidthPt + " x " + (int)d.HeightPt + " pt"
+                               + (d.Rotate != 0 ? "  (R" + d.Rotate + ")" : string.Empty);
+                    _organizePages.Add(new PageItem
+                    {
+                        SourceFile      = path,
+                        SourcePageIndex = i,
+                        DisplayNumber   = i + 1,
+                        PageLabel       = "Page " + (i + 1),
+                        SizeInfo        = sz
+                    });
+                }
+                OrganizePageInfo.Text = string.Format(App.S("Rt_PagesLoaded"), details.Count);
+                RefreshOrganizeIndices();
+            }
+            catch (Exception ex)
+            {
+                OrganizeStatus.ShowError("Failed to load PDF: " + ex.Message);
+                OrganizePageInfo.Text = string.Empty;
+            }
+            if (string.IsNullOrWhiteSpace(OrganizeOutputPath.Text))
+            {
+                string name = Path.GetFileNameWithoutExtension(path) + "_organized.pdf";
+                OrganizeOutputPath.Text = Path.Combine(Path.GetDirectoryName(path), name);
+            }
+            OrganizeStatus.Visibility = Visibility.Collapsed;
+        }
+
+        // -- Helpers ------------------------------------------------------
 
         private static string BrowsePdf()
         {
@@ -399,50 +599,27 @@ namespace PdfKit
         private bool ValidateSource(string path)
         {
             if (!string.IsNullOrEmpty(path) && File.Exists(path)) return true;
-            // Show error on whichever panel is visible
-            var (status, text) = ActiveStatusControls();
-            ShowError(status, text, App.S("Err_NoSourcePdf"));
+            ActiveStatusBanner().ShowError(App.S("Err_NoSourcePdf"));
             return false;
         }
 
         private bool ValidateOutput(string path)
         {
             if (!string.IsNullOrEmpty(path)) return true;
-            var (status, text) = ActiveStatusControls();
-            ShowError(status, text, App.S("Err_NoOutput"));
+            ActiveStatusBanner().ShowError(App.S("Err_NoOutput"));
             return false;
         }
 
-        private (Border, TextBlock) ActiveStatusControls()
+        private StatusBanner ActiveStatusBanner()
         {
-            if (SplitPanel.Visibility     == Visibility.Visible) return (SplitStatus,     SplitStatusText);
-            if (MergePanel.Visibility     == Visibility.Visible) return (MergeStatus,     MergeStatusText);
-            if (RotatePanel.Visibility    == Visibility.Visible) return (RotateStatus,    RotateStatusText);
-            if (OrganizePanel.Visibility  == Visibility.Visible) return (OrganizeStatus,  OrganizeStatusText);
-            if (WatermarkPanel.Visibility == Visibility.Visible) return (WatermarkStatus, WatermarkStatusText);
-            if (MetadataPanel.Visibility  == Visibility.Visible) return (MetadataStatus,  MetadataStatusText);
-            if (SecurityPanel.Visibility  == Visibility.Visible) return (SecurityStatus,  SecurityStatusText);
-            return (ExtractStatus, ExtractStatusText);
-        }
-
-        private static void ShowSuccess(Border border, TextBlock label, string message)
-        {
-            border.Background   = new SolidColorBrush(Color.FromRgb(0xEA, 0xFA, 0xF1));
-            border.BorderBrush  = new SolidColorBrush(Color.FromRgb(0x2E, 0xCC, 0x71));
-            border.BorderThickness = new Thickness(1);
-            label.Foreground    = new SolidColorBrush(Color.FromRgb(0x1E, 0x84, 0x49));
-            label.Text          = "✓  " + message;
-            border.Visibility   = Visibility.Visible;
-        }
-
-        private static void ShowError(Border border, TextBlock label, string message)
-        {
-            border.Background   = new SolidColorBrush(Color.FromRgb(0xFD, 0xED, 0xEC));
-            border.BorderBrush  = new SolidColorBrush(Color.FromRgb(0xE7, 0x4C, 0x3C));
-            border.BorderThickness = new Thickness(1);
-            label.Foreground    = new SolidColorBrush(Color.FromRgb(0xC0, 0x39, 0x2B));
-            label.Text          = "✗  " + message;
-            border.Visibility   = Visibility.Visible;
+            if (SplitPanel.Visibility     == Visibility.Visible) return SplitStatus;
+            if (MergePanel.Visibility     == Visibility.Visible) return MergeStatus;
+            if (RotatePanel.Visibility    == Visibility.Visible) return RotateStatus;
+            if (OrganizePanel.Visibility  == Visibility.Visible) return OrganizeStatus;
+            if (WatermarkPanel.Visibility == Visibility.Visible) return WatermarkStatus;
+            if (MetadataPanel.Visibility  == Visibility.Visible) return MetadataStatus;
+            if (SecurityPanel.Visibility  == Visibility.Visible) return SecurityStatus;
+            return ExtractStatus;
         }
 
         private static void SetBusy(Button btn, bool busy)
@@ -462,7 +639,7 @@ namespace PdfKit
             }
         }
 
-        // ── Organize ─────────────────────────────────────────────────────
+        // -- Organize -----------------------------------------------------
 
         private void OrganizeBrowseSource_Click(object sender, RoutedEventArgs e)
         {
@@ -492,8 +669,13 @@ namespace PdfKit
             }
             catch (Exception ex)
             {
-                ShowError(OrganizeStatus, OrganizeStatusText, "Failed to load PDF: " + ex.Message);
+                OrganizeStatus.ShowError("Failed to load PDF: " + ex.Message);
                 OrganizePageInfo.Text = string.Empty;
+            }
+            if (string.IsNullOrWhiteSpace(OrganizeOutputPath.Text))
+            {
+                string name = Path.GetFileNameWithoutExtension(path) + "_organized.pdf";
+                OrganizeOutputPath.Text = Path.Combine(Path.GetDirectoryName(path), name);
             }
         }
 
@@ -562,7 +744,7 @@ namespace PdfKit
             string srcPath = InsertSourcePath.Text.Trim();
             if (string.IsNullOrEmpty(srcPath) || !File.Exists(srcPath))
             {
-                ShowError(OrganizeStatus, OrganizeStatusText, App.S("Err_NoInsertSource"));
+                OrganizeStatus.ShowError(App.S("Err_NoInsertSource"));
                 return;
             }
 
@@ -577,7 +759,7 @@ namespace PdfKit
             }
             catch (Exception ex)
             {
-                ShowError(OrganizeStatus, OrganizeStatusText, ex.Message);
+                OrganizeStatus.ShowError(ex.Message);
                 return;
             }
 
@@ -590,7 +772,7 @@ namespace PdfKit
                     insertAfter = Math.Max(0, Math.Min(pos, _organizePages.Count));
                 else
                 {
-                    ShowError(OrganizeStatus, OrganizeStatusText, "Insert position must be a whole number.");
+                    OrganizeStatus.ShowError("Insert position must be a whole number.");
                     return;
                 }
             }
@@ -599,7 +781,7 @@ namespace PdfKit
             try { details = _pdf.GetPageDetails(srcPath); }
             catch (Exception ex)
             {
-                ShowError(OrganizeStatus, OrganizeStatusText, "Failed to read source PDF: " + ex.Message);
+                OrganizeStatus.ShowError("Failed to read source PDF: " + ex.Message);
                 return;
             }
 
@@ -634,7 +816,7 @@ namespace PdfKit
         {
             if (_organizePages.Count == 0)
             {
-                ShowError(OrganizeStatus, OrganizeStatusText, App.S("Err_NoPages"));
+                OrganizeStatus.ShowError(App.S("Err_NoPages"));
                 return;
             }
             string dst = OrganizeOutputPath.Text.Trim();
@@ -649,12 +831,11 @@ namespace PdfKit
             try
             {
                 await Task.Run(() => _pdf.BuildDocument(sourcePages, dst));
-                ShowSuccess(OrganizeStatus, OrganizeStatusText,
-                    string.Format(App.S("Ok_Saved"), count, Path.GetFileName(dst)));
+                OrganizeStatus.ShowSuccess(string.Format(App.S("Ok_Saved"), count, Path.GetFileName(dst)));
             }
             catch (Exception ex)
             {
-                ShowError(OrganizeStatus, OrganizeStatusText, "Failed: " + ex.Message);
+                OrganizeStatus.ShowError("Failed: " + ex.Message);
             }
             finally { SetBusy(OrganizeBtn, false); }
         }
@@ -673,7 +854,7 @@ namespace PdfKit
                 ? Visibility.Visible : Visibility.Hidden;
         }
 
-        // ── Security ────────────────────────────────────────────────
+        // -- Security ------------------------------------------------
 
         private void SecTabEncrypt_Checked(object sender, RoutedEventArgs e)
         {
@@ -704,6 +885,11 @@ namespace PdfKit
             {
                 EncPageInfo.Text = App.S("Rt_PasswordProtected");
             }
+            if (string.IsNullOrWhiteSpace(EncOutputPath.Text))
+            {
+                string name = Path.GetFileNameWithoutExtension(path) + "_encrypted.pdf";
+                EncOutputPath.Text = Path.Combine(Path.GetDirectoryName(path), name);
+            }
         }
 
         private void EncBrowseOutput_Click(object sender, RoutedEventArgs e)
@@ -724,12 +910,12 @@ namespace PdfKit
             if (!ValidateSource(src)) return;
             if (string.IsNullOrEmpty(userPwd) && string.IsNullOrEmpty(ownerPwd))
             {
-                ShowError(SecurityStatus, SecurityStatusText, App.S("Err_NoPwdProvided"));
+                SecurityStatus.ShowError(App.S("Err_NoPwdProvided"));
                 return;
             }
             if (!string.IsNullOrEmpty(userPwd) && userPwd != userPwd2)
             {
-                ShowError(SecurityStatus, SecurityStatusText, App.S("Err_PwdMismatch"));
+                SecurityStatus.ShowError(App.S("Err_PwdMismatch"));
                 return;
             }
             if (!ValidateOutput(dst)) return;
@@ -743,12 +929,11 @@ namespace PdfKit
             {
                 await Task.Run(() => _pdf.EncryptPdf(src, srcPwd, userPwd, ownerPwd,
                                                      permitPrint, permitCopy, permitModify, dst));
-                ShowSuccess(SecurityStatus, SecurityStatusText,
-                    string.Format(App.S("Ok_Encrypted"), Path.GetFileName(dst)));
+                SecurityStatus.ShowSuccess(string.Format(App.S("Ok_Encrypted"), Path.GetFileName(dst)));
             }
             catch (Exception ex)
             {
-                ShowError(SecurityStatus, SecurityStatusText, "Encryption failed: " + ex.Message);
+                SecurityStatus.ShowError("Encryption failed: " + ex.Message);
             }
             finally { SetBusy(EncBtn, false); }
         }
@@ -760,6 +945,11 @@ namespace PdfKit
             if (path == null) return;
             RemSourcePath.Text = path;
             RemPageInfo.Text   = App.S("Rt_EnterPwdToRemove");
+            if (string.IsNullOrWhiteSpace(RemOutputPath.Text))
+            {
+                string name = Path.GetFileNameWithoutExtension(path) + "_decrypted.pdf";
+                RemOutputPath.Text = Path.Combine(Path.GetDirectoryName(path), name);
+            }
         }
 
         private void RemBrowseOutput_Click(object sender, RoutedEventArgs e)
@@ -781,18 +971,16 @@ namespace PdfKit
             try
             {
                 await Task.Run(() => _pdf.RemovePassword(src, pwd, dst));
-                ShowSuccess(SecurityStatus, SecurityStatusText,
-                    string.Format(App.S("Ok_PwdRemoved"), Path.GetFileName(dst)));
+                SecurityStatus.ShowSuccess(string.Format(App.S("Ok_PwdRemoved"), Path.GetFileName(dst)));
             }
             catch (Exception ex)
             {
-                ShowError(SecurityStatus, SecurityStatusText,
-                    string.Format(App.S("Err_RemovePwdFailed"), ex.Message));
+                SecurityStatus.ShowError(string.Format(App.S("Err_RemovePwdFailed"), ex.Message));
             }
             finally { SetBusy(RemBtn, false); }
         }
 
-        // ── Watermark ─────────────────────────────────────────────────────
+        // -- Watermark -----------------------------------------------------
 
         private void WmBrowseSource_Click(object sender, RoutedEventArgs e)
         {
@@ -808,6 +996,11 @@ namespace PdfKit
             {
                 WmPageInfo.Text     = App.S("Rt_UnableToRead");
                 _watermarkPageCount = 0;
+            }
+            if (string.IsNullOrWhiteSpace(WmOutputPath.Text))
+            {
+                string name = Path.GetFileNameWithoutExtension(path) + "_watermarked.pdf";
+                WmOutputPath.Text = Path.Combine(Path.GetDirectoryName(path), name);
             }
         }
 
@@ -839,23 +1032,22 @@ namespace PdfKit
             string dst = WmOutputPath.Text.Trim();
 
             if (!ValidateSource(src)) return;
-            if (_watermarkPageCount == 0) { ShowError(WatermarkStatus, WatermarkStatusText, App.S("Err_NoSourcePdf")); return; }
-            if (string.IsNullOrWhiteSpace(WmText.Text)) { ShowError(WatermarkStatus, WatermarkStatusText, App.S("Err_WmTextEmpty")); return; }
+            if (_watermarkPageCount == 0) { WatermarkStatus.ShowError(App.S("Err_NoSourcePdf")); return; }
+            if (string.IsNullOrWhiteSpace(WmText.Text)) { WatermarkStatus.ShowError(App.S("Err_WmTextEmpty")); return; }
             if (!ValidateOutput(dst)) return;
 
             WatermarkOptions opts;
             try { opts = BuildWatermarkOptions(); }
-            catch (Exception ex) { ShowError(WatermarkStatus, WatermarkStatusText, ex.Message); return; }
+            catch (Exception ex) { WatermarkStatus.ShowError(ex.Message); return; }
 
             SetBusy(WmBtn, true);
             int pageCount = opts.PageNumbers?.Count ?? _watermarkPageCount;
             try
             {
                 await Task.Run(() => _pdf.AddTextWatermark(src, opts, dst));
-                ShowSuccess(WatermarkStatus, WatermarkStatusText,
-                    "Watermark applied to " + pageCount + " page(s) -> " + Path.GetFileName(dst));
+                WatermarkStatus.ShowSuccess("Watermark applied to " + pageCount + " page(s) -> " + Path.GetFileName(dst));
             }
-            catch (Exception ex) { ShowError(WatermarkStatus, WatermarkStatusText, "Failed: " + ex.Message); }
+            catch (Exception ex) { WatermarkStatus.ShowError("Failed: " + ex.Message); }
             finally { SetBusy(WmBtn, false); }
         }
 
@@ -899,9 +1091,9 @@ namespace PdfKit
 
             // Rotation
             if      (WmRot0.IsChecked  == true) opts.Rotation =   0;
-            else if (WmRot45.IsChecked == true) opts.Rotation =  45;
+            else if (WmRot45.IsChecked == true) opts.Rotation = -45;  // visual: ascending ? (bottom-left to top-right)
             else if (WmRot90.IsChecked == true) opts.Rotation =  90;
-            else                                 opts.Rotation = -45;
+            else                                 opts.Rotation =  45;  // WmRotN45: visual: descending ?
 
             // Page range
             if (WmAllPagesChk.IsChecked != true)
@@ -915,7 +1107,7 @@ namespace PdfKit
             return opts;
         }
 
-        // ── Split ────────────────────────────────────────────────
+        // -- Split ------------------------------------------------
 
         private void SplitBrowseSource_Click(object sender, RoutedEventArgs e)
         {
@@ -933,6 +1125,8 @@ namespace PdfKit
                 SplitPageInfo.Text   = App.S("Rt_UnableToRead");
                 _splitPageCount      = 0;
             }
+            if (string.IsNullOrWhiteSpace(SplitOutputFolder.Text))
+                SplitOutputFolder.Text = Path.GetDirectoryName(path);
         }
 
         private void SplitBrowseOutputFolder_Click(object sender, RoutedEventArgs e)
@@ -968,11 +1162,11 @@ namespace PdfKit
 
             if (!ValidateSource(src)) return;
             if (_splitPageCount == 0)
-            { ShowError(SplitStatus, SplitStatusText, App.S("Err_NoSourcePdf")); return; }
+            { SplitStatus.ShowError(App.S("Err_NoSourcePdf")); return; }
             if (string.IsNullOrWhiteSpace(folder))
-            { ShowError(SplitStatus, SplitStatusText, App.S("Err_NoOutputFolder")); return; }
+            { SplitStatus.ShowError(App.S("Err_NoOutputFolder")); return; }
             if (string.IsNullOrWhiteSpace(prefix))
-            { ShowError(SplitStatus, SplitStatusText, App.S("Err_NoPrefix")); return; }
+            { SplitStatus.ShowError(App.S("Err_NoPrefix")); return; }
 
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
@@ -984,24 +1178,23 @@ namespace PdfKit
                 if (SplitTabCount.IsChecked == true)
                 {
                     if (!int.TryParse(SplitPagesPerFile.Text, out int ppf) || ppf < 1)
-                    { ShowError(SplitStatus, SplitStatusText, App.S("Err_NoPagesPerFile")); return; }
+                    { SplitStatus.ShowError(App.S("Err_NoPagesPerFile")); return; }
                     outputFiles = await Task.Run(() => _pdf.SplitPdfByCount(src, ppf, folder, prefix));
                 }
                 else
                 {
                     string ranges = SplitRangesInput.Text.Trim();
                     if (string.IsNullOrEmpty(ranges))
-                    { ShowError(SplitStatus, SplitStatusText, App.S("Err_NoRanges")); return; }
+                    { SplitStatus.ShowError(App.S("Err_NoRanges")); return; }
                     outputFiles = await Task.Run(() => _pdf.SplitPdfByRanges(src, ranges, folder, prefix));
                 }
-                ShowSuccess(SplitStatus, SplitStatusText,
-                    outputFiles.Count + " file(s) saved to: " + folder);
+                SplitStatus.ShowSuccess(outputFiles.Count + " file(s) saved to: " + folder);
             }
-            catch (Exception ex) { ShowError(SplitStatus, SplitStatusText, "Failed: " + ex.Message); }
+            catch (Exception ex) { SplitStatus.ShowError("Failed: " + ex.Message); }
             finally { SetBusy(SplitBtn, false); }
         }
 
-        // ── Metadata ─────────────────────────────────────────────
+        // -- Metadata ---------------------------------------------
 
         private void MetaBrowseSource_Click(object sender, RoutedEventArgs e)
         {
@@ -1009,6 +1202,11 @@ namespace PdfKit
             if (path == null) return;
             MetaSourcePath.Text = path;
             MetaPageInfo.Text   = App.S("Rt_ClickLoadMeta");
+            if (string.IsNullOrWhiteSpace(MetaOutputPath.Text))
+            {
+                string name = Path.GetFileNameWithoutExtension(path) + "_metadata.pdf";
+                MetaOutputPath.Text = Path.Combine(Path.GetDirectoryName(path), name);
+            }
         }
 
         private void MetaLoad_Click(object sender, RoutedEventArgs e)
@@ -1039,7 +1237,7 @@ namespace PdfKit
             }
             catch (Exception ex)
             {
-                ShowError(MetadataStatus, MetadataStatusText, "Failed to load: " + ex.Message);
+                MetadataStatus.ShowError("Failed to load: " + ex.Message);
             }
         }
 
@@ -1069,10 +1267,9 @@ namespace PdfKit
             try
             {
                 await Task.Run(() => _pdf.SetPdfMetadata(src, meta, dst));
-                ShowSuccess(MetadataStatus, MetadataStatusText,
-                    "Metadata saved -> " + Path.GetFileName(dst));
+                MetadataStatus.ShowSuccess("Metadata saved -> " + Path.GetFileName(dst));
             }
-            catch (Exception ex) { ShowError(MetadataStatus, MetadataStatusText, "Failed: " + ex.Message); }
+            catch (Exception ex) { MetadataStatus.ShowError("Failed: " + ex.Message); }
             finally { SetBusy(MetaBtn, false); }
         }
 
@@ -1138,7 +1335,7 @@ namespace PdfKit
             DwmApi.DwmSetWindowAttribute(hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE, ref backdropType, Marshal.SizeOf(typeof(int)));
 
             // Give the title bar a solid colour so it is not acrylic-transparent.
-            // COLORREF is 0x00BBGGRR; #F3F3F3 → R=G=B=0xF3, so value is 0x00F3F3F3.
+            // COLORREF is 0x00BBGGRR; #F3F3F3 ? R=G=B=0xF3, so value is 0x00F3F3F3.
             int captionColor = 0x00F3F3F3;
             DwmApi.DwmSetWindowAttribute(hwnd, DwmApi.DWMWA_CAPTION_COLOR, ref captionColor, Marshal.SizeOf(typeof(int)));
 

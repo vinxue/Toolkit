@@ -135,9 +135,9 @@ namespace FileForge.Views
 
         // ── Apply ─────────────────────────────────────────────────────────
 
-        private void BtnApply_Click(object sender, RoutedEventArgs e)
+        private async void BtnApply_Click(object sender, RoutedEventArgs e)
         {
-            _ = ApplyAsync(sender as System.Windows.Controls.Button);
+            await ApplyAsync(sender as System.Windows.Controls.Button);
         }
 
         private async Task ApplyAsync(System.Windows.Controls.Button btn)
@@ -181,8 +181,8 @@ namespace FileForge.Views
 
         // ── Status ────────────────────────────────────────────────────────
 
-        private void ShowError  (string msg) => ViewHelper.ShowError  (txtStatus, msg);
-        private void ShowSuccess(string msg) => ViewHelper.ShowSuccess(txtStatus, msg);
-        private void ShowInfo   (string msg) => ViewHelper.ShowInfo   (txtStatus, msg);
+        private void ShowError  (string msg) => statusBanner.ShowError  (msg);
+        private void ShowSuccess(string msg) => statusBanner.ShowSuccess(msg);
+        private void ShowInfo   (string msg) => statusBanner.ShowInfo   (msg);
     }
 }

@@ -82,6 +82,14 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="StatusBanner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="StatusBanner.xaml.cs">
+      <DependentUpon>StatusBanner.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Models\PdfFileItem.cs" />
     <Compile Include="Models\PageItem.cs" />
     <Compile Include="Models\PdfMetadata.cs" />

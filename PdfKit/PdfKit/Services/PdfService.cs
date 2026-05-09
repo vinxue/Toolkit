@@ -200,7 +200,7 @@ namespace PdfKit.Services
         private static void DrawWatermark(XGraphics gfx, PdfPage page, WatermarkOptions opts)
         {
             var style = opts.FontBold ? XFontStyle.Bold : XFontStyle.Regular;
-            var font  = new XFont("Arial", opts.FontSize, style);
+            var font  = SelectFont(opts.Text, opts.FontSize, style);
 
             int alpha = Math.Max(0, Math.Min(255, (int)Math.Round(opts.Opacity * 255)));
             int argb  = (alpha << 24) | (opts.ColorR << 16) | (opts.ColorG << 8) | opts.ColorB;
@@ -224,6 +224,42 @@ namespace PdfKit.Services
             {
                 gfx.Restore(state);
             }
+        }
+
+        /// <summary>
+        /// Returns true if the string contains any CJK (Chinese/Japanese/Korean) character.
+        /// </summary>
+        private static bool ContainsCjk(string text)
+        {
+            foreach (char c in text)
+            {
+                if ((c >= 0x4E00 && c <= 0x9FFF) ||  // CJK Unified Ideographs
+                    (c >= 0x3400 && c <= 0x4DBF) ||  // CJK Extension A
+                    (c >= 0xF900 && c <= 0xFAFF) ||  // CJK Compatibility Ideographs
+                    (c >= 0x3000 && c <= 0x303F) ||  // CJK Symbols & Punctuation
+                    (c >= 0xFF00 && c <= 0xFFEF))    // Fullwidth/Halfwidth Forms
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Selects Arial for pure ASCII/Latin text, or a CJK-capable font (SimHei →
+        /// KaiTi → FangSong) when the text contains Chinese characters.
+        /// SimHei and FangSong both render Western glyphs acceptably, so mixed
+        /// Chinese+English text looks correct with a single font choice.
+        /// </summary>
+        private static XFont SelectFont(string text, double size, XFontStyle style)
+        {
+            if (ContainsCjk(text))
+            {
+                foreach (string name in new[] { "SimHei", "KaiTi", "FangSong" })
+                {
+                    try { return new XFont(name, size, style); }
+                    catch { }
+                }
+            }
+            return new XFont("Arial", size, style);
         }
 
         private static void GetWatermarkOrigin(

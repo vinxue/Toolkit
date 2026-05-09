@@ -38,9 +38,9 @@ namespace FileForge.Views
             panelRegion.IsEnabled = chkRegion.IsChecked == true;
         }
 
-        private void BtnCompute_Click(object sender, RoutedEventArgs e)
+        private async void BtnCompute_Click(object sender, RoutedEventArgs e)
         {
-            _ = ComputeAsync(sender as System.Windows.Controls.Button);
+            await ComputeAsync(sender as System.Windows.Controls.Button);
         }
 
         private async Task ComputeAsync(System.Windows.Controls.Button btn)
@@ -125,8 +125,8 @@ namespace FileForge.Views
             e.Handled = true;
         }
 
-        private void ShowError  (string msg) => ViewHelper.ShowError  (txtStatus, msg);
-        private void ShowSuccess(string msg) => ViewHelper.ShowSuccess(txtStatus, msg);
-        private void ShowInfo   (string msg) => ViewHelper.ShowInfo   (txtStatus, msg);
+        private void ShowError  (string msg) => statusBanner.ShowError  (msg);
+        private void ShowSuccess(string msg) => statusBanner.ShowSuccess(msg);
+        private void ShowInfo   (string msg) => statusBanner.ShowInfo   (msg);
     }
 }

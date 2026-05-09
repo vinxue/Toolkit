@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PdfKit"
         mc:Ignorable="d"
         Title="{DynamicResource App_Title}"
         Icon="appicon.ico"
@@ -636,7 +637,8 @@
         <Grid Grid.Column="1" Background="{StaticResource ContentBg}">
 
             <!-- == EXTRACT PANEL ============================- -->
-            <ScrollViewer x:Name="ExtractPanel" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ScrollViewer x:Name="ExtractPanel" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                          AllowDrop="True" DragOver="Panel_DragOver" Drop="ExtractPanel_Drop">
                 <StackPanel x:Name="ExtractHost" Margin="42,30,42,36" MaxWidth="980" HorizontalAlignment="Stretch">
 
                     <TextBlock Text="{DynamicResource Extract_Title}" Style="{StaticResource PageTitle}"/>
@@ -699,10 +701,7 @@
                     </Border>
 
                     <!-- Status -->
-                    <Border x:Name="ExtractStatus" Margin="0,14,0,0"
-                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
-                        <TextBlock x:Name="ExtractStatusText" FontSize="13" TextWrapping="Wrap"/>
-                    </Border>
+                    <local:StatusBanner x:Name="ExtractStatus" Margin="0,14,0,0"/>
                 </StackPanel>
             </ScrollViewer>
 
@@ -843,16 +842,14 @@
                     </Border>
 
                     <!-- Status -->
-                    <Border x:Name="MergeStatus" Margin="0,14,0,0"
-                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
-                        <TextBlock x:Name="MergeStatusText" FontSize="13" TextWrapping="Wrap"/>
-                    </Border>
+                    <local:StatusBanner x:Name="MergeStatus" Margin="0,14,0,0"/>
                 </StackPanel>
             </ScrollViewer>
 
             <!-- == ROTATE PANEL ============================== -->
             <ScrollViewer x:Name="RotatePanel" VerticalScrollBarVisibility="Auto"
-                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled"
+                          AllowDrop="True" DragOver="Panel_DragOver" Drop="RotatePanel_Drop">
                 <StackPanel x:Name="RotateHost" Margin="42,30,42,36" MaxWidth="980" HorizontalAlignment="Stretch">
 
                     <TextBlock Text="{DynamicResource Rotate_Title}" Style="{StaticResource PageTitle}"/>
@@ -940,16 +937,14 @@
                     </Border>
 
                     <!-- Status -->
-                    <Border x:Name="RotateStatus" Margin="0,14,0,0"
-                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
-                        <TextBlock x:Name="RotateStatusText" FontSize="13" TextWrapping="Wrap"/>
-                    </Border>
+                    <local:StatusBanner x:Name="RotateStatus" Margin="0,14,0,0"/>
                 </StackPanel>
             </ScrollViewer>
 
             <!-- == ORGANIZE PANEL ============================== -->
             <ScrollViewer x:Name="OrganizePanel" VerticalScrollBarVisibility="Auto"
-                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled"
+                          AllowDrop="True" DragOver="Panel_DragOver" Drop="OrganizePanel_Drop">
                 <StackPanel x:Name="OrganizeHost" Margin="42,30,42,36" MaxWidth="980" HorizontalAlignment="Stretch">
 
                     <TextBlock Text="{DynamicResource Organize_Title}" Style="{StaticResource PageTitle}"/>
@@ -1148,16 +1143,14 @@
                     </Border>
 
                     <!-- Status -->
-                    <Border x:Name="OrganizeStatus" Margin="0,14,0,0"
-                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
-                        <TextBlock x:Name="OrganizeStatusText" FontSize="13" TextWrapping="Wrap"/>
-                    </Border>
+                    <local:StatusBanner x:Name="OrganizeStatus" Margin="0,14,0,0"/>
                 </StackPanel>
             </ScrollViewer>
 
             <!-- == WATERMARK PANEL ============================ -->
             <ScrollViewer x:Name="WatermarkPanel" VerticalScrollBarVisibility="Auto"
-                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled"
+                          AllowDrop="True" DragOver="Panel_DragOver" Drop="WatermarkPanel_Drop">
                 <StackPanel x:Name="WatermarkHost" Margin="42,30,42,36" MaxWidth="980"
                             HorizontalAlignment="Stretch">
 
@@ -1335,14 +1328,14 @@
                                     <TextBlock Text="{DynamicResource Wm_Rotation}" Style="{StaticResource FieldLabel}"/>
                                     <StackPanel>
                                         <RadioButton x:Name="WmRotN45" Content="{DynamicResource Wm_RotN45}" GroupName="WmRot"
-                                                     IsChecked="True" FontSize="13"
+                                                     FontSize="13"
                                                      Foreground="{StaticResource TextPrimary}"
                                                      Margin="0,0,0,8" VerticalContentAlignment="Center"/>
                                         <RadioButton x:Name="WmRot0"   Content="{DynamicResource Wm_Rot0}" GroupName="WmRot"
                                                      FontSize="13" Foreground="{StaticResource TextPrimary}"
                                                      Margin="0,0,0,8" VerticalContentAlignment="Center"/>
                                         <RadioButton x:Name="WmRot45"  Content="{DynamicResource Wm_Rot45}" GroupName="WmRot"
-                                                     FontSize="13" Foreground="{StaticResource TextPrimary}"
+                                                     IsChecked="True" FontSize="13" Foreground="{StaticResource TextPrimary}"
                                                      Margin="0,0,0,8" VerticalContentAlignment="Center"/>
                                         <RadioButton x:Name="WmRot90"  Content="{DynamicResource Wm_Rot90}" GroupName="WmRot"
                                                      FontSize="13" Foreground="{StaticResource TextPrimary}"
@@ -1391,16 +1384,14 @@
                     </Border>
 
                     <!-- Status -->
-                    <Border x:Name="WatermarkStatus" Margin="0,14,0,0"
-                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
-                        <TextBlock x:Name="WatermarkStatusText" FontSize="13" TextWrapping="Wrap"/>
-                    </Border>
+                    <local:StatusBanner x:Name="WatermarkStatus" Margin="0,14,0,0"/>
                 </StackPanel>
             </ScrollViewer>
 
             <!-- == SECURITY PANEL ============================ -->
             <ScrollViewer x:Name="SecurityPanel" VerticalScrollBarVisibility="Auto"
-                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled"
+                          AllowDrop="True" DragOver="Panel_DragOver" Drop="SecurityPanel_Drop">
                 <StackPanel x:Name="SecurityHost" Margin="42,30,42,36" MaxWidth="980"
                             HorizontalAlignment="Stretch">
 
@@ -1562,16 +1553,14 @@
                     </Border>
 
                     <!-- Status -->
-                    <Border x:Name="SecurityStatus" Margin="0,14,0,0"
-                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
-                        <TextBlock x:Name="SecurityStatusText" FontSize="13" TextWrapping="Wrap"/>
-                    </Border>
+                    <local:StatusBanner x:Name="SecurityStatus" Margin="0,14,0,0"/>
                 </StackPanel>
             </ScrollViewer>
 
             <!-- == SPLIT PANEL ============================- -->
             <ScrollViewer x:Name="SplitPanel" VerticalScrollBarVisibility="Auto"
-                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled"
+                          AllowDrop="True" DragOver="Panel_DragOver" Drop="SplitPanel_Drop">
                 <StackPanel x:Name="SplitHost" Margin="42,30,42,36" MaxWidth="980"
                             HorizontalAlignment="Stretch">
 
@@ -1671,16 +1660,14 @@
                     </Border>
 
                     <!-- Status -->
-                    <Border x:Name="SplitStatus" Margin="0,14,0,0"
-                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
-                        <TextBlock x:Name="SplitStatusText" FontSize="13" TextWrapping="Wrap"/>
-                    </Border>
+                    <local:StatusBanner x:Name="SplitStatus" Margin="0,14,0,0"/>
                 </StackPanel>
             </ScrollViewer>
 
             <!-- == METADATA PANEL ========================== -->
             <ScrollViewer x:Name="MetadataPanel" VerticalScrollBarVisibility="Auto"
-                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+                          Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled"
+                          AllowDrop="True" DragOver="Panel_DragOver" Drop="MetadataPanel_Drop">
                 <StackPanel x:Name="MetadataHost" Margin="42,30,42,36" MaxWidth="980"
                             HorizontalAlignment="Stretch">
 
@@ -1786,10 +1773,7 @@
                     </Border>
 
                     <!-- Status -->
-                    <Border x:Name="MetadataStatus" Margin="0,14,0,0"
-                            Visibility="Collapsed" CornerRadius="5" Padding="14,10">
-                        <TextBlock x:Name="MetadataStatusText" FontSize="13" TextWrapping="Wrap"/>
-                    </Border>
+                    <local:StatusBanner x:Name="MetadataStatus" Margin="0,14,0,0"/>
                 </StackPanel>
             </ScrollViewer>
 

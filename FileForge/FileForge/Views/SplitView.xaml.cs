@@ -131,9 +131,9 @@ namespace FileForge.Views
             }
         }
 
-        private void BtnExecute_Click(object sender, RoutedEventArgs e)
+        private async void BtnExecute_Click(object sender, RoutedEventArgs e)
         {
-            try { _ = ExecuteAsync(sender as System.Windows.Controls.Button); }
+            try { await ExecuteAsync(sender as System.Windows.Controls.Button); }
             catch (Exception ex) { ShowError(ex.Message); }
         }
 
@@ -222,8 +222,8 @@ namespace FileForge.Views
             e.Handled = true;
         }
 
-        private void ShowError  (string msg) => ViewHelper.ShowError  (txtStatus, msg);
-        private void ShowSuccess(string msg) => ViewHelper.ShowSuccess(txtStatus, msg);
-        private void ShowInfo   (string msg) => ViewHelper.ShowInfo   (txtStatus, msg);
+        private void ShowError  (string msg) => statusBanner.ShowError  (msg);
+        private void ShowSuccess(string msg) => statusBanner.ShowSuccess(msg);
+        private void ShowInfo   (string msg) => statusBanner.ShowInfo   (msg);
     }
 }

@@ -1,6 +1,7 @@
 <UserControl x:Class="FileForge.Views.MergeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:FileForge.Views">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -87,9 +88,8 @@
                 <Button Content="Merge Files" Width="130" Height="36"
                         Style="{StaticResource PrimaryButtonStyle}"
                         Click="BtnExecute_Click"/>
-                <TextBlock x:Name="txtStatus" VerticalAlignment="Center"
-                           FontSize="13" TextWrapping="Wrap" Margin="12,0,0,0" MaxWidth="500"/>
             </StackPanel>
+            <local:StatusBanner x:Name="statusBanner"/>
         </StackPanel>
     </Grid>
 </UserControl>

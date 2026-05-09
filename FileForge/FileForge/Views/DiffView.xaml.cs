@@ -148,8 +148,8 @@ namespace FileForge.Views
             return c >= 0x20 && c < 0x7F ? c.ToString() : ".";
         }
 
-        private void ShowError  (string msg) => ViewHelper.ShowError  (txtStatus, msg);
-        private void ShowSuccess(string msg) => ViewHelper.ShowSuccess(txtStatus, msg);
-        private void ShowInfo   (string msg) => ViewHelper.ShowInfo   (txtStatus, msg);
+        private void ShowError  (string msg) => statusBanner.ShowError  (msg);
+        private void ShowSuccess(string msg) => statusBanner.ShowSuccess(msg);
+        private void ShowInfo   (string msg) => statusBanner.ShowInfo   (msg);
     }
 }

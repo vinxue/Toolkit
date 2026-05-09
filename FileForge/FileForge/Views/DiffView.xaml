@@ -1,6 +1,7 @@
 <UserControl x:Class="FileForge.Views.DiffView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:FileForge.Views"
              AllowDrop="True" Drop="View_Drop" DragOver="View_DragOver">
     <UserControl.Resources>
         <Style x:Key="MonoCellStyle" TargetType="TextBlock">
@@ -60,9 +61,10 @@
                     Style="{StaticResource SecondaryButtonStyle}"
                     Margin="8,0,0,0" Visibility="Collapsed"
                     Click="BtnExport_Click"/>
-            <TextBlock x:Name="txtStatus" VerticalAlignment="Center"
-                       Margin="14,0,0,0" FontSize="13" TextWrapping="Wrap"/>
         </StackPanel>
+
+        <!-- Status -->
+        <local:StatusBanner x:Name="statusBanner" DockPanel.Dock="Top" Margin="0,0,0,8"/>
 
         <!-- Results DataGrid -->
         <Border Margin="0,0,0,20" Style="{StaticResource CardStyle}" Padding="0">

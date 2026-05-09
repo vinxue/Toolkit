@@ -147,8 +147,8 @@ namespace FileForge.Views
                 Path.GetFileNameWithoutExtension(first.Name) + "_merged" + first.Extension);
         }
 
-        private void ShowError  (string msg) => ViewHelper.ShowError  (txtStatus, msg);
-        private void ShowSuccess(string msg) => ViewHelper.ShowSuccess(txtStatus, msg);
-        private void ShowInfo   (string msg) => ViewHelper.ShowInfo   (txtStatus, msg);
+        private void ShowError  (string msg) => statusBanner.ShowError  (msg);
+        private void ShowSuccess(string msg) => statusBanner.ShowSuccess(msg);
+        private void ShowInfo   (string msg) => statusBanner.ShowInfo   (msg);
     }
 }

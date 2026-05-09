@@ -116,9 +116,9 @@
     <s:String x:Key="Wm_Color">顏色</s:String>
     <s:String x:Key="Wm_Position">位置</s:String>
     <s:String x:Key="Wm_Rotation">旋轉</s:String>
-    <s:String x:Key="Wm_RotN45">-45°  (斜角)</s:String>
+    <s:String x:Key="Wm_RotN45">-45°</s:String>
     <s:String x:Key="Wm_Rot0">0°  (水平)</s:String>
-    <s:String x:Key="Wm_Rot45">45°</s:String>
+    <s:String x:Key="Wm_Rot45">45°  (斜角)</s:String>
     <s:String x:Key="Wm_Rot90">90°  (垂直)</s:String>
     <s:String x:Key="Wm_AllPages">套用至所有頁面</s:String>
     <s:String x:Key="Wm_PageRangeHint">單頁或範圍，例如：1, 3, 5-8, 10-12</s:String>

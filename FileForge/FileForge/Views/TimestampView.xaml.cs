@@ -29,7 +29,7 @@ namespace FileForge.Views
         private void LoadFile(string path)
         {
             if (!File.Exists(path))
-            { ViewHelper.ShowError(txtStatus, "File not found."); return; }
+            { statusBanner.ShowError("File not found."); return; }
 
             try
             {
@@ -50,15 +50,15 @@ namespace FileForge.Views
                 panelTimestamps.Visibility = Visibility.Visible;
                 btnApply.IsEnabled = true;
                 btnReset.IsEnabled = true;
-                ViewHelper.ShowInfo(txtStatus, "Timestamps loaded.");
+                statusBanner.ShowInfo("Timestamps loaded.");
             }
             catch (UnauthorizedAccessException)
             {
-                ViewHelper.ShowError(txtStatus, "Access denied — try running as administrator.");
+                statusBanner.ShowError("Access denied — try running as administrator.");
             }
             catch (Exception ex)
             {
-                ViewHelper.ShowError(txtStatus, "Error reading timestamps: " + ex.Message);
+                statusBanner.ShowError("Error reading timestamps: " + ex.Message);
             }
         }
 
@@ -109,14 +109,14 @@ namespace FileForge.Views
         private void BtnApply_Click(object sender, RoutedEventArgs e)
         {
             if (_filePath == null)
-            { ViewHelper.ShowError(txtStatus, "No file selected."); return; }
+            { statusBanner.ShowError("No file selected."); return; }
 
             if (!TryGetDateTime(dpCreated, txtCreatedTime, out DateTime created))
-            { ViewHelper.ShowError(txtStatus, "Invalid Created time — use HH:mm:ss."); return; }
+            { statusBanner.ShowError("Invalid Created time — use HH:mm:ss."); return; }
             if (!TryGetDateTime(dpModified, txtModifiedTime, out DateTime modified))
-            { ViewHelper.ShowError(txtStatus, "Invalid Modified time — use HH:mm:ss."); return; }
+            { statusBanner.ShowError("Invalid Modified time — use HH:mm:ss."); return; }
             if (!TryGetDateTime(dpAccessed, txtAccessedTime, out DateTime accessed))
-            { ViewHelper.ShowError(txtStatus, "Invalid Accessed time — use HH:mm:ss."); return; }
+            { statusBanner.ShowError("Invalid Accessed time — use HH:mm:ss."); return; }
 
             try
             {
@@ -129,15 +129,15 @@ namespace FileForge.Views
                 _origModified = modified;
                 _origAccessed = accessed;
 
-                ViewHelper.ShowSuccess(txtStatus, "Timestamps updated successfully.");
+                statusBanner.ShowSuccess("Timestamps updated successfully.");
             }
             catch (UnauthorizedAccessException)
             {
-                ViewHelper.ShowError(txtStatus, "Access denied — try running as administrator.");
+                statusBanner.ShowError("Access denied — try running as administrator.");
             }
             catch (Exception ex)
             {
-                ViewHelper.ShowError(txtStatus, "Failed to update timestamps: " + ex.Message);
+                statusBanner.ShowError("Failed to update timestamps: " + ex.Message);
             }
         }
 
@@ -145,7 +145,7 @@ namespace FileForge.Views
         {
             if (_filePath == null) return;
             PopulateFields(_origCreated, _origModified, _origAccessed);
-            ViewHelper.ShowInfo(txtStatus, "Reset to last saved values.");
+            statusBanner.ShowInfo("Reset to last saved values.");
         }
 
         // ── Drag-drop ─────────────────────────────────────────────────────────
@@ -164,6 +164,12 @@ namespace FileForge.Views
             e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop)
                         ? DragDropEffects.Copy : DragDropEffects.None;
             e.Handled = true;
+        }
+
+        private void BtnDismissStatus_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Parent is Grid g && g.Parent is Border b)
+                b.Visibility = Visibility.Collapsed;
         }
     }
 }

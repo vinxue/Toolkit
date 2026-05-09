@@ -95,17 +95,22 @@ namespace FileForge.Views
             {
                 string input  = RequireInput();
                 long   offset = ParseOffset(txtExtractOffset);
-                long   size   = FileEngine.ParseSize(txtExtractSize.Text,
-                                    (cboExtractUnit.SelectedItem as ComboBoxItem)?.Content?.ToString());
+
+                // size == 0 → to end of file; ParseSize rejects 0, so special-case it here
+                string rawSizeStr = txtExtractSize.Text.Trim();
+                string sizeUnit   = (cboExtractUnit.SelectedItem as ComboBoxItem)?.Content?.ToString();
+                long   size       = long.TryParse(rawSizeStr, out long rawN) && rawN == 0
+                                        ? 0
+                                        : FileEngine.ParseSize(rawSizeStr, sizeUnit);
+
                 string output = txtExtractOut.Text.Trim();
                 if (string.IsNullOrWhiteSpace(output)) throw new Exception("Specify an output file.");
 
-                // size == 0 → to end of file (handled by FileEngine.ExtractRegion)
                 FileEngine.ExtractRegion(input, output, offset, size == 0 ? long.MaxValue : size);
                 long outSize = new FileInfo(output).Length;
-                SetTabStatus(txtExtractStatus, $"Extracted {FileEngine.FormatSize(outSize)} → {Path.GetFileName(output)}", true);
+                SetTabStatus(borderExtractStatus, txtExtractStatus, $"Extracted {FileEngine.FormatSize(outSize)} → {Path.GetFileName(output)}", true);
             }
-            catch (Exception ex) { SetTabStatus(txtExtractStatus, ex.Message, false); }
+            catch (Exception ex) { SetTabStatus(borderExtractStatus, txtExtractStatus, ex.Message, false); }
         }
 
         // ── Insert tab ────────────────────────────────────────────────────
@@ -120,7 +125,7 @@ namespace FileForge.Views
         {
             if (_isBusy) return;
             var btn = (Button)sender; _isBusy = true; btn.IsEnabled = false;
-            ViewHelper.ShowInfo(txtInsertStatus, "Working…");
+            ViewHelper.ShowInfo(borderInsertStatus, txtInsertStatus, "Working…");
             try
             {
                 string input  = RequireInput();
@@ -135,10 +140,10 @@ namespace FileForge.Views
                     FileEngine.InsertData(input, output, offset, data);
                     return new FileInfo(output).Length;
                 });
-                ViewHelper.ShowSuccess(txtInsertStatus,
+                ViewHelper.ShowSuccess(borderInsertStatus, txtInsertStatus,
                     $"Inserted {dataLen} bytes at 0x{ins:X8} \u2192 {FileEngine.FormatSize(outSize)} total");
             }
-            catch (Exception ex) { ViewHelper.ShowError(txtInsertStatus, ex.Message); }
+            catch (Exception ex) { ViewHelper.ShowError(borderInsertStatus, txtInsertStatus, ex.Message); }
             finally { btn.IsEnabled = true; _isBusy = false; }
         }
 
@@ -154,7 +159,7 @@ namespace FileForge.Views
         {
             if (_isBusy) return;
             var btn = (Button)sender; _isBusy = true; btn.IsEnabled = false;
-            ViewHelper.ShowInfo(txtDeleteStatus, "Working…");
+            ViewHelper.ShowInfo(borderDeleteStatus, txtDeleteStatus, "Working…");
             try
             {
                 string input  = RequireInput();
@@ -169,10 +174,10 @@ namespace FileForge.Views
                     FileEngine.DeleteRegion(input, output, offset, size);
                     return new FileInfo(output).Length;
                 });
-                ViewHelper.ShowSuccess(txtDeleteStatus,
-                    $"Deleted {FileEngine.FormatSize(delSize)} \u2192 {FileEngine.FormatSize(outSize)} remaining");
+                ViewHelper.ShowSuccess(borderDeleteStatus, txtDeleteStatus,
+                    $"Deleted {FileEngine.FormatSize(delSize)} → {FileEngine.FormatSize(outSize)} remaining");
             }
-            catch (Exception ex) { ViewHelper.ShowError(txtDeleteStatus, ex.Message); }
+            catch (Exception ex) { ViewHelper.ShowError(borderDeleteStatus, txtDeleteStatus, ex.Message); }
             finally { btn.IsEnabled = true; _isBusy = false; }
         }
 
@@ -196,7 +201,7 @@ namespace FileForge.Views
         {
             if (_isBusy) return;
             var btn = (Button)sender; _isBusy = true; btn.IsEnabled = false;
-            ViewHelper.ShowInfo(txtOvrStatus, "Working…");
+            ViewHelper.ShowInfo(borderOvrStatus, txtOvrStatus, "Working…");
             try
             {
                 string input  = RequireInput();
@@ -229,10 +234,10 @@ namespace FileForge.Views
                 FillMode  modeC = mode; byte specC = specByte; byte[] patC = hexPat;
                 long      ovrSize = size; long ovrOff = offset;
                 await Task.Run(() => FileEngine.OverwriteRegion(input, output, ovrOff, ovrSize, modeC, specC, patC));
-                ViewHelper.ShowSuccess(txtOvrStatus,
+                ViewHelper.ShowSuccess(borderOvrStatus, txtOvrStatus,
                     $"Overwritten {FileEngine.FormatSize(size)} at 0x{offset:X8}");
             }
-            catch (Exception ex) { ViewHelper.ShowError(txtOvrStatus, ex.Message); }
+            catch (Exception ex) { ViewHelper.ShowError(borderOvrStatus, txtOvrStatus, ex.Message); }
             finally { btn.IsEnabled = true; _isBusy = false; }
         }
 
@@ -248,7 +253,7 @@ namespace FileForge.Views
         {
             if (_isBusy) return;
             var btn = (Button)sender; _isBusy = true; btn.IsEnabled = false;
-            ViewHelper.ShowInfo(txtTruncStatus, "Working…");
+            ViewHelper.ShowInfo(borderTruncStatus, txtTruncStatus, "Working…");
             try
             {
                 string input  = RequireInput();
@@ -258,16 +263,22 @@ namespace FileForge.Views
                 if (string.IsNullOrWhiteSpace(output)) throw new Exception("Specify an output file.");
                 long truncSize = size;
                 await Task.Run(() => FileEngine.TruncateFile(input, output, truncSize));
-                ViewHelper.ShowSuccess(txtTruncStatus,
-                    $"Truncated to {FileEngine.FormatSize(size)} \u2192 {Path.GetFileName(output)}");
+                ViewHelper.ShowSuccess(borderTruncStatus, txtTruncStatus,
+                    $"Truncated to {FileEngine.FormatSize(size)} → {Path.GetFileName(output)}");
             }
-            catch (Exception ex) { ViewHelper.ShowError(txtTruncStatus, ex.Message); }
+            catch (Exception ex) { ViewHelper.ShowError(borderTruncStatus, txtTruncStatus, ex.Message); }
             finally { btn.IsEnabled = true; _isBusy = false; }
         }
 
         // ── Helpers ───────────────────────────────────────────────────────
 
-        private static void SetTabStatus(TextBlock tb, string msg, bool ok)
-            => ViewHelper.ShowTabStatus(tb, msg, ok);
+        private static void SetTabStatus(Border border, TextBlock tb, string msg, bool ok)
+            => ViewHelper.ShowTabStatus(border, tb, msg, ok);
+
+        private void BtnDismissStatus_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Parent is Grid g && g.Parent is Border b)
+                b.Visibility = Visibility.Collapsed;
+        }
     }
 }

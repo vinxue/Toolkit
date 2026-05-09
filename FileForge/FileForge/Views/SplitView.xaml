@@ -1,6 +1,7 @@
 <UserControl x:Class="FileForge.Views.SplitView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:FileForge.Views"
              AllowDrop="True" Drop="View_Drop" DragOver="View_DragOver">
     <Grid>
         <Grid.RowDefinitions>
@@ -151,7 +152,7 @@
                             Click="BtnExecute_Click"/>
                 </StackPanel>
 
-                <TextBlock x:Name="txtStatus" TextWrapping="Wrap" Margin="0,10,0,6" FontSize="13"/>
+                <local:StatusBanner x:Name="statusBanner" Margin="0,10,0,6"/>
 
             </StackPanel>
         </ScrollViewer>

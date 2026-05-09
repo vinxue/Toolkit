@@ -13,30 +13,45 @@ namespace FileForge.Views
     /// </summary>
     internal static class ViewHelper
     {
-        // ── Frozen brushes (match App.xaml resource colours) ─────────────────
-        private static readonly Brush ErrorBrush;
-        private static readonly Brush SuccessBrush;
-        private static readonly Brush InfoBrush;
+        // ── Status panel helpers ──────────────────────────────────────────────
 
-        static ViewHelper()
+        public static void ShowSuccess(Border border, TextBlock tb, string msg)
         {
-            ErrorBrush   = new SolidColorBrush(Color.FromRgb(192,  57,  43)); // #C0392B
-            SuccessBrush = new SolidColorBrush(Color.FromRgb( 30, 132,  73)); // #1E8449
-            InfoBrush    = new SolidColorBrush(Color.FromRgb(127, 140, 141)); // #7F8C8D
-            ErrorBrush.Freeze(); SuccessBrush.Freeze(); InfoBrush.Freeze();
+            border.Background      = new SolidColorBrush(Color.FromRgb(0xEA, 0xFA, 0xF1));
+            border.BorderBrush     = new SolidColorBrush(Color.FromRgb(0x2E, 0xCC, 0x71));
+            border.BorderThickness = new Thickness(1);
+            tb.Foreground          = new SolidColorBrush(Color.FromRgb(0x1E, 0x84, 0x49));
+            tb.Text                = "\u2713  " + msg;
+            border.Visibility      = Visibility.Visible;
         }
 
-        public static void ShowError  (TextBlock tb, string msg) => Set(tb, "\u26a0 " + msg, ErrorBrush);
-        public static void ShowSuccess(TextBlock tb, string msg) => Set(tb, "\u2713 " + msg, SuccessBrush);
-        public static void ShowInfo   (TextBlock tb, string msg) => Set(tb, msg,              InfoBrush);
-        public static void ShowTabStatus(TextBlock tb, string msg, bool ok) =>
-            Set(tb, msg, ok ? SuccessBrush : ErrorBrush);
-
-        private static void Set(TextBlock tb, string msg, Brush brush)
+        public static void ShowError(Border border, TextBlock tb, string msg)
         {
-            tb.Text       = msg;
-            tb.Foreground = brush;
+            border.Background      = new SolidColorBrush(Color.FromRgb(0xFD, 0xED, 0xEC));
+            border.BorderBrush     = new SolidColorBrush(Color.FromRgb(0xE7, 0x4C, 0x3C));
+            border.BorderThickness = new Thickness(1);
+            tb.Foreground          = new SolidColorBrush(Color.FromRgb(0xC0, 0x39, 0x2B));
+            tb.Text                = "\u2717  " + msg;
+            border.Visibility      = Visibility.Visible;
         }
+
+        public static void ShowInfo(Border border, TextBlock tb, string msg)
+        {
+            border.Background      = new SolidColorBrush(Color.FromRgb(0xF5, 0xF5, 0xF5));
+            border.BorderBrush     = new SolidColorBrush(Color.FromRgb(0xBD, 0xBD, 0xBD));
+            border.BorderThickness = new Thickness(1);
+            tb.Foreground          = new SolidColorBrush(Color.FromRgb(0x61, 0x61, 0x61));
+            tb.Text                = msg;
+            border.Visibility      = Visibility.Visible;
+        }
+
+        public static void ShowTabStatus(Border border, TextBlock tb, string msg, bool ok)
+        {
+            if (ok) ShowSuccess(border, tb, msg);
+            else    ShowError  (border, tb, msg);
+        }
+
+        public static void Dismiss(Border border) => border.Visibility = Visibility.Collapsed;
 
         // ── Modern Vista+ folder picker ───────────────────────────────────────
         /// <summary>
