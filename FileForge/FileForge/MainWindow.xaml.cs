@@ -22,6 +22,7 @@ namespace FileForge
         private void InitViews()
         {
             _views[navAppend]    = new Lazy<UserControl>(() => new AppendView());
+            _views[navGenerate]  = new Lazy<UserControl>(() => new GenerateView());
             _views[navSplit]     = new Lazy<UserControl>(() => new SplitView());
             _views[navMerge]     = new Lazy<UserControl>(() => new MergeView());
             _views[navRegion]    = new Lazy<UserControl>(() => new RegionView());

@@ -85,6 +85,20 @@ namespace FileForge.Core
             }
         }
 
+        // ── Generate ───────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Create a new file of the specified size filled with the given fill content.
+        /// </summary>
+        public static void GenerateFile(string outputPath, long size,
+            FillMode fillMode, byte specificByte, byte[] hexPattern)
+        {
+            if (size <= 0) throw new ArgumentException("File size must be greater than zero.");
+
+            using (var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
+                WriteFillData(output, fillMode, size, specificByte, hexPattern);
+        }
+
         // ── Split ──────────────────────────────────────────────────────────────
 
         public static List<string> SplitBySize(string inputPath, string outputDir,
@@ -467,9 +481,22 @@ namespace FileForge.Core
 
         public static long ParseSize(string value, string unit)
         {
-            if (string.IsNullOrWhiteSpace(value) ||
-                !long.TryParse(value.Trim(), out long n) || n <= 0)
+            if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("Invalid size value.");
+
+            string trimmed = value.Trim();
+            long n;
+            if (trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!long.TryParse(trimmed.Substring(2),
+                        System.Globalization.NumberStyles.HexNumber, null, out n) || n <= 0)
+                    throw new ArgumentException("Invalid size value.");
+            }
+            else
+            {
+                if (!long.TryParse(trimmed, out n) || n <= 0)
+                    throw new ArgumentException("Invalid size value.");
+            }
             try
             {
                 switch (unit)

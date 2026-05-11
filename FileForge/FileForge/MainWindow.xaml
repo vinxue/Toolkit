@@ -69,6 +69,11 @@
                                      Click="NavButton_Click"
                                      Tag="&#xE77F;" Content="Merge Files"/>
 
+                        <RadioButton x:Name="navGenerate" GroupName="Nav"
+                                     Style="{StaticResource NavItemStyle}"
+                                     Click="NavButton_Click"
+                                     Tag="&#xE8F1;" Content="Generate File"/>
+
                         <RadioButton x:Name="navRegion" GroupName="Nav"
                                      Style="{StaticResource NavItemStyle}"
                                      Click="NavButton_Click"

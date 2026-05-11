@@ -99,7 +99,7 @@ namespace FileForge.Views
                 // size == 0 → to end of file; ParseSize rejects 0, so special-case it here
                 string rawSizeStr = txtExtractSize.Text.Trim();
                 string sizeUnit   = (cboExtractUnit.SelectedItem as ComboBoxItem)?.Content?.ToString();
-                long   size       = long.TryParse(rawSizeStr, out long rawN) && rawN == 0
+                long   size       = FileEngine.TryParseOffset(rawSizeStr, out long rawN) && rawN == 0
                                         ? 0
                                         : FileEngine.ParseSize(rawSizeStr, sizeUnit);
 
