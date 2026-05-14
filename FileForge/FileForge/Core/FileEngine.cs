@@ -176,6 +176,271 @@ namespace FileForge.Core
             return results;
         }
 
+        // ── Line-based operations ──────────────────────────────────────────────
+
+        /// <summary>
+        /// Counts the number of lines in a text file. Supports LF, CRLF, and CR line endings.
+        /// The last line is counted even when not terminated by a newline.
+        /// </summary>
+        public static long CountLines(string inputPath)
+        {
+            long count = 0;
+            byte lastByte = 0;
+            bool hasContent = false;
+            byte[] buf = new byte[BufferSize];
+
+            using (var fs = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                int read;
+                while ((read = fs.Read(buf, 0, buf.Length)) > 0)
+                {
+                    hasContent = true;
+                    for (int i = 0; i < read; i++)
+                    {
+                        if (buf[i] == (byte)'\n') count++;
+                        lastByte = buf[i];
+                    }
+                }
+            }
+            // Count final line if it has no terminating newline
+            if (hasContent && lastByte != (byte)'\n') count++;
+            return count;
+        }
+
+        /// <summary>
+        /// Extracts the first <paramref name="lineCount"/> lines to a single output file.
+        /// Output path is derived from <paramref name="namePattern"/> with index 0.
+        /// </summary>
+        public static List<string> ExtractFirstLines(string inputPath, string outputDir,
+            string namePattern, long lineCount)
+        {
+            if (lineCount <= 0) throw new ArgumentException("Line count must be positive.");
+            if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+
+            string outPath = BuildPartName(outputDir, namePattern, 0,
+                Path.GetFileNameWithoutExtension(inputPath), Path.GetExtension(inputPath));
+
+            byte[] buf = new byte[BufferSize];
+            using (var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var output = new FileStream(outPath, FileMode.Create, FileAccess.Write))
+            {
+                long linesFound = 0;
+                bool done = false;
+                while (!done)
+                {
+                    int read = input.Read(buf, 0, buf.Length);
+                    if (read == 0) break;
+                    int writeUpTo = read;
+                    for (int i = 0; i < read; i++)
+                    {
+                        if (buf[i] == (byte)'\n')
+                        {
+                            linesFound++;
+                            if (linesFound >= lineCount) { writeUpTo = i + 1; done = true; break; }
+                        }
+                    }
+                    output.Write(buf, 0, writeUpTo);
+                }
+            }
+            EnsureTrailingNewline(outPath);
+            return new List<string> { outPath };
+        }
+
+        /// <summary>
+        /// Extracts the last <paramref name="lineCount"/> lines to a single output file.
+        /// Uses a backward scan for efficiency on large files.
+        /// </summary>
+        public static List<string> ExtractLastLines(string inputPath, string outputDir,
+            string namePattern, long lineCount)
+        {
+            if (lineCount <= 0) throw new ArgumentException("Line count must be positive.");
+            if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+
+            string outPath = BuildPartName(outputDir, namePattern, 0,
+                Path.GetFileNameWithoutExtension(inputPath), Path.GetExtension(inputPath));
+
+            long fileSize = new FileInfo(inputPath).Length;
+            if (fileSize == 0) { File.WriteAllBytes(outPath, new byte[0]); return new List<string> { outPath }; }
+
+            long startPos = FindLastNLinesStart(inputPath, fileSize, lineCount);
+            using (var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                input.Seek(startPos, SeekOrigin.Begin);
+                CopyStreamSection(input, outPath, fileSize - startPos);
+            }
+            EnsureTrailingNewline(outPath);
+            return new List<string> { outPath };
+        }
+
+        /// <summary>
+        /// Extracts lines <paramref name="fromLine"/> through <paramref name="toLine"/> (both 1-based, inclusive).
+        /// </summary>
+        public static List<string> ExtractLineRange(string inputPath, string outputDir,
+            string namePattern, long fromLine, long toLine)
+        {
+            if (fromLine <= 0) throw new ArgumentException("From line must be ≥ 1.");
+            if (toLine < fromLine) throw new ArgumentException("To line must be ≥ from line.");
+            if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+
+            string outPath = BuildPartName(outputDir, namePattern, 0,
+                Path.GetFileNameWithoutExtension(inputPath), Path.GetExtension(inputPath));
+
+            byte[] buf = new byte[BufferSize];
+            using (var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var output = new FileStream(outPath, FileMode.Create, FileAccess.Write))
+            {
+                long currentLine = 1;
+                bool capturing = false;
+
+                while (true)
+                {
+                    int read = input.Read(buf, 0, buf.Length);
+                    if (read == 0) break;
+
+                    int segStart = capturing ? 0 : -1;
+                    for (int i = 0; i < read; i++)
+                    {
+                        if (!capturing && currentLine == fromLine)
+                        {
+                            capturing = true;
+                            segStart = i;
+                        }
+                        if (buf[i] == (byte)'\n')
+                        {
+                            if (capturing && currentLine == toLine)
+                            {
+                                output.Write(buf, segStart, i - segStart + 1);
+                                return new List<string> { outPath };
+                            }
+                            currentLine++;
+                        }
+                    }
+                    if (capturing && segStart >= 0)
+                        output.Write(buf, segStart, read - segStart);
+                }
+            }
+            EnsureTrailingNewline(outPath);
+            return new List<string> { outPath };
+        }
+
+        /// <summary>
+        /// Splits a text file into multiple parts each containing at most
+        /// <paramref name="linesPerPart"/> lines. The final part holds any remainder.
+        /// </summary>
+        public static List<string> SplitByLineCount(string inputPath, string outputDir,
+            string namePattern, long linesPerPart)
+        {
+            if (linesPerPart <= 0) throw new ArgumentException("Lines per part must be positive.");
+            if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
+
+            var results = new List<string>();
+            string baseName = Path.GetFileNameWithoutExtension(inputPath);
+            string ext = Path.GetExtension(inputPath);
+            byte[] buf = new byte[BufferSize];
+
+            using (var input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                int partIndex = 0;
+                long lineCount = 0;
+                string outPath = BuildPartName(outputDir, namePattern, partIndex, baseName, ext);
+                results.Add(outPath);
+                FileStream output = new FileStream(outPath, FileMode.Create, FileAccess.Write);
+                try
+                {
+                    int read;
+                    while ((read = input.Read(buf, 0, buf.Length)) > 0)
+                    {
+                        int segStart = 0;
+                        for (int i = 0; i < read; i++)
+                        {
+                            if (buf[i] == (byte)'\n')
+                            {
+                                lineCount++;
+                                if (lineCount >= linesPerPart)
+                                {
+                                    output.Write(buf, segStart, i - segStart + 1);
+                                    output.Dispose();
+                                    partIndex++;
+                                    lineCount = 0;
+                                    outPath = BuildPartName(outputDir, namePattern, partIndex, baseName, ext);
+                                    results.Add(outPath);
+                                    output = new FileStream(outPath, FileMode.Create, FileAccess.Write);
+                                    segStart = i + 1;
+                                }
+                            }
+                        }
+                        if (segStart < read)
+                            output.Write(buf, segStart, read - segStart);
+                    }
+                }
+                finally { output.Dispose(); }
+            }
+
+            // Remove empty trailing part (created when file ends exactly on a line boundary)
+            if (results.Count > 0)
+            {
+                string last = results[results.Count - 1];
+                if (File.Exists(last) && new FileInfo(last).Length == 0)
+                {
+                    File.Delete(last);
+                    results.RemoveAt(results.Count - 1);
+                }
+            }
+            // Ensure the final part is a valid POSIX text file
+            if (results.Count > 0)
+                EnsureTrailingNewline(results[results.Count - 1]);
+            return results;
+        }
+
+        // Appends a single LF if the file is non-empty and does not already end with one,
+        // ensuring every extracted text output is a valid POSIX text file.
+        private static void EnsureTrailingNewline(string path)
+        {
+            using (var fs = new FileStream(path, FileMode.Open, FileAccess.ReadWrite))
+            {
+                if (fs.Length == 0) return;
+                fs.Seek(-1, SeekOrigin.End);
+                if (fs.ReadByte() != (byte)'\n')
+                    fs.WriteByte((byte)'\n');
+            }
+        }
+
+        // Backward scan: returns byte offset of the first byte of the last N lines.
+        private static long FindLastNLinesStart(string inputPath, long fileSize, long lineCount)
+        {
+            const int ChunkSize = 65536;
+            byte[] chunk = new byte[ChunkSize];
+            long newlinesNeeded = lineCount;
+            long pos = fileSize;
+
+            using (var fs = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                // If file ends with \n it is a line terminator, not a separator; skip it.
+                if (fileSize > 0)
+                {
+                    fs.Seek(fileSize - 1, SeekOrigin.Begin);
+                    if (fs.ReadByte() == (byte)'\n') pos = fileSize - 1;
+                }
+                while (pos > 0)
+                {
+                    long readStart = Math.Max(0, pos - ChunkSize);
+                    int toRead = (int)(pos - readStart);
+                    fs.Seek(readStart, SeekOrigin.Begin);
+                    int read = fs.Read(chunk, 0, toRead);
+                    for (int i = read - 1; i >= 0; i--)
+                    {
+                        if (chunk[i] == (byte)'\n')
+                        {
+                            if (--newlinesNeeded == 0)
+                                return readStart + i + 1;
+                        }
+                    }
+                    pos = readStart;
+                }
+            }
+            return 0; // entire file contains fewer lines than requested
+        }
+
         // ── Merge ──────────────────────────────────────────────────────────────
 
         public static void MergeFiles(IList<string> inputPaths, string outputPath, byte[] separator = null)

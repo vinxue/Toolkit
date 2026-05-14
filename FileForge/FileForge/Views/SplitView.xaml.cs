@@ -14,6 +14,9 @@ namespace FileForge.Views
         // Size list for "By size list" mode (each entry is a byte count for one part)
         private readonly List<long> _sizeList = new List<long>();
 
+        // Cached total line count for the currently loaded file (-1 = not yet counted)
+        private long _cachedLineCount = -1;
+
         public SplitView()
         {
             InitializeComponent();
@@ -35,6 +38,10 @@ namespace FileForge.Views
                 txtOutputDir.Text = info.DirectoryName;
             // Refresh size list summary so remainder is calculated against the loaded file
             UpdateSizeListSummary();
+            // Invalidate line count; re-trigger if By Lines is active
+            _cachedLineCount = -1;
+            if (rdoByLines?.IsChecked == true)
+                _ = RefreshLineInfoAsync(path);
         }
 
         private void BtnBrowseDir_Click(object sender, RoutedEventArgs e)
@@ -51,9 +58,46 @@ namespace FileForge.Views
             bool bySize     = rdoBySize.IsChecked == true;
             bool bySizeList = rdoBySizeList.IsChecked == true;
             bool byOffset   = rdoByOffset.IsChecked == true;
+            bool byLines    = rdoByLines.IsChecked == true;
             panelBySize.Visibility     = bySize     ? Visibility.Visible : Visibility.Collapsed;
             panelBySizeList.Visibility = bySizeList ? Visibility.Visible : Visibility.Collapsed;
             panelByOffset.Visibility   = byOffset   ? Visibility.Visible : Visibility.Collapsed;
+            panelByLines.Visibility    = byLines    ? Visibility.Visible : Visibility.Collapsed;
+
+            if (byLines && _cachedLineCount < 0)
+            {
+                string path = txtInput?.Text?.Trim() ?? "";
+                if (File.Exists(path)) _ = RefreshLineInfoAsync(path);
+            }
+        }
+
+        private void LineMode_Changed(object sender, RoutedEventArgs e)
+        {
+            if (panelNLines == null) return;
+            bool isRange = rdoLineRange.IsChecked == true;
+            bool isSplit = rdoSplitLines.IsChecked == true;
+            panelNLines.Visibility     = isRange ? Visibility.Collapsed : Visibility.Visible;
+            panelLineRange.Visibility  = isRange ? Visibility.Visible   : Visibility.Collapsed;
+            if (txtLineCountLabel != null)
+                txtLineCountLabel.Text = isSplit ? "LINES PER PART" : "LINE COUNT";
+        }
+
+        private async Task RefreshLineInfoAsync(string path)
+        {
+            if (txtLineInfo == null) return;
+            txtLineInfo.Text = "Counting lines…";
+            try
+            {
+                string captured = path;
+                long count = await Task.Run(() => FileEngine.CountLines(captured));
+                // Guard against the user loading a different file while we were counting
+                if (string.Equals(txtInput?.Text?.Trim(), captured, StringComparison.OrdinalIgnoreCase))
+                {
+                    _cachedLineCount = count;
+                    txtLineInfo.Text = $"Total lines in file: {count:N0}";
+                }
+            }
+            catch { if (txtLineInfo != null) txtLineInfo.Text = string.Empty; }
         }
 
         // ── Size list handlers ────────────────────────────────────────────────
@@ -170,7 +214,7 @@ namespace FileForge.Views
                 }
                 offsets = offs.ToArray();
             }
-            else
+            else if (rdoByOffset.IsChecked == true)
             {
                 string[] lines = txtOffsets.Text.Split(new[] { '\r', '\n' },
                     StringSplitOptions.RemoveEmptyEntries);
@@ -184,6 +228,49 @@ namespace FileForge.Views
                 }
                 if (offs.Count == 0) throw new Exception("No valid offsets specified.");
                 offsets = offs.ToArray();
+            }
+            else // by lines
+            {
+                bool firstN  = rdoFirstLines.IsChecked == true;
+                bool lastN   = rdoLastLines.IsChecked == true;
+                bool range   = rdoLineRange.IsChecked == true;
+
+                List<string> lineResults;
+                if (range)
+                {
+                    if (!long.TryParse(txtFromLine.Text.Trim(), out long fromLine) || fromLine < 1)
+                        throw new Exception("From line must be a positive integer.");
+                    if (!long.TryParse(txtToLine.Text.Trim(), out long toLine) || toLine < fromLine)
+                        throw new Exception("To line must be ≥ from line.");
+                    lineResults = await Task.Run(() =>
+                        FileEngine.ExtractLineRange(input, outDir, pattern, fromLine, toLine));
+                }
+                else
+                {
+                    if (!long.TryParse(txtLineCount.Text.Trim(), out long lc) || lc <= 0)
+                        throw new Exception("Line count must be a positive integer.");
+                    if (firstN)
+                        lineResults = await Task.Run(() =>
+                            FileEngine.ExtractFirstLines(input, outDir, pattern, lc));
+                    else if (lastN)
+                        lineResults = await Task.Run(() =>
+                            FileEngine.ExtractLastLines(input, outDir, pattern, lc));
+                    else // split every N
+                        lineResults = await Task.Run(() =>
+                            FileEngine.SplitByLineCount(input, outDir, pattern, lc));
+                }
+
+                lstResults.Visibility = Visibility.Visible;
+                lstResults.Items.Clear();
+                foreach (string f in lineResults)
+                {
+                    long sz = new FileInfo(f).Length;
+                    lstResults.Items.Add($"{Path.GetFileName(f)}  ({FileEngine.FormatSize(sz)})");
+                }
+                string verb   = (firstN || lastN || range) ? "Extracted to" : "Split into";
+                string suffix = lineResults.Count == 1 ? "file" : "files";
+                ShowSuccess($"{verb} {lineResults.Count} {suffix}.");
+                return;
             }
 
             if (btn != null) btn.IsEnabled = false;

@@ -13,7 +13,7 @@
             <StackPanel Margin="0,20">
 
                 <TextBlock Text="Split File" Style="{StaticResource SectionHeaderStyle}"/>
-                <TextBlock Text="Cut a file into multiple parts by equal chunk size, by a custom size list, or at specific byte offsets."
+                <TextBlock Text="Cut a file into parts by chunk size, size list, or byte offsets — or extract / split log lines by count, range, or even N-line chunks."
                            Style="{StaticResource SectionSubtitleStyle}"/>
 
                 <!-- Source File -->
@@ -46,6 +46,9 @@
                                          GroupName="SplitMode"
                                          Checked="SplitMode_Changed"/>
                             <RadioButton x:Name="rdoByOffset" Content="By offsets"
+                                         GroupName="SplitMode"
+                                         Checked="SplitMode_Changed"/>
+                            <RadioButton x:Name="rdoByLines" Content="By lines (Text)"
                                          GroupName="SplitMode"
                                          Checked="SplitMode_Changed"/>
                         </StackPanel>
@@ -119,6 +122,51 @@
                                      VerticalScrollBarVisibility="Auto"
                                      FontFamily="Consolas" FontSize="13"
                                      Text="0x00010000&#x0a;0x00020000"/>
+                        </StackPanel>
+
+                        <!-- By lines panel -->
+                        <StackPanel x:Name="panelByLines" Visibility="Collapsed">
+                            <TextBlock Text="LINE EXTRACTION MODE" Style="{StaticResource FieldLabelStyle}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                <RadioButton x:Name="rdoFirstLines" Content="First N lines"
+                                             GroupName="LineMode" IsChecked="True"
+                                             Checked="LineMode_Changed" Margin="0,0,20,0"/>
+                                <RadioButton x:Name="rdoLastLines" Content="Last N lines"
+                                             GroupName="LineMode"
+                                             Checked="LineMode_Changed" Margin="0,0,20,0"/>
+                                <RadioButton x:Name="rdoLineRange" Content="Line range"
+                                             GroupName="LineMode"
+                                             Checked="LineMode_Changed" Margin="0,0,20,0"/>
+                                <RadioButton x:Name="rdoSplitLines" Content="Split every N lines"
+                                             GroupName="LineMode"
+                                             Checked="LineMode_Changed"/>
+                            </StackPanel>
+
+                            <!-- N-lines sub-panel (First / Last / Split every N) -->
+                            <StackPanel x:Name="panelNLines">
+                                <TextBlock x:Name="txtLineCountLabel" Text="LINE COUNT"
+                                           Style="{StaticResource FieldLabelStyle}"/>
+                                <TextBox x:Name="txtLineCount" Width="160"
+                                         HorizontalAlignment="Left" Text="1000"/>
+                            </StackPanel>
+
+                            <!-- Line-range sub-panel -->
+                            <StackPanel x:Name="panelLineRange" Visibility="Collapsed">
+                                <TextBlock Text="LINE RANGE  (1-based, inclusive)"
+                                           Style="{StaticResource FieldLabelStyle}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="From line" VerticalAlignment="Center"
+                                               Margin="0,0,8,0"/>
+                                    <TextBox x:Name="txtFromLine" Width="120" Text="1"/>
+                                    <TextBlock Text="to line" VerticalAlignment="Center"
+                                               Margin="12,0,8,0"/>
+                                    <TextBox x:Name="txtToLine" Width="120" Text="1000"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Info / line-count hint -->
+                            <TextBlock x:Name="txtLineInfo" Foreground="#7F8C8D"
+                                       FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
