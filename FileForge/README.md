@@ -20,7 +20,7 @@ A desktop binary file toolkit built with WPF (.NET 4.8). Provides the most commo
 |---|---|
 | **Append / Prepend** | Add fill data before and/or after a file. Supports exact fill sizes or target-total-size mode. Fill content: all zeros, a specific byte, a repeating hex pattern, or random data. In **Both** mode any two of (front fill, back fill, target total) can be specified and the third is calculated automatically. |
 | **Split File** | Split a file into equal-sized chunks or at explicit byte offsets. Customizable output filename pattern using `{name}`, `{n}`, `{ext}` placeholders. |
-| **Merge Files** | Combine multiple files into one. Drag-and-drop reordering, optional separator bytes between files. |
+| **Merge Files** | Build an output file from any mix of source files and fill buffers arranged in any order. Drag-and-drop reordering. |
 | **Generate File** | Create a new binary file of an exact size filled with chosen data. Size input accepts decimal or hex (`0x...`) formats and supports unit suffixes (Bytes/KB/MB/GB). Fill content options match Append/Prepend: all zeros, a specific byte, a repeating hex pattern, or random data. |
 | **Region Edit** | Five operations on byte regions within a file: **Extract** a range to a new file, **Insert** bytes at an offset, **Delete** a range, **Overwrite** a range with fill data, **Truncate** the file to a given size. |
 | **Align & Pad** | Pad a file to the next multiple of a specified alignment boundary. |

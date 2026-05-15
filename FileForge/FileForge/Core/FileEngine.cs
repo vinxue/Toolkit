@@ -456,6 +456,26 @@ namespace FileForge.Core
             }
         }
 
+        /// <summary>
+        /// Compose an output file from an arbitrary ordered sequence of file and fill-buffer segments.
+        /// </summary>
+        public static void MergeSegments(IList<MergeSegmentData> segments, string outputPath)
+        {
+            if (segments == null || segments.Count == 0)
+                throw new ArgumentException("At least one segment is required.");
+
+            using (var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
+            {
+                foreach (var seg in segments)
+                {
+                    if (seg.IsFile)
+                        CopyFileToStream(seg.FilePath, output);
+                    else
+                        WriteFillData(output, seg.FillMode, seg.FillSize, seg.SpecificByte, seg.HexPattern);
+                }
+            }
+        }
+
         // ── Region operations ──────────────────────────────────────────────────
 
         public static void ExtractRegion(string inputPath, string outputPath, long offset, long size)

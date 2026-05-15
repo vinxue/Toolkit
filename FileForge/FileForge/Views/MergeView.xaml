@@ -9,85 +9,186 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- ── Header ──────────────────────────────────────────────────────── -->
         <StackPanel Grid.Row="0" Margin="0,20,0,0">
-            <TextBlock Text="Merge Files" Style="{StaticResource SectionHeaderStyle}"/>
-            <TextBlock Text="Combine multiple files into one, with optional separator bytes between them."
+            <TextBlock Text="Merge / Compose" Style="{StaticResource SectionHeaderStyle}"/>
+            <TextBlock Text="Build an output file from any mix of source files and fill buffers arranged in any order."
                        Style="{StaticResource SectionSubtitleStyle}"/>
         </StackPanel>
 
-        <Grid Grid.Row="1" Margin="0,0">
+        <!-- ── Content ─────────────────────────────────────────────────────── -->
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="280"/>
+                <ColumnDefinition Width="290"/>
             </Grid.ColumnDefinitions>
 
-            <!-- File list -->
+            <!-- Left: composition sequence ─────────────────────────────────── -->
             <Border Style="{StaticResource CardStyle}" Margin="0,0,12,12">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="SOURCE FILES  (in merge order)"
+                    <TextBlock DockPanel.Dock="Top" Text="COMPOSITION SEQUENCE"
                                Style="{StaticResource FieldLabelStyle}"/>
-                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
-                        <Button Content="Add Files…" Style="{StaticResource SecondaryButtonStyle}"
-                                Padding="12,0" Click="BtnAddFiles_Click"/>
+
+                    <!-- Toolbar -->
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,4,0,6">
+                        <Button Content="+ Add File…" Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="10,0" Click="BtnAddFile_Click"/>
+                        <Button Content="+ Add Buffer" Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="10,0" Margin="6,0,0,0" Click="BtnAddBuffer_Click"/>
+                        <Rectangle Width="1" Fill="#D0D0D0" Margin="10,3"/>
                         <Button Content="Remove" Style="{StaticResource SecondaryButtonStyle}"
-                                Padding="12,0" Margin="6,0,0,0" Click="BtnRemove_Click"/>
+                                Padding="10,0" Click="BtnRemove_Click"/>
                         <Button Content="Up" Style="{StaticResource SecondaryButtonStyle}"
-                                Padding="12,0" Margin="6,0,0,0" Click="BtnMoveUp_Click"/>
+                                Padding="10,0" Margin="10,0,0,0" Click="BtnMoveUp_Click"
+                                ToolTip="Move Up"/>
                         <Button Content="Down" Style="{StaticResource SecondaryButtonStyle}"
-                                Padding="12,0" Margin="6,0,0,0" Click="BtnMoveDown_Click"/>
-                        <Button Content="Clear" Style="{StaticResource SecondaryButtonStyle}"
-                                Padding="12,0" Margin="6,0,0,0" Click="BtnClear_Click"/>
+                                Padding="10,0" Margin="10,0,0,0" Click="BtnMoveDown_Click"
+                                ToolTip="Move Down"/>
+                        <Button Content="Clear All" Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="10,0" Margin="10,0,0,0" Click="BtnClear_Click"/>
                     </StackPanel>
-                    <ListBox x:Name="lstFiles" Margin="0,6,0,0"
-                             AllowDrop="True" Drop="LstFiles_Drop" DragOver="LstFiles_DragOver"
-                             ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                             FontFamily="Consolas" FontSize="12" MinHeight="100"/>
+
+                    <!-- Segment list -->
+                    <ListView x:Name="lstSegments"
+                              AllowDrop="True" Drop="LstSegments_Drop" DragOver="LstSegments_DragOver"
+                              SelectionChanged="LstSegments_SelectionChanged"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              BorderThickness="1" BorderBrush="#E4E4E4"
+                              Background="White" MinHeight="100">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="6,5"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="60"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border x:Name="badge" Background="#0078D4" CornerRadius="3"
+                                            Padding="4,2" VerticalAlignment="Center"
+                                            HorizontalAlignment="Left">
+                                        <TextBlock Text="{Binding TypeLabel}" Foreground="White"
+                                                   FontSize="10" FontWeight="Bold"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="{Binding Summary}"
+                                               VerticalAlignment="Center" Margin="8,0,0,0"
+                                               FontFamily="Consolas" FontSize="12"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </Grid>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding Kind}"
+                                                 Value="{x:Static local:SegmentKind.Buffer}">
+                                        <Setter TargetName="badge" Property="Background" Value="#B85C00"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </DockPanel>
             </Border>
 
-            <!-- Right panel -->
-            <StackPanel Grid.Column="1">
-                <!-- Separator -->
-                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+            <!-- Right: segment properties ──────────────────────────────────── -->
+            <Border Grid.Column="1" Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel>
-                        <TextBlock Text="SEPARATOR BETWEEN FILES"
+                        <TextBlock Text="SEGMENT PROPERTIES"
                                    Style="{StaticResource FieldLabelStyle}"/>
-                        <ComboBox x:Name="cboSepMode" SelectionChanged="CboSepMode_Changed">
-                            <ComboBoxItem Content="None" IsSelected="True"/>
-                            <ComboBoxItem Content="Hex pattern"/>
-                            <ComboBoxItem Content="N zero bytes"/>
-                        </ComboBox>
-                        <StackPanel x:Name="panelSepHex" Visibility="Collapsed" Margin="0,8,0,0">
-                            <TextBlock Text="HEX BYTES  (e.g. FF FF FF FF)"
-                                       Style="{StaticResource FieldLabelStyle}"/>
-                            <TextBox x:Name="txtSepHex" Text="FF FF FF FF"/>
-                        </StackPanel>
-                        <StackPanel x:Name="panelSepZero" Visibility="Collapsed" Margin="0,8,0,0">
-                            <TextBlock Text="COUNT  (bytes)" Style="{StaticResource FieldLabelStyle}"/>
-                            <TextBox x:Name="txtSepZeroCount" Text="16"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
 
-                <!-- Output -->
-                <Border Style="{StaticResource CardStyle}">
-                    <StackPanel>
-                        <TextBlock Text="OUTPUT FILE" Style="{StaticResource FieldLabelStyle}"/>
-                        <TextBox x:Name="txtOutput" Margin="0,0,0,6"/>
-                        <Button Content="Browse…" Style="{StaticResource SecondaryButtonStyle}"
-                                HorizontalAlignment="Left" Padding="16,0"
-                                Click="BtnBrowseOutput_Click"/>
+                        <!-- Placeholder when nothing is selected -->
+                        <TextBlock x:Name="txtNoSelection"
+                                   Text="Select or add a segment to edit its properties."
+                                   Foreground="#A0A0A0" FontStyle="Italic"
+                                   TextWrapping="Wrap" Margin="0,6,0,0"/>
+
+                        <!-- ── File segment properties ── -->
+                        <StackPanel x:Name="panelFileProp" Visibility="Collapsed">
+                            <TextBlock Text="FILE PATH" Style="{StaticResource FieldLabelStyle}"/>
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="txtFilePath" Grid.Column="0" Margin="0,0,6,0"
+                                         TextChanged="TxtFilePath_Changed"/>
+                                <Button Grid.Column="1" Content="Browse…" Width="78"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Click="BtnBrowseFileProp_Click"/>
+                            </Grid>
+                            <TextBlock x:Name="txtFileInfo" FontSize="12" Foreground="#616161"
+                                       TextWrapping="Wrap" Margin="0,2,0,0"/>
+                        </StackPanel>
+
+                        <!-- ── Buffer segment properties ── -->
+                        <StackPanel x:Name="panelBufferProp" Visibility="Collapsed">
+                            <TextBlock Text="BUFFER SIZE" Style="{StaticResource FieldLabelStyle}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                <TextBox x:Name="txtBufSize" Width="110" Text="512"
+                                         TextChanged="BufText_Changed"/>
+                                <ComboBox x:Name="cboBufUnit" Width="75" Margin="6,0,0,0"
+                                          SelectedIndex="0" SelectionChanged="BufCombo_Changed">
+                                    <ComboBoxItem Content="Bytes"/>
+                                    <ComboBoxItem Content="KB"/>
+                                    <ComboBoxItem Content="MB"/>
+                                    <ComboBoxItem Content="GB"/>
+                                </ComboBox>
+                            </StackPanel>
+                            <TextBlock x:Name="txtBufSizeHint" Foreground="#0078D4" FontSize="12"
+                                       Margin="0,2,0,10"/>
+
+                            <TextBlock Text="FILL CONTENT" Style="{StaticResource FieldLabelStyle}"/>
+                            <ComboBox x:Name="cboBufFill" SelectionChanged="BufCombo_Changed">
+                                <ComboBoxItem Content="All Zeros  (0x00)" IsSelected="True"/>
+                                <ComboBoxItem Content="Specific Byte"/>
+                                <ComboBoxItem Content="Hex Pattern  (repeating)"/>
+                                <ComboBoxItem Content="Random Data"/>
+                            </ComboBox>
+
+                            <StackPanel x:Name="panelBufByte" Visibility="Collapsed" Margin="0,8,0,0">
+                                <TextBlock Text="BYTE VALUE  (hex, e.g. FF)"
+                                           Style="{StaticResource FieldLabelStyle}"/>
+                                <TextBox x:Name="txtBufByte" Text="FF"
+                                         TextChanged="BufText_Changed"/>
+                            </StackPanel>
+                            <StackPanel x:Name="panelBufHex" Visibility="Collapsed" Margin="0,8,0,0">
+                                <TextBlock Text="HEX PATTERN  (e.g. DE AD BE EF)"
+                                           Style="{StaticResource FieldLabelStyle}"/>
+                                <TextBox x:Name="txtBufHex" Text="DE AD BE EF"
+                                         TextChanged="BufText_Changed"/>
+                            </StackPanel>
+                        </StackPanel>
+
                     </StackPanel>
-                </Border>
-            </StackPanel>
+                </ScrollViewer>
+            </Border>
         </Grid>
 
-        <!-- Actions + Status -->
+        <!-- ── Footer ──────────────────────────────────────────────────────── -->
         <StackPanel Grid.Row="2" Margin="0,0,0,20">
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8">
+                <StackPanel>
+                    <TextBlock Text="OUTPUT FILE" Style="{StaticResource FieldLabelStyle}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="txtOutput" Grid.Column="0" Margin="0,0,8,0"/>
+                        <Button Grid.Column="1" Content="Browse…" Width="90"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="BtnBrowseOutput_Click"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                <Button Content="Merge Files" Width="130" Height="36"
+                <Button Content="Merge" Width="130" Height="36"
                         Style="{StaticResource PrimaryButtonStyle}"
                         Click="BtnExecute_Click"/>
+                <TextBlock x:Name="txtTotalSize" VerticalAlignment="Center" Margin="14,0,0,0"
+                           Foreground="#616161" FontSize="12"/>
             </StackPanel>
             <local:StatusBanner x:Name="statusBanner"/>
         </StackPanel>

@@ -128,11 +128,13 @@
     <Compile Include="Core\FileEngine.cs" />
     <Compile Include="Core\HashEngine.cs" />
     <Compile Include="Core\HashResult.cs" />
+    <Compile Include="Core\MergeSegmentData.cs" />
     <Compile Include="Core\PatchEntry.cs" />
   </ItemGroup>
   <!-- View helpers -->
   <ItemGroup>
     <Compile Include="Views\DiffRow.cs" />
+    <Compile Include="Views\MergeSegment.cs" />
     <Compile Include="Views\ViewHelper.cs" />
   </ItemGroup>
   <!-- View XAML pages -->

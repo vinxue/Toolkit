@@ -13,7 +13,7 @@
             <StackPanel Margin="0,20">
 
                 <TextBlock Text="Split File" Style="{StaticResource SectionHeaderStyle}"/>
-                <TextBlock Text="Cut a file into parts by chunk size, size list, or byte offsets — or extract / split log lines by count, range, or even N-line chunks."
+                <TextBlock Text="Cut a file into parts by chunk size, size list, or byte offsets - or extract / split log lines by count, range, or even N-line chunks."
                            Style="{StaticResource SectionSubtitleStyle}"/>
 
                 <!-- Source File -->
@@ -100,7 +100,7 @@
                                     <ComboBoxItem Content="KB"/>
                                     <ComboBoxItem Content="MB"/>
                                 </ComboBox>
-                                <Button Content="＋ Add" Padding="14,0" Height="34" Margin="8,0,0,0"
+                                <Button Content="+ Add" Padding="14,0" Height="34" Margin="8,0,0,0"
                                         Style="{StaticResource SecondaryButtonStyle}"
                                         Click="BtnAddSize_Click"/>
                                 <Button Content="Remove" Padding="10,0" Height="34" Margin="6,0,0,0"
