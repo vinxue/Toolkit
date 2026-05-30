@@ -20,6 +20,22 @@
         Loaded="MainWindow_Loaded"
         Closing="Window_Closing">
 
+    <!--
+        WindowChrome: removes the default non-client frame via WM_NCCALCSIZE, hooks
+        WM_NCHITTEST so DWM continues to render the native minimize/maximize/close
+        buttons (and Win11 Snap Layout on HTMAXBUTTON hover), while WPF content
+        extends into the full window area including the title bar region.
+        GlassFrameThickness="-1" = extend DWM frame across the entire client area
+        (replaces our manual DwmExtendFrameIntoClientArea call and survives
+        minimize/restore cycles because WindowChrome re-applies it on WM_ACTIVATE).
+    -->
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="48"
+                      ResizeBorderThickness="6"
+                      GlassFrameThickness="-1"
+                      UseAeroCaptionButtons="True"/>
+    </WindowChrome.WindowChrome>
+
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
     </Window.Resources>
@@ -38,33 +54,32 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- ===================== HEADER ===================== -->
-        <Border Grid.Row="0"
-                Background="{DynamicResource HeaderBackground}"
-                BorderBrush="{DynamicResource SeparatorColor}"
-                BorderThickness="0,0,0,1">
-            <Grid Margin="20,14,20,14">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+        <!-- ===================== HEADER =====================
+             A full-width Rectangle at ~24% opacity gives the title bar a subtle
+             visual weight without fogging the DWM caption buttons. At this opacity
+             level the tint is imperceptible on the button colors. The visual
+             separation from the toolbar is provided by the Toolbar's top border.
+        -->
+        <Grid Grid.Row="0" Margin="20,0,0,0">
+            <!-- Subtle full-width tint — ~24% opaque so system buttons stay clear -->
+            <Rectangle Fill="#3CF3F3F3" Margin="-20,0,0,0"/>
 
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <!-- App icon (globe) -->
-                    <TextBlock Text="&#xE909;" FontFamily="Segoe MDL2 Assets"
-                               FontSize="22" Foreground="{DynamicResource AccentColor}"
-                               VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <StackPanel>
-                        <TextBlock Text="World Clock"
-                                   FontSize="18" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource PrimaryText}"/>
-                        <TextBlock x:Name="LocalTimeHeader"
-                                   FontSize="11" Foreground="{DynamicResource SecondaryText}"/>
-                    </StackPanel>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                        Margin="0,14,158,14">
+                <!-- App icon (globe) -->
+                <TextBlock Text="&#xE909;" FontFamily="Segoe MDL2 Assets"
+                           FontSize="20" Foreground="{DynamicResource AccentColor}"
+                           VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="World Clock"
+                               FontSize="16" FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryText}"/>
+                    <TextBlock x:Name="LocalTimeHeader"
+                               FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                               Margin="0,1,0,0"/>
                 </StackPanel>
-            </Grid>
-        </Border>
+            </StackPanel>
+        </Grid>
 
         <!-- ===================== TOOLBAR ===================== -->
         <Border Grid.Row="1"

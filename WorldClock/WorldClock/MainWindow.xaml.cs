@@ -48,33 +48,18 @@ namespace WorldClock
             public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
         }
 
-        private static class NonClientRegionAPI
-        {
-            [StructLayout(LayoutKind.Sequential)]
-            public struct MARGINS
-            {
-                public int cxLeftWidth, cxRightWidth, cyTopHeight, cyBottomHeight;
-            }
-
-            [DllImport("dwmapi.dll")]
-            public static extern int DwmExtendFrameIntoClientArea(IntPtr hwnd, ref MARGINS pMarInset);
-        }
-
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             var hwnd = new WindowInteropHelper(this).Handle;
 
-            // Enable Acrylic system backdrop (Win11 22H2+)
+            // Request Acrylic system backdrop (Win11 22H2+; silently ignored on older OS)
             int backdropType = DwmApi.DWMSBT_TRANSIENTWINDOW;
             DwmApi.DwmSetWindowAttribute(hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE,
                 ref backdropType, Marshal.SizeOf<int>());
 
-            // Extend DWM frame to cover the entire client area
-            var margins = new NonClientRegionAPI.MARGINS { cxLeftWidth = -1, cxRightWidth = -1,
-                                                           cyTopHeight = -1, cyBottomHeight = -1 };
-            NonClientRegionAPI.DwmExtendFrameIntoClientArea(hwnd, ref margins);
-
-            // Make WPF composition surface transparent so the acrylic backdrop shows through
+            // Make WPF's composition surface transparent so DWM acrylic shows through.
+            // WindowChrome (GlassFrameThickness="-1") already called DwmExtendFrameIntoClientArea
+            // and will re-apply it on every WM_ACTIVATE, so we don't need to call it here.
             var src = HwndSource.FromHwnd(hwnd);
             if (src?.CompositionTarget != null)
                 src.CompositionTarget.BackgroundColor = Colors.Transparent;
