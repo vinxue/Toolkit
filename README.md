@@ -26,6 +26,7 @@ Welcome to the Toolkit project! This project contains a collection of Windows ap
 | `StopWatch`     | A simple stopwatch application.                                       |
 | `Timer`         | A timer application.                                                  |
 | `TimeTracker`   | A time tracking application.                                          |
+| `WorldClock`    | A world clock app displaying multiple timezones with DST awareness.   |
 
 ### Tools
 

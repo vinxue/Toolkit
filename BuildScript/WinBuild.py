@@ -21,6 +21,7 @@ solution_paths = [
     ("StopWatch", "Win32"),
     ("Timer", "Win32"),
     ("TimeTracker", "Any CPU"),
+    ("WorldClock", "Any CPU"),
     ("End", "End")
 ]
 

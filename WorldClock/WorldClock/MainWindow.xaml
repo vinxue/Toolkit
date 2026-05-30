@@ -1,0 +1,387 @@
+﻿<Window x:Class="WorldClock.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WorldClock"
+        xmlns:vm="clr-namespace:WorldClock.ViewModels"
+        mc:Ignorable="d"
+        Title="World Clock"
+        Height="700" Width="960"
+        MinHeight="520" MinWidth="740"
+        Background="Transparent"
+        Foreground="{DynamicResource PrimaryText}"
+        FontFamily="Segoe UI Variable Text, Segoe UI"
+        FontSize="13"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled"
+        Loaded="MainWindow_Loaded"
+        Closing="Window_Closing">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- Title bar / header -->
+            <RowDefinition Height="Auto"/>
+            <!-- Toolbar -->
+            <RowDefinition Height="Auto"/>
+            <!-- Time Converter panel (collapses when not in use) -->
+            <RowDefinition Height="Auto"/>
+            <!-- Clock list -->
+            <RowDefinition Height="*"/>
+            <!-- Status bar -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ===================== HEADER ===================== -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource HeaderBackground}"
+                BorderBrush="{DynamicResource SeparatorColor}"
+                BorderThickness="0,0,0,1">
+            <Grid Margin="20,14,20,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- App icon (globe) -->
+                    <TextBlock Text="&#xE909;" FontFamily="Segoe MDL2 Assets"
+                               FontSize="22" Foreground="{DynamicResource AccentColor}"
+                               VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <StackPanel>
+                        <TextBlock Text="World Clock"
+                                   FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource PrimaryText}"/>
+                        <TextBlock x:Name="LocalTimeHeader"
+                                   FontSize="11" Foreground="{DynamicResource SecondaryText}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ===================== TOOLBAR ===================== -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource WindowBackground}"
+                BorderBrush="{DynamicResource SeparatorColor}"
+                BorderThickness="0,0,0,1"
+                Padding="20,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           VerticalAlignment="Center"
+                           FontSize="12"
+                           Foreground="{DynamicResource SecondaryText}">
+                    <Run x:Name="ClockCountText"/>
+                </TextBlock>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="TimeConverterBtn"
+                            Style="{DynamicResource SecondaryButtonStyle}"
+                            Height="32" Padding="14,0"
+                            Margin="0,0,8,0"
+                            Command="{Binding ToggleConverterCommand}"
+                            ToolTip="Compare a specific moment across all timezones (for meeting scheduling)">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE121;" FontFamily="Segoe MDL2 Assets"
+                                       FontSize="12" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                            <TextBlock Text="Time Converter" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="AddTimezoneBtn"
+                            Style="{DynamicResource PrimaryButtonStyle}"
+                            Height="32" Padding="14,0"
+                            Margin="0"
+                            Click="AddTimezone_Click"
+                            ToolTip="Add a new timezone clock (Ctrl+N)">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE710;" FontFamily="Segoe MDL2 Assets"
+                                       FontSize="12" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                            <TextBlock Text="Add Timezone" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ===================== TIME CONVERTER PANEL ===================== -->
+        <Border Grid.Row="2"
+                Visibility="{Binding IsConverterMode, Converter={StaticResource BoolToVis}}"
+                Background="{DynamicResource ConverterPanelBackground}"
+                BorderBrush="{DynamicResource ConverterPanelBorder}"
+                BorderThickness="0,0,0,1"
+                Padding="20,10">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Panel icon + label -->
+                    <TextBlock Text="&#xE121;" FontFamily="Segoe MDL2 Assets"
+                               FontSize="14" Foreground="{DynamicResource ConverterAccentColor}"
+                               VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="Time Converter" FontWeight="SemiBold" FontSize="13"
+                               Foreground="{DynamicResource PrimaryText}"
+                               VerticalAlignment="Center" Margin="0,0,20,0"/>
+                    <!-- Date -->
+                    <TextBlock Text="Date" FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                               VerticalAlignment="Center" Margin="0,0,7,0"/>
+                    <DatePicker SelectedDate="{Binding ConverterDate, Mode=TwoWay}"
+                                Width="120" Height="30" VerticalAlignment="Center"
+                                Margin="0,0,16,0"/>
+                    <!-- Hour -->
+                    <TextBlock Text="Time" FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                               VerticalAlignment="Center" Margin="0,0,7,0"/>
+                    <ComboBox ItemsSource="{Binding HoursList}"
+                              SelectedItem="{Binding ConverterHour, Mode=TwoWay}"
+                              Width="58" Height="30" VerticalAlignment="Center">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Path=., StringFormat={}{0:D2}}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Text=":" FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryText}"
+                               VerticalAlignment="Center" Margin="4,0"/>
+                    <!-- Minute -->
+                    <ComboBox ItemsSource="{Binding MinutesList}"
+                              SelectedItem="{Binding ConverterMinute, Mode=TwoWay}"
+                              Width="58" Height="30" VerticalAlignment="Center"
+                              Margin="0,0,14,0">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Path=., StringFormat={}{0:D2}}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <!-- Use Now button -->
+                    <Button Content="Use Now"
+                            Command="{Binding UseNowCommand}"
+                            Style="{DynamicResource SecondaryButtonStyle}"
+                            Height="30" Padding="12,0"/>
+                </StackPanel>
+                <TextBlock Text="Cards show equivalent times for the selected moment  •  Live updates paused"
+                           FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                           Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ===================== CLOCK LIST ===================== -->
+        <Grid Grid.Row="3" Background="{DynamicResource WindowBackground}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Padding="16,12">
+                <ItemsControl x:Name="ClocksPanel"
+                              ItemsSource="{Binding Clocks}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <!-- Clock Card: accent strip + clean hierarchy -->
+                        <Border Width="285" Height="198"
+                                Margin="6"
+                                CornerRadius="10">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="18" ShadowDepth="0"
+                                                  Opacity="0.09" Color="#000000"/>
+                            </Border.Effect>
+
+                            <!-- Card border shell (hover trigger) -->
+                            <Border x:Name="CardOuter"
+                                    Background="{DynamicResource CardBackground}"
+                                    BorderBrush="{DynamicResource CardBorder}"
+                                    BorderThickness="1"
+                                    CornerRadius="10">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource CardHoverBorder}"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <!-- Top accent strip -->
+                                        <RowDefinition Height="4"/>
+                                        <!-- Card body -->
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Accent color strip -->
+                                    <Border Grid.Row="0" CornerRadius="9,9,0,0"
+                                            Background="{DynamicResource AccentColor}"/>
+
+                                    <!-- Card body content -->
+                                    <Grid Grid.Row="1" Margin="16,10,14,12">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- City name + action buttons -->
+                                        <Grid Grid.Row="0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding CityName}"
+                                                       FontSize="13" FontWeight="Medium"
+                                                       Foreground="{DynamicResource PrimaryText}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       VerticalAlignment="Center"
+                                                       ToolTip="{Binding Label}"/>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                <Button Content="&#xE74A;" FontFamily="Segoe MDL2 Assets"
+                                                        FontSize="10" Width="22" Height="22"
+                                                        Style="{DynamicResource IconButtonStyle}"
+                                                        ToolTip="Move Up"
+                                                        Command="{Binding DataContext.MoveUpCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"/>
+                                                <Button Content="&#xE74B;" FontFamily="Segoe MDL2 Assets"
+                                                        FontSize="10" Width="22" Height="22"
+                                                        Style="{DynamicResource IconButtonStyle}"
+                                                        ToolTip="Move Down"
+                                                        Command="{Binding DataContext.MoveDownCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"/>
+                                                <Button Content="&#xE711;" FontFamily="Segoe MDL2 Assets"
+                                                        FontSize="10" Width="22" Height="22"
+                                                        Style="{DynamicResource RemoveButtonStyle}"
+                                                        ToolTip="Remove"
+                                                        Command="{Binding DataContext.RemoveClockCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- UTC offset + DST badge -->
+                                        <StackPanel Grid.Row="1" Orientation="Horizontal"
+                                                    Margin="0,3,0,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding UtcOffsetDisplay}"
+                                                       FontSize="11" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource AccentColor}"
+                                                       VerticalAlignment="Center"/>
+                                            <Border Height="16"
+                                                    Margin="6,0,0,0"
+                                                    Background="{DynamicResource DstBadgeBackground}"
+                                                    CornerRadius="3" Padding="5,0"
+                                                    VerticalAlignment="Center"
+                                                    Visibility="{Binding ShowDstBadge, Converter={StaticResource BoolToVis}}">
+                                                <TextBlock Text="DST" FontSize="9" FontWeight="Bold"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{DynamicResource DstBadgeForeground}"/>
+                                            </Border>
+                                        </StackPanel>
+
+                                        <!-- Thin separator line -->
+                                        <Rectangle Grid.Row="2" Height="1"
+                                                   Fill="{DynamicResource SeparatorColor}"
+                                                   Margin="0,7,0,0"/>
+
+                                        <!-- Time display — tabular numerals prevent layout shift -->
+                                        <StackPanel Grid.Row="3" VerticalAlignment="Center" Margin="0,5,0,0">
+                                            <TextBlock Text="{Binding TimeDisplay}"
+                                                       FontFamily="Segoe UI Variable Display, Segoe UI"
+                                                       FontSize="36" FontWeight="Light"
+                                                       Foreground="{DynamicResource PrimaryText}"
+                                                       Typography.NumeralAlignment="Tabular"
+                                                       TextOptions.TextFormattingMode="Ideal"/>
+                                            <TextBlock Text="{Binding DateDisplay}"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource SecondaryText}"
+                                                       Margin="0,1,0,0"/>
+                                        </StackPanel>
+
+                                        <!-- Footer: timezone ID + relative offset badge -->
+                                        <Grid Grid.Row="4" Margin="0,6,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding TimeZoneId}"
+                                                       FontSize="10"
+                                                       Foreground="{DynamicResource TertiaryText}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       VerticalAlignment="Center"/>
+                                            <Border Grid.Column="1"
+                                                    Background="{DynamicResource RelativeBadgeBackground}"
+                                                    CornerRadius="4" Padding="7,3" Margin="6,0,0,0">
+                                                <TextBlock Text="{Binding RelativeOffset}"
+                                                           FontSize="10" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource RelativeBadgeForeground}"/>
+                                            </Border>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Empty state overlay (shown when no clocks) -->
+        <Border x:Name="EmptyStatePanel"
+                Visibility="Collapsed"
+                IsHitTestVisible="False">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="&#xE909;" FontFamily="Segoe MDL2 Assets"
+                           FontSize="52" Foreground="{DynamicResource AccentColor}"
+                           HorizontalAlignment="Center" Opacity="0.35"/>
+                <TextBlock Text="No clocks yet"
+                           FontSize="18" FontWeight="SemiBold"
+                           Foreground="{DynamicResource SecondaryText}"
+                           HorizontalAlignment="Center"
+                           Margin="0,12,0,0"/>
+                <TextBlock Text="Click &quot;Add Timezone&quot; to display your first world clock."
+                           FontSize="13" Foreground="{DynamicResource TertiaryText}"
+                           HorizontalAlignment="Center"
+                           Margin="0,6,0,0"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+
+        <!-- ===================== STATUS BAR ===================== -->
+        <Border Grid.Row="4"
+                Background="{DynamicResource StatusBarBackground}"
+                BorderBrush="{DynamicResource SeparatorColor}"
+                BorderThickness="0,1,0,0"
+                Padding="20,5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           x:Name="StatusText"
+                           FontSize="11"
+                           Foreground="{DynamicResource SecondaryText}"
+                           VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1"
+                           Text="Times update every second  •  DST handled automatically"
+                           FontSize="11"
+                           Foreground="{DynamicResource SecondaryText}"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
+
