@@ -15,6 +15,7 @@ solution_paths = [
     (r"Internal\IkgfDecode", "Any CPU"),
     ("KbSim", "Win32"),
     ("PCIe", "Win32"),
+    ("PdfForge", "dotnet"),
     ("PdfKit", "Any CPU"),
     ("SecKit", "dotnet"),
     ("StickyNotes", "Any CPU"),

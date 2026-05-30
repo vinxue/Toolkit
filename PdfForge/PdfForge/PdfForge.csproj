@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>appicon.ico</ApplicationIcon>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="itext" Version="9.6.0" />
+    <PackageReference Include="itext.bouncy-castle-adapter" Version="9.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="appicon.ico" />
+  </ItemGroup>
+
+  <!-- PostBuild safety-net: delete any iText modules that are not needed.
+       These would only appear if a future package update adds them as
+       transitive dependencies unexpectedly. The Delete task is a no-op
+       for files that do not exist, so this is always safe to run. -->
+  <Target Name="PostBuildCleanup" AfterTargets="Build">
+    <ItemGroup>
+      <_UnusedItextDlls Include="$(OutDir)itext.barcodes.dll" />
+      <_UnusedItextDlls Include="$(OutDir)itext.forms.dll" />
+      <_UnusedItextDlls Include="$(OutDir)itext.pdfa.dll" />
+      <_UnusedItextDlls Include="$(OutDir)itext.pdfua.dll" />
+      <_UnusedItextDlls Include="$(OutDir)itext.sign.dll" />
+      <_UnusedItextDlls Include="$(OutDir)itext.styledxmlparser.dll" />
+      <_UnusedItextDlls Include="$(OutDir)itext.svg.dll" />
+    </ItemGroup>
+    <Delete Files="@(_UnusedItextDlls)" />
+    <Message Text="PostBuildCleanup: removed unused iText modules." Importance="normal" />
+  </Target>
+
+</Project>
