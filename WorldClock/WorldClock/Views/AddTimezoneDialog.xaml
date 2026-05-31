@@ -74,15 +74,23 @@
                          VerticalAlignment="Center"
                          Padding="0,8" FontSize="13"
                          Style="{DynamicResource PlainTextBoxStyle}"/>
-                <!-- Clear button -->
+                <!-- Clear button: only visible when search box has content -->
                 <Button Grid.Column="2" x:Name="ClearSearchBtn"
                         Content="&#xE711;" FontFamily="Segoe MDL2 Assets"
                         FontSize="11" Width="28" Height="28"
-                        Background="Transparent" BorderThickness="0"
                         Foreground="{DynamicResource SecondaryText}"
                         Cursor="Hand" Margin="0,0,4,0"
-                        Click="ClearSearch_Click"
-                        Style="{DynamicResource IconButtonStyle}"/>
+                        Click="ClearSearch_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SearchText}" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
             </Grid>
         </Border>
 

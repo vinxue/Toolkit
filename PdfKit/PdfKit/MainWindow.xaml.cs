@@ -191,7 +191,7 @@ namespace PdfKit
                 await Task.Run(() => _pdf.ExtractPages(src, pages, dst));
                 ExtractStatus.ShowSuccess(string.Format(App.S("Ok_Extracted"), pages.Count, Path.GetFileName(dst)));
             }
-            catch (Exception ex) { ExtractStatus.ShowError($"Extraction failed: {ex.Message}"); }
+            catch (Exception ex) { ExtractStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             finally { SetBusy(ExtractBtn, false); }
         }
 
@@ -276,7 +276,7 @@ namespace PdfKit
 
         private void MergeBrowseOutput_Click(object sender, RoutedEventArgs e)
         {
-            string path = SavePdf("Merge Documents");
+            string path = SavePdf(App.S("Dlg_SavePdf"));
             if (path != null) MergeOutputPath.Text = path;
         }
 
@@ -284,7 +284,7 @@ namespace PdfKit
         {
             if (_mergeFiles.Count < 2)
             {
-                MergeStatus.ShowError("Add at least 2 PDF files.");
+                MergeStatus.ShowError(App.S("Err_NeedAtLeast2"));
                 return;
             }
             string dst = MergeOutputPath.Text.Trim();
@@ -298,7 +298,7 @@ namespace PdfKit
                 await Task.Run(() => _pdf.MergePdfs(paths, dst));
                 MergeStatus.ShowSuccess(string.Format(App.S("Ok_Merged"), paths.Count, totalPages, Path.GetFileName(dst)));
             }
-            catch (Exception ex) { MergeStatus.ShowError($"Merge failed: {ex.Message}"); }
+            catch (Exception ex) { MergeStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             finally { SetBusy(MergeBtn, false); }
         }
 
@@ -385,7 +385,7 @@ namespace PdfKit
                 await Task.Run(() => _pdf.RotatePages(src, pages, degrees, dst));
                 RotateStatus.ShowSuccess(string.Format(App.S("Ok_Rotated"), pageCount, degrees, Path.GetFileName(dst)));
             }
-            catch (Exception ex) { RotateStatus.ShowError($"Rotation failed: {ex.Message}"); }
+            catch (Exception ex) { RotateStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             finally { SetBusy(RotateBtn, false); }
         }
 
@@ -571,7 +571,7 @@ namespace PdfKit
             }
             catch (Exception ex)
             {
-                OrganizeStatus.ShowError("Failed to load PDF: " + ex.Message);
+                OrganizeStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message));
                 OrganizePageInfo.Text = string.Empty;
             }
             if (string.IsNullOrWhiteSpace(OrganizeOutputPath.Text))
@@ -629,7 +629,7 @@ namespace PdfKit
             {
                 var original = btn.Tag as string ?? btn.Content as string;
                 if (btn.Tag == null) btn.Tag = original;
-                btn.Content = "Processing...";
+                btn.Content = App.S("Btn_Processing");
             }
             else
             {
@@ -669,7 +669,7 @@ namespace PdfKit
             }
             catch (Exception ex)
             {
-                OrganizeStatus.ShowError("Failed to load PDF: " + ex.Message);
+                OrganizeStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message));
                 OrganizePageInfo.Text = string.Empty;
             }
             if (string.IsNullOrWhiteSpace(OrganizeOutputPath.Text))
@@ -781,7 +781,7 @@ namespace PdfKit
             try { details = _pdf.GetPageDetails(srcPath); }
             catch (Exception ex)
             {
-                OrganizeStatus.ShowError("Failed to read source PDF: " + ex.Message);
+                OrganizeStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message));
                 return;
             }
 
@@ -835,7 +835,7 @@ namespace PdfKit
             }
             catch (Exception ex)
             {
-                OrganizeStatus.ShowError("Failed: " + ex.Message);
+                OrganizeStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message));
             }
             finally { SetBusy(OrganizeBtn, false); }
         }
@@ -933,7 +933,7 @@ namespace PdfKit
             }
             catch (Exception ex)
             {
-                SecurityStatus.ShowError("Encryption failed: " + ex.Message);
+                SecurityStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message));
             }
             finally { SetBusy(EncBtn, false); }
         }
@@ -1047,7 +1047,7 @@ namespace PdfKit
                 await Task.Run(() => _pdf.AddTextWatermark(src, opts, dst));
                 WatermarkStatus.ShowSuccess("Watermark applied to " + pageCount + " page(s) -> " + Path.GetFileName(dst));
             }
-            catch (Exception ex) { WatermarkStatus.ShowError("Failed: " + ex.Message); }
+            catch (Exception ex) { WatermarkStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             finally { SetBusy(WmBtn, false); }
         }
 
@@ -1190,7 +1190,7 @@ namespace PdfKit
                 }
                 SplitStatus.ShowSuccess(outputFiles.Count + " file(s) saved to: " + folder);
             }
-            catch (Exception ex) { SplitStatus.ShowError("Failed: " + ex.Message); }
+            catch (Exception ex) { SplitStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             finally { SetBusy(SplitBtn, false); }
         }
 
@@ -1237,7 +1237,7 @@ namespace PdfKit
             }
             catch (Exception ex)
             {
-                MetadataStatus.ShowError("Failed to load: " + ex.Message);
+                MetadataStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message));
             }
         }
 
@@ -1269,7 +1269,7 @@ namespace PdfKit
                 await Task.Run(() => _pdf.SetPdfMetadata(src, meta, dst));
                 MetadataStatus.ShowSuccess("Metadata saved -> " + Path.GetFileName(dst));
             }
-            catch (Exception ex) { MetadataStatus.ShowError("Failed: " + ex.Message); }
+            catch (Exception ex) { MetadataStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             finally { SetBusy(MetaBtn, false); }
         }
 

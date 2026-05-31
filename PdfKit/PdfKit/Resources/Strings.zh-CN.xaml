@@ -182,7 +182,6 @@
     <s:String x:Key="Err_WmTextEmpty">水印文字不能为空。</s:String>
     <s:String x:Key="Err_NoPagesPerFile">每个文件的页数必须是大于等于 1 的整数。</s:String>
     <s:String x:Key="Err_NoRanges">请输入页面范围。</s:String>
-    <s:String x:Key="Err_UserPwdRequired">加密时必须设置用户密码。</s:String>
     <s:String x:Key="Err_NoPwdProvided">请至少提供一项密码（用户密码或所有者密码）。</s:String>
     <s:String x:Key="Err_PwdMismatch">两次输入的密码不一致，请重新确认。</s:String>
 
@@ -196,6 +195,9 @@
     <s:String x:Key="Ok_MetaSaved">元数据已保存 → {0}</s:String>
     <s:String x:Key="Ok_Split">已拆分为 {0} 个文件 → {1}</s:String>
     <s:String x:Key="Err_RemovePwdFailed">操作失败：{0} — 请确认密码是否正确。</s:String>
+    <s:String x:Key="Err_NeedAtLeast2">请至少添加 2 个 PDF 文件以进行合并。</s:String>
+    <s:String x:Key="Err_OperationFailed">操作失败：{0}</s:String>
+    <s:String x:Key="Btn_Processing">处理中...</s:String>
 
     <!-- Dialog titles -->
     <s:String x:Key="Dlg_SelectPdf">选择 PDF 文件</s:String>

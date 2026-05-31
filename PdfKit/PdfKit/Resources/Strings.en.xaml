@@ -182,7 +182,6 @@
     <s:String x:Key="Err_WmTextEmpty">Watermark text cannot be empty.</s:String>
     <s:String x:Key="Err_NoPagesPerFile">Pages per file must be a whole number >= 1.</s:String>
     <s:String x:Key="Err_NoRanges">Please enter page ranges.</s:String>
-    <s:String x:Key="Err_UserPwdRequired">User password is required for encryption.</s:String>
     <s:String x:Key="Err_NoPwdProvided">Please enter at least one password (user or owner).</s:String>
     <s:String x:Key="Err_PwdMismatch">Passwords do not match — please confirm the user password.</s:String>
 
@@ -196,6 +195,9 @@
     <s:String x:Key="Ok_MetaSaved">Metadata saved → {0}</s:String>
     <s:String x:Key="Ok_Split">Split into {0} files → {1}</s:String>
     <s:String x:Key="Err_RemovePwdFailed">Failed: {0} — verify that the password is correct.</s:String>
+    <s:String x:Key="Err_NeedAtLeast2">Please add at least 2 PDF files to merge.</s:String>
+    <s:String x:Key="Err_OperationFailed">Operation failed: {0}</s:String>
+    <s:String x:Key="Btn_Processing">Processing...</s:String>
 
     <!-- Dialog titles -->
     <s:String x:Key="Dlg_SelectPdf">Select PDF file</s:String>

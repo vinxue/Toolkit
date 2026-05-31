@@ -77,8 +77,11 @@
     <s:String x:Key="Rotate_Title">旋轉頁面</s:String>
     <s:String x:Key="Rotate_Subtitle">旋轉所選 PDF 頁面並儲存為新檔案。</s:String>
     <s:String x:Key="Rotate_AllPages">旋轉所有頁面</s:String>
+    <s:String x:Key="Rotate_PageRangeHint">支援單頁及範圍，例如：1, 3, 5-8, 10-12</s:String>
+    <s:String x:Key="Rotate_PageRangeTip">範例：1, 3, 5-8</s:String>
     <s:String x:Key="Rotate_Angle">旋轉角度</s:String>
-    <s:String x:Key="Rotate_CW90">順時針 90°</s:String>
+    <s:String x:Key="Rotate_CW90">順時针 90°</s:String>
+    <s:String x:Key="Rotate_180">180°</s:String>
     <s:String x:Key="Rotate_CCW90">逆時針 90°</s:String>
     <s:String x:Key="Rotate_Btn">旋轉頁面</s:String>
 
@@ -195,6 +198,7 @@
     <s:String x:Key="Ok_MetaSaved">中繼資料已儲存 → {0}</s:String>
     <s:String x:Key="Ok_Split">已分割為 {0} 個檔案 → {1}</s:String>
     <s:String x:Key="Err_RemovePwdFailed">操作失敗：{0} — 請確認密碼是否正確。</s:String>
+    <s:String x:Key="Err_OperationFailed">操作失敗：{0}</s:String>
 
     <!-- Dialog titles -->
     <s:String x:Key="Dlg_SelectPdf">選擇 PDF 檔案</s:String>

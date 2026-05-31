@@ -29,8 +29,8 @@ namespace PdfKit.Services
         {
             var pages = pageNumbers.ToList();
             using (var input = PdfReader.Open(sourcePath, PdfDocumentOpenMode.Import))
+            using (var output = new PdfDocument())
             {
-                var output = new PdfDocument();
                 foreach (int pageNum in pages)
                 {
                     if (pageNum < 1 || pageNum > input.PageCount)
@@ -47,16 +47,18 @@ namespace PdfKit.Services
         /// </summary>
         public void MergePdfs(IEnumerable<string> sourcePaths, string outputPath)
         {
-            var output = new PdfDocument();
-            foreach (string path in sourcePaths)
+            using (var output = new PdfDocument())
             {
-                using (var input = PdfReader.Open(path, PdfDocumentOpenMode.Import))
+                foreach (string path in sourcePaths)
                 {
-                    for (int i = 0; i < input.PageCount; i++)
-                        output.AddPage(input.Pages[i]);
+                    using (var input = PdfReader.Open(path, PdfDocumentOpenMode.Import))
+                    {
+                        for (int i = 0; i < input.PageCount; i++)
+                            output.AddPage(input.Pages[i]);
+                    }
                 }
+                output.Save(outputPath);
             }
-            output.Save(outputPath);
         }
 
         /// <summary>
@@ -66,8 +68,8 @@ namespace PdfKit.Services
         public void RotatePages(string sourcePath, IEnumerable<int> pageNumbers, int degrees, string outputPath)
         {
             using (var input = PdfReader.Open(sourcePath, PdfDocumentOpenMode.Import))
+            using (var output = new PdfDocument())
             {
-                var output = new PdfDocument();
                 var targetPages = pageNumbers != null ? new HashSet<int>(pageNumbers) : null;
 
                 for (int i = 0; i < input.PageCount; i++)
@@ -298,40 +300,40 @@ namespace PdfKit.Services
             bool permitPrint, bool permitCopy, bool permitModify,
             string outputPath)
         {
-            var srcDoc = string.IsNullOrEmpty(sourcePassword)
+            using (var srcDoc = string.IsNullOrEmpty(sourcePassword)
                 ? PdfReader.Open(sourcePath, PdfDocumentOpenMode.Import)
-                : PdfReader.Open(sourcePath, sourcePassword, PdfDocumentOpenMode.Import);
+                : PdfReader.Open(sourcePath, sourcePassword, PdfDocumentOpenMode.Import))
+            using (var newDoc = new PdfDocument())
+            {
+                for (int i = 0; i < srcDoc.PageCount; i++)
+                    newDoc.AddPage(srcDoc.Pages[i]);
 
-            var newDoc = new PdfDocument();
-            for (int i = 0; i < srcDoc.PageCount; i++)
-                newDoc.AddPage(srcDoc.Pages[i]);
+                newDoc.SecuritySettings.DocumentSecurityLevel    = PdfDocumentSecurityLevel.Encrypted128Bit;
+                if (!string.IsNullOrEmpty(userPassword))  newDoc.SecuritySettings.UserPassword  = userPassword;
+                if (!string.IsNullOrEmpty(ownerPassword)) newDoc.SecuritySettings.OwnerPassword = ownerPassword;
+                newDoc.SecuritySettings.PermitPrint            = permitPrint;
+                newDoc.SecuritySettings.PermitFullQualityPrint = permitPrint;
+                newDoc.SecuritySettings.PermitExtractContent   = permitCopy;
+                newDoc.SecuritySettings.PermitModifyDocument   = permitModify;
+                newDoc.SecuritySettings.PermitAnnotations      = permitModify;
 
-            newDoc.SecuritySettings.DocumentSecurityLevel    = PdfDocumentSecurityLevel.Encrypted128Bit;
-            if (!string.IsNullOrEmpty(userPassword))  newDoc.SecuritySettings.UserPassword  = userPassword;
-            if (!string.IsNullOrEmpty(ownerPassword)) newDoc.SecuritySettings.OwnerPassword = ownerPassword;
-            newDoc.SecuritySettings.PermitPrint            = permitPrint;
-            newDoc.SecuritySettings.PermitFullQualityPrint = permitPrint;
-            newDoc.SecuritySettings.PermitExtractContent   = permitCopy;
-            newDoc.SecuritySettings.PermitModifyDocument   = permitModify;
-            newDoc.SecuritySettings.PermitAnnotations      = permitModify;
-
-            newDoc.Save(outputPath);
-            srcDoc.Dispose();
+                newDoc.Save(outputPath);
+            }
         }
 
         public void RemovePassword(string sourcePath, string password, string outputPath)
         {
-            var srcDoc = string.IsNullOrEmpty(password)
+            using (var srcDoc = string.IsNullOrEmpty(password)
                 ? PdfReader.Open(sourcePath, PdfDocumentOpenMode.Import)
-                : PdfReader.Open(sourcePath, password, PdfDocumentOpenMode.Import);
+                : PdfReader.Open(sourcePath, password, PdfDocumentOpenMode.Import))
+            using (var newDoc = new PdfDocument())
+            {
+                for (int i = 0; i < srcDoc.PageCount; i++)
+                    newDoc.AddPage(srcDoc.Pages[i]);
 
-            var newDoc = new PdfDocument();
-            for (int i = 0; i < srcDoc.PageCount; i++)
-                newDoc.AddPage(srcDoc.Pages[i]);
-
-            // Save without security settings -> unencrypted output
-            newDoc.Save(outputPath);
-            srcDoc.Dispose();
+                // Save without security settings -> unencrypted output
+                newDoc.Save(outputPath);
+            }
         }
 
         // ── Split ───────────────────────────────────────────────
@@ -345,13 +347,15 @@ namespace PdfKit.Services
                 int fileIndex = 1;
                 for (int start = 0; start < total; start += pagesPerFile)
                 {
-                    var outDoc = new PdfDocument();
                     int end = Math.Min(start + pagesPerFile, total);
-                    for (int i = start; i < end; i++)
-                        outDoc.AddPage(input.Pages[i]);
                     string fileName = prefix + "_" + fileIndex.ToString("D3") + ".pdf";
                     string filePath = Path.Combine(outputFolder, fileName);
-                    outDoc.Save(filePath);
+                    using (var outDoc = new PdfDocument())
+                    {
+                        for (int i = start; i < end; i++)
+                            outDoc.AddPage(input.Pages[i]);
+                        outDoc.Save(filePath);
+                    }
                     outputPaths.Add(filePath);
                     fileIndex++;
                 }
@@ -370,12 +374,14 @@ namespace PdfKit.Services
                 foreach (var seg in segments)
                 {
                     var pages = ParsePageRange(seg.Trim(), total);
-                    var outDoc = new PdfDocument();
-                    foreach (int p in pages)
-                        outDoc.AddPage(input.Pages[p - 1]);
                     string fileName = prefix + "_part" + fileIndex + ".pdf";
                     string filePath = Path.Combine(outputFolder, fileName);
-                    outDoc.Save(filePath);
+                    using (var outDoc = new PdfDocument())
+                    {
+                        foreach (int p in pages)
+                            outDoc.AddPage(input.Pages[p - 1]);
+                        outDoc.Save(filePath);
+                    }
                     outputPaths.Add(filePath);
                     fileIndex++;
                 }

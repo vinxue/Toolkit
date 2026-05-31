@@ -11,7 +11,7 @@ namespace WorldClock.ViewModels
     /// </summary>
     public class AddTimezoneDialogViewModel : INotifyPropertyChanged
     {
-        private string _searchText;
+        private string _searchText = string.Empty;
         private TimeZoneInfo _selectedTimezone;
 
         public string SearchText

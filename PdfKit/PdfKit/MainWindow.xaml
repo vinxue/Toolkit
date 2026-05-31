@@ -889,8 +889,8 @@
                                       Unchecked="RotateAllPages_Unchecked"/>
                             <TextBox x:Name="RotatePages" Style="{StaticResource InputBox}"
                                      IsEnabled="False"
-                                     ToolTip="{DynamicResource Wm_PageRangeTip}"/>
-                            <TextBlock Text="{DynamicResource Extract_PageRangeHint}"
+                                     ToolTip="{DynamicResource Rotate_PageRangeTip}"/>
+                            <TextBlock Text="{DynamicResource Rotate_PageRangeHint}"
                                        Style="{StaticResource HintText}"/>
 
                             <Separator Margin="0,18,0,18" Background="{StaticResource SeparatorColor}"/>
@@ -902,7 +902,7 @@
                                              GroupName="Angle" IsChecked="True"
                                              FontSize="13" Foreground="{StaticResource TextPrimary}"
                                              Margin="0,0,24,0" VerticalContentAlignment="Center"/>
-                                <RadioButton x:Name="Rotate180" Content="180°"
+                                <RadioButton x:Name="Rotate180" Content="{DynamicResource Rotate_180}"
                                              GroupName="Angle"
                                              FontSize="13" Foreground="{StaticResource TextPrimary}"
                                              Margin="0,0,24,0" VerticalContentAlignment="Center"/>

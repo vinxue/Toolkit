@@ -31,8 +31,6 @@ namespace WorldClock
             _headerTimer.Start();
             UpdateHeaderTime();
 
-            Loaded += MainWindow_Loaded;
-
             InputBindings.Add(new KeyBinding(
                 new RelayCommand(_ => AddTimezone_Click(null, null)),
                 new KeyGesture(Key.N, ModifierKeys.Control)));
@@ -63,6 +61,10 @@ namespace WorldClock
             var src = HwndSource.FromHwnd(hwnd);
             if (src?.CompositionTarget != null)
                 src.CompositionTarget.BackgroundColor = Colors.Transparent;
+
+            // Dynamically reserve the caption button zone (3 buttons, DPI-aware).
+            // SystemParameters values are already in WPF device-independent pixels.
+            HeaderContent.Margin = new Thickness(0, 14, SystemParameters.WindowCaptionButtonWidth * 3, 14);
         }
         #endregion
 

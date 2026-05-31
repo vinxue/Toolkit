@@ -182,7 +182,6 @@
     <s:String x:Key="Err_WmTextEmpty">浮水印文字不能為空。</s:String>
     <s:String x:Key="Err_NoPagesPerFile">每個檔案的頁數必須是大於等於 1 的整數。</s:String>
     <s:String x:Key="Err_NoRanges">請輸入頁面範圍。</s:String>
-    <s:String x:Key="Err_UserPwdRequired">加密時必須設定使用者密碼。</s:String>
     <s:String x:Key="Err_NoPwdProvided">請至少提供一項密碼（使用者密碼或擁有者密碼）。</s:String>
     <s:String x:Key="Err_PwdMismatch">兩次輸入的密碼不一致，請重新確認。</s:String>
 
@@ -196,6 +195,9 @@
     <s:String x:Key="Ok_MetaSaved">中繼資料已儲存 → {0}</s:String>
     <s:String x:Key="Ok_Split">已分割為 {0} 個檔案 → {1}</s:String>
     <s:String x:Key="Err_RemovePwdFailed">操作失敗：{0} — 請確認密碼是否正確。</s:String>
+    <s:String x:Key="Err_NeedAtLeast2">請至少新增 2 個 PDF 檔案以進行合併。</s:String>
+    <s:String x:Key="Err_OperationFailed">操作失敗：{0}</s:String>
+    <s:String x:Key="Btn_Processing">處理中...</s:String>
 
     <!-- Dialog titles -->
     <s:String x:Key="Dlg_SelectPdf">選擇 PDF 檔案</s:String>

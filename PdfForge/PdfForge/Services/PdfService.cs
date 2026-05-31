@@ -413,7 +413,7 @@ namespace PdfForge.Services
                     userPwdBytes ?? Array.Empty<byte>(),
                     ownerPwdBytes ?? Array.Empty<byte>(),
                     permissions,
-                    EncryptionConstants.ENCRYPTION_AES_128);
+                    EncryptionConstants.ENCRYPTION_AES_256);
 
             using var writer = new PdfWriter(outputPath, writerProps);
             using var srcDoc = new PdfDocument(reader);

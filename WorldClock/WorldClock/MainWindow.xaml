@@ -64,7 +64,7 @@
             <!-- Subtle full-width tint — ~24% opaque so system buttons stay clear -->
             <Rectangle Fill="#3CF3F3F3" Margin="-20,0,0,0"/>
 
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+            <StackPanel x:Name="HeaderContent" Orientation="Horizontal" VerticalAlignment="Center"
                         Margin="0,14,158,14">
                 <!-- App icon (globe) -->
                 <TextBlock Text="&#xE909;" FontFamily="Segoe MDL2 Assets"

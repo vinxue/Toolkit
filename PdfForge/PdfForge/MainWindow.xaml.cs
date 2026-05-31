@@ -128,7 +128,7 @@ namespace PdfForge
                 await Task.Run(() => _pdf.ExtractPages(src, pages, dst));
                 ExtractStatus.ShowSuccess(string.Format(App.S("Ok_Extracted"), pages.Count, Path.GetFileName(dst)));
             }
-            catch (Exception ex) { ExtractStatus.ShowError($"Extraction failed: {ex.Message}"); }
+            catch (Exception ex) { ExtractStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             finally { SetBusy(ExtractBtn, false); }
         }
 
@@ -219,7 +219,7 @@ namespace PdfForge
                 await Task.Run(() => _pdf.MergePdfs(paths, dst));
                 MergeStatus.ShowSuccess(string.Format(App.S("Ok_Merged"), paths.Count, totalPages, Path.GetFileName(dst)));
             }
-            catch (Exception ex) { MergeStatus.ShowError($"Merge failed: {ex.Message}"); }
+            catch (Exception ex) { MergeStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             finally { SetBusy(MergeBtn, false); }
         }
 
@@ -289,7 +289,7 @@ namespace PdfForge
                 await Task.Run(() => _pdf.RotatePages(src, pages, degrees, dst));
                 RotateStatus.ShowSuccess(string.Format(App.S("Ok_Rotated"), pageCount, degrees, Path.GetFileName(dst)));
             }
-            catch (Exception ex) { RotateStatus.ShowError($"Rotation failed: {ex.Message}"); }
+            catch (Exception ex) { RotateStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             finally { SetBusy(RotateBtn, false); }
         }
 
@@ -312,7 +312,7 @@ namespace PdfForge
                 OrganizePageInfo.Text = string.Format(App.S("Rt_PagesLoaded"), details.Count);
                 RefreshOrganizeIndices();
             }
-            catch (Exception ex) { OrganizeStatus.ShowError("Failed to load PDF: " + ex.Message); OrganizePageInfo.Text = ""; }
+            catch (Exception ex) { OrganizeStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); OrganizePageInfo.Text = ""; }
             if (string.IsNullOrWhiteSpace(OrganizeOutputPath.Text))
             {
                 string name = Path.GetFileNameWithoutExtension(path) + "_organized.pdf";
@@ -394,7 +394,7 @@ namespace PdfForge
 
             List<PageDetail> details;
             try { details = _pdf.GetPageDetails(srcPath); }
-            catch (Exception ex) { OrganizeStatus.ShowError("Failed to read source PDF: " + ex.Message); return; }
+            catch (Exception ex) { OrganizeStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); return; }
 
             int idx = insertAfter;
             foreach (int pageNum in pages)
@@ -429,7 +429,7 @@ namespace PdfForge
                 await Task.Run(() => _pdf.BuildDocument(sourcePages, dst));
                 OrganizeStatus.ShowSuccess(string.Format(App.S("Ok_Saved"), count, Path.GetFileName(dst)));
             }
-            catch (Exception ex) { OrganizeStatus.ShowError("Failed: " + ex.Message); }
+            catch (Exception ex) { OrganizeStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             finally { SetBusy(OrganizeBtn, false); }
         }
 
@@ -494,7 +494,7 @@ namespace PdfForge
                 await Task.Run(() => _pdf.AddTextWatermark(src, opts, dst));
                 WatermarkStatus.ShowSuccess(string.Format(App.S("Ok_WatermarkApplied"), pageCount, Path.GetFileName(dst)));
             }
-            catch (Exception ex) { WatermarkStatus.ShowError("Failed: " + ex.Message); }
+            catch (Exception ex) { WatermarkStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             finally { SetBusy(WmBtn, false); }
         }
 
@@ -611,7 +611,7 @@ namespace PdfForge
                 await Task.Run(() => _pdf.EncryptPdf(src, srcPwd, userPwd, ownerPwd, permitPrint, permitCopy, permitModify, dst));
                 SecurityStatus.ShowSuccess(string.Format(App.S("Ok_Encrypted"), Path.GetFileName(dst)));
             }
-            catch (Exception ex) { SecurityStatus.ShowError("Encryption failed: " + ex.Message); }
+            catch (Exception ex) { SecurityStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             finally { SetBusy(EncBtn, false); }
         }
 
@@ -714,7 +714,7 @@ namespace PdfForge
                 }
                 SplitStatus.ShowSuccess(string.Format(App.S("Ok_Split"), outputFiles.Count, folder));
             }
-            catch (Exception ex) { SplitStatus.ShowError("Failed: " + ex.Message); }
+            catch (Exception ex) { SplitStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             finally { SetBusy(SplitBtn, false); }
         }
 
@@ -750,7 +750,7 @@ namespace PdfForge
                 MetaCreationDate.Text = meta.CreationDate;
                 MetadataStatus.Visibility = Visibility.Collapsed;
             }
-            catch (Exception ex) { MetadataStatus.ShowError("Failed to load: " + ex.Message); }
+            catch (Exception ex) { MetadataStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
         }
 
         private void MetaBrowseOutput_Click(object sender, RoutedEventArgs e)
@@ -781,7 +781,7 @@ namespace PdfForge
                 await Task.Run(() => _pdf.SetPdfMetadata(src, meta, dst));
                 MetadataStatus.ShowSuccess(string.Format(App.S("Ok_MetaSaved"), Path.GetFileName(dst)));
             }
-            catch (Exception ex) { MetadataStatus.ShowError("Failed: " + ex.Message); }
+            catch (Exception ex) { MetadataStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             finally { SetBusy(MetaBtn, false); }
         }
 
@@ -894,7 +894,7 @@ namespace PdfForge
                 OrganizePageInfo.Text = string.Format(App.S("Rt_PagesLoaded"), details.Count);
                 RefreshOrganizeIndices();
             }
-            catch (Exception ex) { OrganizeStatus.ShowError("Failed to load PDF: " + ex.Message); }
+            catch (Exception ex) { OrganizeStatus.ShowError(string.Format(App.S("Err_OperationFailed"), ex.Message)); }
             if (string.IsNullOrWhiteSpace(OrganizeOutputPath.Text))
                 OrganizeOutputPath.Text = Path.Combine(Path.GetDirectoryName(path)!, Path.GetFileNameWithoutExtension(path) + "_organized.pdf");
         }

@@ -317,6 +317,15 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="bd" Property="Background" Value="#E5E8E8"/>
                             </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked"   Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="bd" Property="Background"  Value="#106EBE"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#106EBE"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </MultiTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -766,13 +775,13 @@
                             <Separator Margin="0,18" Background="{StaticResource SeparatorColor}"/>
                             <TextBlock Text="{DynamicResource Lbl_PageRange}" Style="{StaticResource FieldLabel}"/>
                             <CheckBox x:Name="RotateAllPagesChk" Content="{DynamicResource Rotate_AllPages}" IsChecked="True" Margin="0,0,0,8" FontSize="13" Checked="RotateAllPages_Checked" Unchecked="RotateAllPages_Unchecked"/>
-                            <TextBox x:Name="RotatePages" Style="{StaticResource InputBox}" IsEnabled="False"/>
-                            <TextBlock Text="{DynamicResource Extract_PageRangeHint}" Style="{StaticResource HintText}"/>
+                            <TextBox x:Name="RotatePages" Style="{StaticResource InputBox}" IsEnabled="False" ToolTip="{DynamicResource Rotate_PageRangeTip}"/>
+                            <TextBlock Text="{DynamicResource Rotate_PageRangeHint}" Style="{StaticResource HintText}"/>
                             <Separator Margin="0,18" Background="{StaticResource SeparatorColor}"/>
                             <TextBlock Text="{DynamicResource Rotate_Angle}" Style="{StaticResource FieldLabel}"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <RadioButton x:Name="Rotate90" Content="{DynamicResource Rotate_CW90}" GroupName="Angle" IsChecked="True" FontSize="13" Margin="0,0,24,0"/>
-                                <RadioButton x:Name="Rotate180" Content="180°" GroupName="Angle" FontSize="13" Margin="0,0,24,0"/>
+                                <RadioButton x:Name="Rotate180" Content="{DynamicResource Rotate_180}" GroupName="Angle" FontSize="13" Margin="0,0,24,0"/>
                                 <RadioButton x:Name="Rotate270" Content="{DynamicResource Rotate_CCW90}" GroupName="Angle" FontSize="13"/>
                             </StackPanel>
                             <Separator Margin="0,18" Background="{StaticResource SeparatorColor}"/>

@@ -30,11 +30,9 @@ namespace WorldClock.ViewModels
         }
     }
 
-    public class MainViewModel : INotifyPropertyChanged
+    public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly DispatcherTimer _timer;
-        private string _searchText;
-        private ClockItemModel _selectedClock;
 
         // Time Converter state
         private bool _isConverterMode;
@@ -77,35 +75,7 @@ namespace WorldClock.ViewModels
             _timer.Start();
         }
 
-        public ClockItemModel SelectedClock
-        {
-            get => _selectedClock;
-            set { _selectedClock = value; OnPropertyChanged(); }
-        }
-
-        public string SearchText
-        {
-            get => _searchText;
-            set { _searchText = value; OnPropertyChanged(); OnPropertyChanged(nameof(FilteredTimeZones)); }
-        }
-
-        /// <summary>
-        /// All system timezones, filtered by SearchText.
-        /// </summary>
-        public System.Collections.Generic.IEnumerable<TimeZoneInfo> FilteredTimeZones
-        {
-            get
-            {
-                var all = TimeZoneInfo.GetSystemTimeZones();
-                if (string.IsNullOrWhiteSpace(_searchText))
-                    return all;
-                var lower = _searchText.Trim().ToLowerInvariant();
-                return all.Where(tz =>
-                    tz.DisplayName.ToLowerInvariant().Contains(lower) ||
-                    tz.StandardName.ToLowerInvariant().Contains(lower) ||
-                    tz.Id.ToLowerInvariant().Contains(lower));
-            }
-        }
+        public ClockItemModel SelectedClock { get; set; }
 
         /// <summary>
         /// Adds a timezone clock by TimeZoneInfo.Id if not already present.
