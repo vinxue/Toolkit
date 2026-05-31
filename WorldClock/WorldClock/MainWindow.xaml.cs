@@ -68,11 +68,40 @@ namespace WorldClock
         }
         #endregion
 
+        // Cached cultures — reused every second by UpdateHeaderTime
+        private static readonly System.Globalization.CultureInfo _enUS =
+            System.Globalization.CultureInfo.GetCultureInfo("en-US");
+        private static readonly System.Globalization.Calendar _gregCal =
+            System.Globalization.CultureInfo.InvariantCulture.Calendar;
+
         private void UpdateHeaderTime()
         {
             var now = DateTime.Now;
-            LocalTimeHeader.Text = $"Local time: {now:HH:mm:ss} \u2013 {now:dddd, MMMM d, yyyy}";
+            LocalTimeHeader.Text =
+                $"Local time: {now:HH:mm:ss} \u2013 {now:dddd, MMMM d, yyyy}" +
+                $"  \u00b7  Week {GetISOWeekNumber(now)} (ISO) / Week {GetUSWeekNumber(now)} (US)";
         }
+
+        // ISO 8601 week: week 1 = the week containing the first Thursday of the year;
+        // weeks start on Monday. Uses a +3-day shift to work around a known bug in
+        // .NET Framework 4.x Calendar.GetWeekOfYear (fixed in .NET 5 via ISOWeek class).
+        private static int GetISOWeekNumber(DateTime date)
+        {
+            DayOfWeek day = _gregCal.GetDayOfWeek(date);
+            if (day >= DayOfWeek.Monday && day <= DayOfWeek.Wednesday)
+                date = date.AddDays(3);
+            return _gregCal.GetWeekOfYear(
+                date,
+                System.Globalization.CalendarWeekRule.FirstFourDayWeek,
+                DayOfWeek.Monday);
+        }
+
+        // US week: week 1 = the week containing January 1; weeks start on Sunday.
+        private static int GetUSWeekNumber(DateTime date) =>
+            _enUS.Calendar.GetWeekOfYear(
+                date,
+                _enUS.DateTimeFormat.CalendarWeekRule,
+                _enUS.DateTimeFormat.FirstDayOfWeek);
 
         private void UpdateClockCount()
         {
