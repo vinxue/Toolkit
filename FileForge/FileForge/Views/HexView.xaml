@@ -2,6 +2,41 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              AllowDrop="True" Drop="View_Drop" DragOver="View_DragOver">
+
+    <UserControl.Resources>
+        <!-- Win11-style flyout menu item -->
+        <Style x:Key="FlyoutItemStyle" TargetType="Button">
+            <Setter Property="Background"                     Value="Transparent"/>
+            <Setter Property="Foreground"                     Value="#1A1A1A"/>
+            <Setter Property="BorderThickness"               Value="0"/>
+            <Setter Property="Padding"                       Value="12,9,18,9"/>
+            <Setter Property="HorizontalContentAlignment"    Value="Left"/>
+            <Setter Property="FontFamily"                    Value="Segoe UI Variable,Segoe UI"/>
+            <Setter Property="FontSize"                      Value="13"/>
+            <Setter Property="Cursor"                        Value="Hand"/>
+            <Setter Property="FocusVisualStyle"              Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                CornerRadius="5" Margin="2,1" SnapsToDevicePixels="True">
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#E8F2FB"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#CCE4F7"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
     <DockPanel>
 
         <!-- Header -->
@@ -44,10 +79,57 @@
                         Style="{StaticResource SecondaryButtonStyle}"
                         Padding="16,0" Margin="6,0,0,0" Click="BtnJump_Click"/>
                 <Rectangle Grid.Column="6" Width="1" Fill="#E0E0E0" Margin="12,4"/>
-                <Button Grid.Column="7" Content="Export as C Header…"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        Padding="14,0" Click="BtnExportHeader_Click"
-                        ToolTip="Export the loaded file (or current selection) as a C/C++ header array"/>
+                <!-- Export button + Win11-style flyout popup -->
+                <Grid Grid.Column="7">
+                    <Button x:Name="btnExport" Content="Export…"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Padding="14,0" Click="BtnExport_Click"
+                            ToolTip="Export the file or selection — choose format from the menu"/>
+                    <Popup x:Name="exportPopup"
+                           PlacementTarget="{Binding ElementName=btnExport}"
+                           Placement="Bottom" AllowsTransparency="True"
+                           StaysOpen="False" VerticalOffset="4">
+                        <!-- Margin gives the drop shadow room to render -->
+                        <Border Background="White" CornerRadius="10"
+                                BorderBrush="#E0E4E8" BorderThickness="1"
+                                Margin="8,0,8,8" Padding="4,5">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#000" Opacity="0.14"
+                                                 BlurRadius="22" ShadowDepth="4"
+                                                 Direction="270"/>
+                            </Border.Effect>
+                            <StackPanel MinWidth="215">
+                                <Button Style="{StaticResource FlyoutItemStyle}"
+                                        Click="BtnExportHeader_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets"
+                                                   FontSize="13" Width="24"
+                                                   VerticalAlignment="Center" Opacity="0.65"/>
+                                        <TextBlock Text="Export as C Header…" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource FlyoutItemStyle}"
+                                        Click="BtnExportHexText_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets"
+                                                   FontSize="13" Width="24"
+                                                   VerticalAlignment="Center" Opacity="0.65"/>
+                                        <TextBlock Text="Export as Hex Text…" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource FlyoutItemStyle}"
+                                        Click="BtnExportHexDump_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets"
+                                                   FontSize="13" Width="24"
+                                                   VerticalAlignment="Center" Opacity="0.65"/>
+                                        <TextBlock Text="Export as Hex Dump…" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+                </Grid>
             </Grid>
         </Border>
 

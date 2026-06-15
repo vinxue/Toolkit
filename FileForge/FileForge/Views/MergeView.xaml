@@ -19,8 +19,8 @@
         <!-- ── Content ─────────────────────────────────────────────────────── -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="290"/>
+                <ColumnDefinition Width="*" MinWidth="200"/>
+                <ColumnDefinition Width="320"/>
             </Grid.ColumnDefinitions>
 
             <!-- Left: composition sequence ─────────────────────────────────── -->
@@ -114,7 +114,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="txtFilePath" Grid.Column="0" Margin="0,0,6,0"
                                          TextChanged="TxtFilePath_Changed"/>
-                                <Button Grid.Column="1" Content="Browse…" Width="78"
+                                <Button Grid.Column="1" Content="Browse…" Width="90"
                                         Style="{StaticResource SecondaryButtonStyle}"
                                         Click="BtnBrowseFileProp_Click"/>
                             </Grid>
