@@ -14,6 +14,7 @@ solution_paths = [
     ("ImgConverter", "Win32"),
     (r"Internal\IkgfDecode", "Any CPU"),
     ("KbSim", "Win32"),
+    ("Nexus", "dotnet"),
     ("PCIe", "Win32"),
     ("PdfForge", "dotnet"),
     ("PdfKit", "Any CPU"),
