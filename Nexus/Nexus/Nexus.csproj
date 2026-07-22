@@ -24,4 +24,8 @@
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4078.44" />
   </ItemGroup>
 
+  <Target Name="PostBuildCleanup" AfterTargets="Build">
+    <Delete Files="$(OutputPath)Microsoft.Web.WebView2.WinForms.dll" />
+  </Target>
+
 </Project>

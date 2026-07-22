@@ -20,9 +20,13 @@ namespace Nexus
     {
         private const double CollapsedWidth = 60;
         private const double ExpandedWidth = 220;
+        private const int WmDpiChanged = 0x02E0;
 
         private readonly ObservableCollection<SiteConfig> _sites = new();
         private readonly Dictionary<SiteConfig, WebView2> _webViews = new();
+
+        private IntPtr _hwnd;
+        private HwndSource? _source;
 
         private bool _isSidebarExpanded;
         private Point _dragStartPoint;
@@ -60,12 +64,11 @@ namespace Nexus
             public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
         }
 
-        // Without WindowChrome, DwmExtendFrameIntoClientArea must be called directly -
-        // it's what tells DWM these client pixels participate in the frame/backdrop
-        // compositing. Skipping it (as we did right after dropping WindowChrome) left
-        // the transparent pixels resolving to a darker generic fallback instead of the
-        // intended light material - same pattern WorldClock's AddTimezoneDialog uses
-        // on its own plain (non-WindowChrome) window.
+        // Without WindowChrome, DwmExtendFrameIntoClientArea must be called directly:
+        // it tells DWM which client pixels participate in frame/backdrop compositing.
+        // Keep this restricted to the acrylic sidebar. WebView2 is a native child HWND;
+        // if the frame is extended across the whole client area, a maximized window can
+        // draw the title bar over the top of the web content.
         private static class NonClientRegionApi
         {
             [StructLayout(LayoutKind.Sequential)]
@@ -80,39 +83,63 @@ namespace Nexus
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            var hwnd = new WindowInteropHelper(this).Handle;
+            _hwnd = new WindowInteropHelper(this).Handle;
 
             // Request the Acrylic system backdrop (Win11 22H2+; silently ignored on
             // older OS, which just keeps today's normal opaque window look). This
             // applies to the whole window (title bar + client area) regardless of
             // whether WindowChrome/a custom frame is used.
             int backdropType = DwmApi.DWMSBT_TRANSIENTWINDOW;
-            DwmApi.DwmSetWindowAttribute(hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE,
+            DwmApi.DwmSetWindowAttribute(_hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE,
                 ref backdropType, Marshal.SizeOf<int>());
 
-            // DWM controls Acrylic opacity internally, and it applies the backdrop to
-            // the native title bar too. Setting a caption color gives the title bar a
-            // more opaque tint while keeping native min/max/close buttons.
+            // DWMWA_SYSTEMBACKDROP_TYPE is window-scoped, so the native title bar also
+            // gets Acrylic. Override the caption with an opaque Windows 11 light color
+            // so the title bar stays visually normal while the client sidebar remains
+            // backed by Acrylic.
             int titleBarColor = ToColorRef(Color.FromRgb(0xEF, 0xF4, 0xF9));
-            DwmApi.DwmSetWindowAttribute(hwnd, DwmApi.DWMWA_CAPTION_COLOR,
+            DwmApi.DwmSetWindowAttribute(_hwnd, DwmApi.DWMWA_CAPTION_COLOR,
                 ref titleBarColor, Marshal.SizeOf<int>());
 
-            var margins = new NonClientRegionApi.Margins
-            {
-                cxLeftWidth = -1,
-                cxRightWidth = -1,
-                cyTopHeight = -1,
-                cyBottomHeight = -1
-            };
-            NonClientRegionApi.DwmExtendFrameIntoClientArea(hwnd, ref margins);
+            UpdateExtendedFrame();
 
             // Make WPF's composition surface transparent so the DWM backdrop can show
             // through wherever our own content (the sidebar) is semi-transparent.
-            var source = HwndSource.FromHwnd(hwnd);
-            if (source?.CompositionTarget != null)
+            _source = HwndSource.FromHwnd(_hwnd);
+            if (_source?.CompositionTarget != null)
             {
-                source.CompositionTarget.BackgroundColor = Colors.Transparent;
+                _source.CompositionTarget.BackgroundColor = Colors.Transparent;
+                _source.AddHook(WndProc);
             }
+        }
+
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == WmDpiChanged)
+            {
+                Dispatcher.BeginInvoke(UpdateExtendedFrame, System.Windows.Threading.DispatcherPriority.Loaded);
+            }
+
+            return IntPtr.Zero;
+        }
+
+        private void UpdateExtendedFrame()
+        {
+            if (_hwnd == IntPtr.Zero)
+            {
+                return;
+            }
+
+            double dpiScaleX = PresentationSource.FromVisual(this)?.CompositionTarget?.TransformToDevice.M11 ?? 1.0;
+            double sidebarWidth = SidebarPanel.Width;
+            var margins = new NonClientRegionApi.Margins
+            {
+                cxLeftWidth = (int)Math.Ceiling(sidebarWidth * dpiScaleX),
+                cxRightWidth = 0,
+                cyTopHeight = 0,
+                cyBottomHeight = 0
+            };
+            NonClientRegionApi.DwmExtendFrameIntoClientArea(_hwnd, ref margins);
         }
 
         private static int ToColorRef(Color color) =>
@@ -130,6 +157,7 @@ namespace Nexus
                 if (_isSidebarExpanded == value) return;
                 _isSidebarExpanded = value;
                 SidebarPanel.Width = value ? ExpandedWidth : CollapsedWidth;
+                UpdateExtendedFrame();
                 OnPropertyChanged(nameof(IsSidebarExpanded));
             }
         }
@@ -471,6 +499,9 @@ namespace Nexus
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
+
+            _source?.RemoveHook(WndProc);
+            _source = null;
 
             foreach (var webView in _webViews.Values)
             {
