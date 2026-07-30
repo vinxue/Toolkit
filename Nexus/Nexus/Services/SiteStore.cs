@@ -12,6 +12,8 @@ namespace Nexus.Services
     /// </summary>
     public static class SiteStore
     {
+        private const int ProfileIdSuffixLength = 7;
+
         private static readonly string AppFolder = ResolveAppFolder();
 
         private static readonly string ConfigPath = Path.Combine(AppFolder, "sites.json");
@@ -72,16 +74,22 @@ namespace Nexus.Services
                     var sites = JsonSerializer.Deserialize<List<SiteConfig>>(json, JsonOptions);
                     if (sites is { Count: > 0 })
                     {
+                        if (EnsureProfileFolderNames(sites))
+                        {
+                            Save(sites);
+                        }
+
                         return sites;
                     }
                 }
             }
             catch
             {
-                // Fall through to defaults on any read/parse error.
+                BackupCorruptConfig();
             }
 
             var defaults = CreateDefaults();
+            EnsureProfileFolderNames(defaults);
             Save(defaults);
             return defaults;
         }
@@ -101,13 +109,28 @@ namespace Nexus.Services
         /// </summary>
         public static string GetProfileFolder(SiteConfig site)
         {
-            string safeName = Sanitize(site.Name);
-            if (string.IsNullOrEmpty(safeName))
+            EnsureProfileFolderName(site);
+            return Path.Combine(ProfilesRoot, site.ProfileFolderName);
+        }
+
+        public static bool EnsureProfileFolderName(SiteConfig site)
+        {
+            if (!string.IsNullOrWhiteSpace(site.ProfileFolderName))
             {
-                safeName = "site";
+                return false;
             }
 
-            return Path.Combine(ProfilesRoot, safeName);
+            string safeId = Sanitize(site.Id);
+            if (string.IsNullOrEmpty(safeId))
+            {
+                safeId = Guid.NewGuid().ToString("N");
+                site.Id = safeId;
+            }
+
+            string prefix = GetProfileFolderPrefix(site);
+            string shortId = safeId[..Math.Min(ProfileIdSuffixLength, safeId.Length)];
+            site.ProfileFolderName = string.IsNullOrEmpty(prefix) ? shortId : $"{prefix}-{shortId}";
+            return true;
         }
 
         /// <summary>
@@ -139,6 +162,47 @@ namespace Nexus.Services
             }
 
             return builder.ToString();
+        }
+
+        private static bool EnsureProfileFolderNames(IEnumerable<SiteConfig> sites)
+        {
+            bool changed = false;
+            foreach (var site in sites)
+            {
+                changed |= EnsureProfileFolderName(site);
+            }
+
+            return changed;
+        }
+
+        private static string GetProfileFolderPrefix(SiteConfig site)
+        {
+            if (Uri.TryCreate(site.Url, UriKind.Absolute, out var uri))
+            {
+                return Sanitize(uri.Host.Replace('.', '-').ToLowerInvariant());
+            }
+
+            return Sanitize(site.Name).ToLowerInvariant();
+        }
+
+        private static void BackupCorruptConfig()
+        {
+            try
+            {
+                if (!File.Exists(ConfigPath))
+                {
+                    return;
+                }
+
+                string backupPath = Path.Combine(
+                    AppFolder,
+                    $"sites.corrupt.{DateTime.Now:yyyyMMddHHmmss}.json");
+                File.Move(ConfigPath, backupPath);
+            }
+            catch
+            {
+                // Best-effort only: if backup fails, defaults still let the app start.
+            }
         }
 
         private static List<SiteConfig> CreateDefaults() => new()

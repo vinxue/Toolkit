@@ -20,10 +20,13 @@ namespace Nexus
     {
         private const double CollapsedWidth = 60;
         private const double ExpandedWidth = 220;
+        private const double PopupWidth = 1180;
+        private const double PopupHeight = 720;
         private const int WmDpiChanged = 0x02E0;
 
         private readonly ObservableCollection<SiteConfig> _sites = new();
         private readonly Dictionary<SiteConfig, WebView2> _webViews = new();
+        private readonly HashSet<Window> _popupWindows = new();
 
         private IntPtr _hwnd;
         private HwndSource? _source;
@@ -265,9 +268,10 @@ namespace Nexus
 
         private void AddSiteButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new AddSiteWindow { Owner = this };
+            var dialog = new AddSiteWindow(_sites) { Owner = this };
             if (dialog.ShowDialog() == true && dialog.Result is not null)
             {
+                SiteStore.EnsureProfileFolderName(dialog.Result);
                 _sites.Add(dialog.Result);
                 SiteStore.Save(_sites);
                 SiteList.SelectedItem = dialog.Result;
@@ -401,10 +405,10 @@ namespace Nexus
 
             await webView.EnsureCoreWebView2Async(environment);
 
-            // Many corporate SSO flows open a separate popup window to sign in.
-            // Without handling this, the popup is dropped and the main page stays blank.
+            // Some pages open required work in a separate browser window: SSO/login
+            // flows are the common case, but target="_blank" links can use this too.
             webView.CoreWebView2.NewWindowRequested += (s, args) =>
-                OnNewWindowRequested(s, args, environment);
+                OpenWebViewPopupWindow(args, environment);
 
             webView.CoreWebView2.NavigationCompleted += (s, args) =>
             {
@@ -418,11 +422,10 @@ namespace Nexus
         }
 
         /// <summary>
-        /// Opens SSO/login popup windows requested by a hosted site in a separate WPF
-        /// window sharing the same profile, so the sign-in flow can complete normally.
+        /// Opens popup windows requested by a hosted page in a separate WebView2
+        /// window sharing the same profile, so sign-in flows and new-window links work.
         /// </summary>
-        private void OnNewWindowRequested(
-            object? sender,
+        private void OpenWebViewPopupWindow(
             CoreWebView2NewWindowRequestedEventArgs args,
             CoreWebView2Environment environment)
         {
@@ -430,25 +433,30 @@ namespace Nexus
 
             var popupWindow = new Window
             {
-                Title = "Sign in",
-                Width = 480,
-                Height = 640,
+                Title = "Nexus",
+                Width = PopupWidth,
+                Height = PopupHeight,
                 Owner = this,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };
             var popupWebView = new WebView2();
             popupWindow.Content = popupWebView;
 
-            popupWindow.Closed += (_, _) => popupWebView.Dispose();
+            _popupWindows.Add(popupWindow);
+            popupWindow.Closed += (_, _) =>
+            {
+                _popupWindows.Remove(popupWindow);
+                popupWebView.Dispose();
+            };
 
             // Show the window first so the WebView2 control has a parent HWND before
             // EnsureCoreWebView2Async is awaited - otherwise initialization hangs.
             popupWindow.Show();
 
-            _ = InitializePopupAsync(popupWebView, popupWindow, args, environment, deferral);
+            _ = InitializePopupWebViewAsync(popupWebView, popupWindow, args, environment, deferral);
         }
 
-        private static async Task InitializePopupAsync(
+        private static async Task InitializePopupWebViewAsync(
             WebView2 popupWebView,
             Window popupWindow,
             CoreWebView2NewWindowRequestedEventArgs args,
@@ -502,6 +510,13 @@ namespace Nexus
 
             _source?.RemoveHook(WndProc);
             _source = null;
+
+            foreach (var popupWindow in _popupWindows.ToList())
+            {
+                popupWindow.Close();
+            }
+
+            _popupWindows.Clear();
 
             foreach (var webView in _webViews.Values)
             {

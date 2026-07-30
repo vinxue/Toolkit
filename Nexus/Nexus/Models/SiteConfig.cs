@@ -7,8 +7,21 @@ namespace Nexus.Models
     /// </summary>
     public class SiteConfig : INotifyPropertyChanged
     {
+        private string _id = Guid.NewGuid().ToString("N");
         private string _name = string.Empty;
+        private string _profileFolderName = string.Empty;
         private string _url = string.Empty;
+
+        public string Id
+        {
+            get => _id;
+            set
+            {
+                if (_id == value) return;
+                _id = string.IsNullOrWhiteSpace(value) ? Guid.NewGuid().ToString("N") : value;
+                OnPropertyChanged(nameof(Id));
+            }
+        }
 
         public string Name
         {
@@ -19,6 +32,17 @@ namespace Nexus.Models
                 _name = value;
                 OnPropertyChanged(nameof(Name));
                 OnPropertyChanged(nameof(Initial));
+            }
+        }
+
+        public string ProfileFolderName
+        {
+            get => _profileFolderName;
+            set
+            {
+                if (_profileFolderName == value) return;
+                _profileFolderName = value;
+                OnPropertyChanged(nameof(ProfileFolderName));
             }
         }
 
