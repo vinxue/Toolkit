@@ -23,6 +23,8 @@ namespace Nexus.Services
         /// </summary>
         public static string ProfilesRoot => Path.Combine(AppFolder, "profiles");
 
+        public static string TemporaryProfileFolder => Path.Combine(ProfilesRoot, "_temporary");
+
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
             WriteIndented = true

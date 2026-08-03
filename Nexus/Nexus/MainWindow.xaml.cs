@@ -22,11 +22,15 @@ namespace Nexus
         private const double ExpandedWidth = 220;
         private const double PopupWidth = 1180;
         private const double PopupHeight = 720;
+        private const string TemporaryAddressPlaceholder = "Enter web address";
         private const int WmDpiChanged = 0x02E0;
 
         private readonly ObservableCollection<SiteConfig> _sites = new();
         private readonly Dictionary<SiteConfig, WebView2> _webViews = new();
         private readonly HashSet<Window> _popupWindows = new();
+
+        private WebView2? _temporaryWebView;
+        private CoreWebView2Environment? _temporaryEnvironment;
 
         private IntPtr _hwnd;
         private HwndSource? _source;
@@ -168,6 +172,62 @@ namespace Nexus
         private void ToggleButton_Click(object sender, RoutedEventArgs e)
         {
             IsSidebarExpanded = !IsSidebarExpanded;
+        }
+
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control || e.Key != Key.L)
+            {
+                return;
+            }
+
+            ShowTemporaryAddressBar();
+            e.Handled = true;
+        }
+
+        private void ShowTemporaryAddressBar()
+        {
+            TemporaryAddressBar.Visibility = Visibility.Visible;
+            TemporaryAddressBox.Text = string.Empty;
+            UpdateTemporaryAddressPlaceholderVisibility();
+            TemporaryAddressBox.Focus();
+        }
+
+        private void TemporaryAddressBox_TextChanged(object sender, TextChangedEventArgs e) =>
+            UpdateTemporaryAddressPlaceholderVisibility();
+
+        private void UpdateTemporaryAddressPlaceholderVisibility()
+        {
+            TemporaryAddressPlaceholderText.Visibility = string.IsNullOrEmpty(TemporaryAddressBox.Text)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        private async void TemporaryAddressBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                TemporaryAddressBar.Visibility = Visibility.Collapsed;
+                WebHost.Focus();
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key != Key.Enter)
+            {
+                return;
+            }
+
+            e.Handled = true;
+
+            if (!TryNormalizeWebAddress(TemporaryAddressBox.Text, out var uri))
+            {
+                ShowError("Please enter a valid web address.");
+                return;
+            }
+
+            TemporaryAddressBar.Visibility = Visibility.Collapsed;
+            await OpenTemporaryUrlAsync(uri);
         }
 
         private async void SiteList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -325,6 +385,11 @@ namespace Nexus
         {
             _pendingSite = site;
 
+            if (_temporaryWebView is not null)
+            {
+                _temporaryWebView.Visibility = Visibility.Collapsed;
+            }
+
             EmptyHint.Visibility = Visibility.Collapsed;
             ErrorHint.Visibility = Visibility.Collapsed;
 
@@ -389,6 +454,86 @@ namespace Nexus
         {
             ErrorHint.Text = message;
             ErrorHint.Visibility = Visibility.Visible;
+        }
+
+        private async Task OpenTemporaryUrlAsync(Uri uri)
+        {
+            _pendingSite = null;
+
+            EmptyHint.Visibility = Visibility.Collapsed;
+            ErrorHint.Visibility = Visibility.Collapsed;
+
+            foreach (var view in _webViews.Values)
+            {
+                view.Visibility = Visibility.Collapsed;
+            }
+
+            if (_temporaryWebView is null)
+            {
+                LoadingHint.Visibility = Visibility.Visible;
+                _temporaryWebView = new WebView2 { Visibility = Visibility.Hidden };
+                WebHost.Children.Add(_temporaryWebView);
+
+                try
+                {
+                    await InitializeTemporaryWebViewAsync(_temporaryWebView);
+                }
+                catch (Exception ex)
+                {
+                    WebHost.Children.Remove(_temporaryWebView);
+                    _temporaryWebView.Dispose();
+                    _temporaryWebView = null;
+                    ShowError($"Could not open temporary page.\n{ex.Message}");
+                    return;
+                }
+
+                LoadingHint.Visibility = Visibility.Collapsed;
+            }
+
+            _temporaryWebView.Visibility = Visibility.Visible;
+            _temporaryWebView.Source = uri;
+        }
+
+        private async Task InitializeTemporaryWebViewAsync(WebView2 webView)
+        {
+            _temporaryEnvironment = await CoreWebView2Environment.CreateAsync(
+                browserExecutableFolder: null,
+                userDataFolder: SiteStore.TemporaryProfileFolder);
+
+            await webView.EnsureCoreWebView2Async(_temporaryEnvironment);
+
+            webView.CoreWebView2.NewWindowRequested += (s, args) =>
+                OpenWebViewPopupWindow(args, _temporaryEnvironment);
+
+            webView.CoreWebView2.NavigationCompleted += (s, args) =>
+            {
+                if (!args.IsSuccess && _pendingSite is null)
+                {
+                    ShowError($"Failed to load temporary page.\n{args.WebErrorStatus}");
+                }
+            };
+        }
+
+        private static bool TryNormalizeWebAddress(string input, out Uri uri)
+        {
+            uri = null!;
+            string address = input.Trim();
+
+            if (string.IsNullOrEmpty(address) ||
+                string.Equals(address, TemporaryAddressPlaceholder, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (!address.Contains("://", StringComparison.Ordinal))
+            {
+                bool localAddress = address.StartsWith("localhost", StringComparison.OrdinalIgnoreCase) ||
+                    address.StartsWith("127.", StringComparison.OrdinalIgnoreCase);
+                address = $"{(localAddress ? "http" : "https")}://{address}";
+            }
+
+            return Uri.TryCreate(address, UriKind.Absolute, out uri!) &&
+                (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
         }
 
         /// <summary>
@@ -524,6 +669,10 @@ namespace Nexus
             }
 
             _webViews.Clear();
+
+            _temporaryWebView?.Dispose();
+            _temporaryWebView = null;
+            _temporaryEnvironment = null;
         }
     }
 }

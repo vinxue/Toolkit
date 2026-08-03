@@ -8,10 +8,42 @@
         Title="Nexus" Height="720" Width="1180"
         WindowStartupLocation="CenterScreen"
         Background="Transparent"
-        Loaded="Window_Loaded">
+        Loaded="Window_Loaded"
+        PreviewKeyDown="Window_PreviewKeyDown">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <Style x:Key="TemporaryAddressTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#111827" />
+            <Setter Property="CaretBrush" Value="#2563EB" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="13,0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="TextBoxBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="TextBoxBorder" Property="BorderBrush" Value="#2563EB" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TextBoxBorder" Property="BorderBrush" Value="#94A3B8" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -170,30 +202,65 @@
             </DockPanel>
         </Border>
 
-        <!-- Web content host -->
-        <Grid x:Name="WebHost" Grid.Column="1" Background="#FFFFFF">
-            <TextBlock x:Name="EmptyHint"
-                       Text="Select a site from the left to get started."
-                       Foreground="#8A94A6"
-                       FontSize="15"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center" />
-            <TextBlock x:Name="LoadingHint"
-                       Text="Loading..."
-                       Foreground="#8A94A6"
-                       FontSize="15"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Visibility="Collapsed" />
-            <TextBlock x:Name="ErrorHint"
-                       Foreground="#DC2626"
-                       FontSize="14"
-                       TextWrapping="Wrap"
-                       TextAlignment="Center"
-                       Margin="40"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Visibility="Collapsed" />
+        <Grid Grid.Column="1" Background="#FFFFFF">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border x:Name="TemporaryAddressBar"
+                    Grid.Row="0"
+                    Background="#F6F8FB"
+                    BorderBrush="#D8DEE8"
+                    BorderThickness="0,0,0,1"
+                    Padding="16,12"
+                    Visibility="Collapsed">
+                <Border HorizontalAlignment="Stretch"
+                        Background="#E8EDF5"
+                        CornerRadius="10"
+                        Padding="1">
+                    <Grid>
+                        <TextBox x:Name="TemporaryAddressBox"
+                                 Style="{StaticResource TemporaryAddressTextBox}"
+                                 Height="38"
+                                 TextChanged="TemporaryAddressBox_TextChanged"
+                                 KeyDown="TemporaryAddressBox_KeyDown" />
+                        <TextBlock x:Name="TemporaryAddressPlaceholderText"
+                                   Text="Enter web address"
+                                   Foreground="#6B7280"
+                                   FontSize="14"
+                                   Margin="13,0"
+                                   VerticalAlignment="Center"
+                                   IsHitTestVisible="False" />
+                    </Grid>
+                </Border>
+            </Border>
+
+            <!-- Web content host -->
+            <Grid x:Name="WebHost" Grid.Row="1" Background="#FFFFFF">
+                <TextBlock x:Name="EmptyHint"
+                           Text="Select a site from the left to get started."
+                           Foreground="#8A94A6"
+                           FontSize="15"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+                <TextBlock x:Name="LoadingHint"
+                           Text="Loading..."
+                           Foreground="#8A94A6"
+                           FontSize="15"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Visibility="Collapsed" />
+                <TextBlock x:Name="ErrorHint"
+                           Foreground="#DC2626"
+                           FontSize="14"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           Margin="40"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Visibility="Collapsed" />
+            </Grid>
         </Grid>
     </Grid>
 </Window>
