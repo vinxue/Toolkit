@@ -31,11 +31,13 @@ namespace Nexus
 
         private WebView2? _temporaryWebView;
         private CoreWebView2Environment? _temporaryEnvironment;
+        private SiteConfig? _siteBeforeTemporaryPage;
 
         private IntPtr _hwnd;
         private HwndSource? _source;
 
         private bool _isSidebarExpanded;
+        private bool _isTemporaryPageVisible;
         private Point _dragStartPoint;
         private SiteConfig? _dragCandidate;
 
@@ -176,13 +178,21 @@ namespace Nexus
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control || e.Key != Key.L)
+            if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
             {
                 return;
             }
 
-            ShowTemporaryAddressBar();
-            e.Handled = true;
+            if (e.Key == Key.L)
+            {
+                ShowTemporaryAddressBar();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.W && _isTemporaryPageVisible)
+            {
+                e.Handled = true;
+                _ = CloseTemporaryPageAsync();
+            }
         }
 
         private void ShowTemporaryAddressBar()
@@ -384,6 +394,8 @@ namespace Nexus
         private async Task ShowSiteAsync(SiteConfig site)
         {
             _pendingSite = site;
+            _siteBeforeTemporaryPage = site;
+            _isTemporaryPageVisible = false;
 
             if (_temporaryWebView is not null)
             {
@@ -452,12 +464,19 @@ namespace Nexus
 
         private void ShowError(string message)
         {
+            LoadingHint.Visibility = Visibility.Collapsed;
+            EmptyHint.Visibility = Visibility.Collapsed;
             ErrorHint.Text = message;
             ErrorHint.Visibility = Visibility.Visible;
         }
 
         private async Task OpenTemporaryUrlAsync(Uri uri)
         {
+            if (!_isTemporaryPageVisible)
+            {
+                _siteBeforeTemporaryPage = SiteList.SelectedItem as SiteConfig;
+            }
+
             _pendingSite = null;
 
             EmptyHint.Visibility = Visibility.Collapsed;
@@ -492,6 +511,34 @@ namespace Nexus
 
             _temporaryWebView.Visibility = Visibility.Visible;
             _temporaryWebView.Source = uri;
+            _isTemporaryPageVisible = true;
+        }
+
+        private async Task CloseTemporaryPageAsync()
+        {
+            TemporaryAddressBar.Visibility = Visibility.Collapsed;
+            _isTemporaryPageVisible = false;
+            _pendingSite = null;
+
+            if (_temporaryWebView is not null)
+            {
+                _temporaryWebView.PreviewKeyDown -= TemporaryWebView_PreviewKeyDown;
+                WebHost.Children.Remove(_temporaryWebView);
+                _temporaryWebView.Dispose();
+                _temporaryWebView = null;
+                _temporaryEnvironment = null;
+            }
+
+            if (_siteBeforeTemporaryPage is not null && _sites.Contains(_siteBeforeTemporaryPage))
+            {
+                SiteList.SelectedItem = _siteBeforeTemporaryPage;
+                await ShowSiteAsync(_siteBeforeTemporaryPage);
+                return;
+            }
+
+            LoadingHint.Visibility = Visibility.Collapsed;
+            ErrorHint.Visibility = Visibility.Collapsed;
+            EmptyHint.Visibility = Visibility.Visible;
         }
 
         private async Task InitializeTemporaryWebViewAsync(WebView2 webView)
@@ -501,6 +548,8 @@ namespace Nexus
                 userDataFolder: SiteStore.TemporaryProfileFolder);
 
             await webView.EnsureCoreWebView2Async(_temporaryEnvironment);
+
+            webView.PreviewKeyDown += TemporaryWebView_PreviewKeyDown;
 
             webView.CoreWebView2.NewWindowRequested += (s, args) =>
                 OpenWebViewPopupWindow(args, _temporaryEnvironment);
@@ -512,6 +561,19 @@ namespace Nexus
                     ShowError($"Failed to load temporary page.\n{args.WebErrorStatus}");
                 }
             };
+        }
+
+        private void TemporaryWebView_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (!_isTemporaryPageVisible ||
+                e.Key != Key.W ||
+                (Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
+            {
+                return;
+            }
+
+            e.Handled = true;
+            Dispatcher.BeginInvoke(new Action(() => _ = CloseTemporaryPageAsync()));
         }
 
         private static bool TryNormalizeWebAddress(string input, out Uri uri)
