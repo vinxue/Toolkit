@@ -22,15 +22,16 @@ namespace Nexus
         private const double ExpandedWidth = 220;
         private const double PopupWidth = 1180;
         private const double PopupHeight = 720;
-        private const string TemporaryAddressPlaceholder = "Enter web address";
         private const int WmDpiChanged = 0x02E0;
 
         private readonly ObservableCollection<SiteConfig> _sites = new();
         private readonly Dictionary<SiteConfig, WebView2> _webViews = new();
         private readonly HashSet<Window> _popupWindows = new();
+        private readonly FullscreenWindowController _mainFullscreenController = new();
 
         private WebView2? _temporaryWebView;
         private CoreWebView2Environment? _temporaryEnvironment;
+        private WebView2? _fullscreenWebView;
         private SiteConfig? _siteBeforeTemporaryPage;
 
         private IntPtr _hwnd;
@@ -38,8 +39,12 @@ namespace Nexus
 
         private bool _isSidebarExpanded;
         private bool _isTemporaryPageVisible;
+        private bool _isWebContentFullscreen;
         private Point _dragStartPoint;
         private SiteConfig? _dragCandidate;
+        private Brush? _webHostBackgroundBeforeFullscreen;
+        private Visibility _sidebarVisibilityBeforeFullscreen;
+        private Visibility _temporaryAddressBarVisibilityBeforeFullscreen;
 
         /// <summary>
         /// The site the user most recently asked to see. Since WebView2
@@ -90,6 +95,32 @@ namespace Nexus
             public static extern int DwmExtendFrameIntoClientArea(IntPtr hwnd, ref Margins margins);
         }
 
+        private static class MonitorApi
+        {
+            public const int MONITOR_DEFAULTTONEAREST = 2;
+
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Rect
+            {
+                public int Left, Top, Right, Bottom;
+            }
+
+            [StructLayout(LayoutKind.Sequential)]
+            public struct MonitorInfo
+            {
+                public int cbSize;
+                public Rect rcMonitor;
+                public Rect rcWork;
+                public int dwFlags;
+            }
+
+            [DllImport("user32.dll")]
+            public static extern IntPtr MonitorFromWindow(IntPtr hwnd, int dwFlags);
+
+            [DllImport("user32.dll", CharSet = CharSet.Auto)]
+            public static extern bool GetMonitorInfo(IntPtr hMonitor, ref MonitorInfo lpmi);
+        }
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             _hwnd = new WindowInteropHelper(this).Handle;
@@ -132,6 +163,120 @@ namespace Nexus
             return IntPtr.Zero;
         }
 
+        private static Rect GetMonitorBounds(Window window)
+        {
+            var hwnd = new WindowInteropHelper(window).Handle;
+            var monitor = MonitorApi.MonitorFromWindow(hwnd, MonitorApi.MONITOR_DEFAULTTONEAREST);
+            var monitorInfo = new MonitorApi.MonitorInfo
+            {
+                cbSize = Marshal.SizeOf<MonitorApi.MonitorInfo>()
+            };
+
+            if (!MonitorApi.GetMonitorInfo(monitor, ref monitorInfo))
+            {
+                return new Rect(0, 0, SystemParameters.PrimaryScreenWidth, SystemParameters.PrimaryScreenHeight);
+            }
+
+            var topLeft = PointFromDevice(window, monitorInfo.rcMonitor.Left, monitorInfo.rcMonitor.Top);
+            var bottomRight = PointFromDevice(window, monitorInfo.rcMonitor.Right, monitorInfo.rcMonitor.Bottom);
+            return new Rect(topLeft, bottomRight);
+        }
+
+        private static Point PointFromDevice(Visual visual, int x, int y)
+        {
+            var point = new Point(x, y);
+            return PresentationSource.FromVisual(visual)?.CompositionTarget?.TransformFromDevice.Transform(point) ?? point;
+        }
+
+        private static Rect GetWindowBoundsForRestore(Window window)
+        {
+            Rect bounds = window.WindowState == WindowState.Normal
+                ? new Rect(window.Left, window.Top, window.Width, window.Height)
+                : window.RestoreBounds;
+
+            return IsValidWindowBounds(bounds)
+                ? bounds
+                : new Rect(window.Left, window.Top, Math.Max(window.ActualWidth, 1), Math.Max(window.ActualHeight, 1));
+        }
+
+        private static bool IsValidWindowBounds(Rect bounds) =>
+            !bounds.IsEmpty &&
+            IsFinite(bounds.Left) &&
+            IsFinite(bounds.Top) &&
+            IsFinite(bounds.Width) &&
+            IsFinite(bounds.Height) &&
+            bounds.Width > 0 &&
+            bounds.Height > 0;
+
+        private static bool IsFinite(double value) =>
+            !double.IsNaN(value) && !double.IsInfinity(value);
+
+        private sealed class FullscreenWindowController
+        {
+            private WindowFullscreenState? _state;
+
+            public void Enter(Window window, Brush? fullscreenBackground = null)
+            {
+                if (_state is not null)
+                {
+                    return;
+                }
+
+                _state = new WindowFullscreenState(
+                    Bounds: GetWindowBoundsForRestore(window),
+                    WindowState: window.WindowState,
+                    WindowStyle: window.WindowStyle,
+                    ResizeMode: window.ResizeMode,
+                    Topmost: window.Topmost,
+                    Background: window.Background);
+
+                var monitorBounds = GetMonitorBounds(window);
+                window.WindowState = WindowState.Normal;
+                window.WindowStyle = WindowStyle.None;
+                window.ResizeMode = ResizeMode.NoResize;
+                window.Topmost = true;
+                if (fullscreenBackground is not null)
+                {
+                    window.Background = fullscreenBackground;
+                }
+
+                window.Left = monitorBounds.Left;
+                window.Top = monitorBounds.Top;
+                window.Width = monitorBounds.Width;
+                window.Height = monitorBounds.Height;
+            }
+
+            public void Exit(Window window)
+            {
+                if (_state is null)
+                {
+                    return;
+                }
+
+                WindowFullscreenState state = _state;
+                _state = null;
+
+                window.Background = state.Background;
+                window.WindowState = WindowState.Normal;
+                window.WindowStyle = state.WindowStyle;
+                window.ResizeMode = state.ResizeMode;
+                window.Topmost = state.Topmost;
+                window.Left = state.Bounds.Left;
+                window.Top = state.Bounds.Top;
+                window.Width = state.Bounds.Width;
+                window.Height = state.Bounds.Height;
+                window.WindowState = state.WindowState;
+            }
+
+            private sealed record WindowFullscreenState(
+                Rect Bounds,
+                WindowState WindowState,
+                WindowStyle WindowStyle,
+                ResizeMode ResizeMode,
+                bool Topmost,
+                Brush? Background);
+        }
+
         private void UpdateExtendedFrame()
         {
             if (_hwnd == IntPtr.Zero)
@@ -140,7 +285,9 @@ namespace Nexus
             }
 
             double dpiScaleX = PresentationSource.FromVisual(this)?.CompositionTarget?.TransformToDevice.M11 ?? 1.0;
-            double sidebarWidth = SidebarPanel.Width;
+            double sidebarWidth = _isWebContentFullscreen || SidebarPanel.Visibility != Visibility.Visible
+                ? 0
+                : SidebarPanel.Width;
             var margins = new NonClientRegionApi.Margins
             {
                 cxLeftWidth = (int)Math.Ceiling(sidebarWidth * dpiScaleX),
@@ -185,22 +332,32 @@ namespace Nexus
 
             if (e.Key == Key.L)
             {
+                if (_isWebContentFullscreen)
+                {
+                    return;
+                }
+
                 ShowTemporaryAddressBar();
                 e.Handled = true;
             }
-            else if (e.Key == Key.W && _isTemporaryPageVisible)
+            else if (e.Key == Key.W && CanCloseTemporaryPage())
             {
                 e.Handled = true;
                 _ = CloseTemporaryPageAsync();
             }
         }
 
+        private bool CanCloseTemporaryPage() =>
+            _isTemporaryPageVisible &&
+            (!_isWebContentFullscreen || ReferenceEquals(_fullscreenWebView, _temporaryWebView));
+
         private void ShowTemporaryAddressBar()
         {
             TemporaryAddressBar.Visibility = Visibility.Visible;
-            TemporaryAddressBox.Text = string.Empty;
+            TemporaryAddressBox.Text = _temporaryWebView?.Source?.AbsoluteUri ?? string.Empty;
             UpdateTemporaryAddressPlaceholderVisibility();
             TemporaryAddressBox.Focus();
+            TemporaryAddressBox.SelectAll();
         }
 
         private void TemporaryAddressBox_TextChanged(object sender, TextChangedEventArgs e) =>
@@ -369,6 +526,7 @@ namespace Nexus
 
             if (_webViews.TryGetValue(site, out var webView))
             {
+                ExitWebContentFullscreenIfOwnedBy(webView);
                 WebHost.Children.Remove(webView);
                 webView.Dispose();
                 _webViews.Remove(site);
@@ -470,6 +628,72 @@ namespace Nexus
             ErrorHint.Visibility = Visibility.Visible;
         }
 
+        private void SetWebContentFullscreen(bool fullscreen)
+        {
+            if (_isWebContentFullscreen == fullscreen)
+            {
+                return;
+            }
+
+            _isWebContentFullscreen = fullscreen;
+
+            if (fullscreen)
+            {
+                _webHostBackgroundBeforeFullscreen = WebHost.Background;
+                _sidebarVisibilityBeforeFullscreen = SidebarPanel.Visibility;
+                _temporaryAddressBarVisibilityBeforeFullscreen = TemporaryAddressBar.Visibility;
+
+                SidebarPanel.Visibility = Visibility.Collapsed;
+                TemporaryAddressBar.Visibility = Visibility.Collapsed;
+                WebHost.Background = Brushes.Black;
+                _mainFullscreenController.Enter(this);
+            }
+            else
+            {
+                SidebarPanel.Visibility = _sidebarVisibilityBeforeFullscreen;
+                TemporaryAddressBar.Visibility = _temporaryAddressBarVisibilityBeforeFullscreen;
+                WebHost.Background = _webHostBackgroundBeforeFullscreen ?? Brushes.White;
+                _mainFullscreenController.Exit(this);
+            }
+
+            UpdateExtendedFrame();
+        }
+
+        private void WebView_ContainsFullScreenElementChanged(WebView2 webView)
+        {
+            bool containsFullscreenElement = webView.CoreWebView2.ContainsFullScreenElement;
+            if (containsFullscreenElement)
+            {
+                if (webView.Visibility != Visibility.Visible)
+                {
+                    return;
+                }
+
+                _fullscreenWebView = webView;
+                SetWebContentFullscreen(true);
+                return;
+            }
+
+            if (!ReferenceEquals(_fullscreenWebView, webView))
+            {
+                return;
+            }
+
+            _fullscreenWebView = null;
+            SetWebContentFullscreen(false);
+        }
+
+        private void ExitWebContentFullscreenIfOwnedBy(WebView2 webView)
+        {
+            if (!ReferenceEquals(_fullscreenWebView, webView))
+            {
+                return;
+            }
+
+            _fullscreenWebView = null;
+            SetWebContentFullscreen(false);
+        }
+
         private async Task OpenTemporaryUrlAsync(Uri uri)
         {
             if (!_isTemporaryPageVisible)
@@ -522,6 +746,7 @@ namespace Nexus
 
             if (_temporaryWebView is not null)
             {
+                ExitWebContentFullscreenIfOwnedBy(_temporaryWebView);
                 _temporaryWebView.PreviewKeyDown -= TemporaryWebView_PreviewKeyDown;
                 WebHost.Children.Remove(_temporaryWebView);
                 _temporaryWebView.Dispose();
@@ -533,12 +758,24 @@ namespace Nexus
             {
                 SiteList.SelectedItem = _siteBeforeTemporaryPage;
                 await ShowSiteAsync(_siteBeforeTemporaryPage);
+                RestoreHostKeyboardFocus();
                 return;
             }
 
             LoadingHint.Visibility = Visibility.Collapsed;
             ErrorHint.Visibility = Visibility.Collapsed;
             EmptyHint.Visibility = Visibility.Visible;
+            RestoreHostKeyboardFocus();
+        }
+
+        private void RestoreHostKeyboardFocus()
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                Activate();
+                KeyboardFocusHost.Focus();
+                Keyboard.Focus(KeyboardFocusHost);
+            }), System.Windows.Threading.DispatcherPriority.Input);
         }
 
         private async Task InitializeTemporaryWebViewAsync(WebView2 webView)
@@ -550,6 +787,9 @@ namespace Nexus
             await webView.EnsureCoreWebView2Async(_temporaryEnvironment);
 
             webView.PreviewKeyDown += TemporaryWebView_PreviewKeyDown;
+
+            webView.CoreWebView2.ContainsFullScreenElementChanged += (_, _) =>
+                WebView_ContainsFullScreenElementChanged(webView);
 
             webView.CoreWebView2.NewWindowRequested += (s, args) =>
                 OpenWebViewPopupWindow(args, _temporaryEnvironment);
@@ -565,15 +805,28 @@ namespace Nexus
 
         private void TemporaryWebView_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (!_isTemporaryPageVisible ||
-                e.Key != Key.W ||
-                (Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
+            if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
             {
                 return;
             }
 
-            e.Handled = true;
-            Dispatcher.BeginInvoke(new Action(() => _ = CloseTemporaryPageAsync()));
+            if (e.Key == Key.L)
+            {
+                if (_isWebContentFullscreen)
+                {
+                    return;
+                }
+
+                e.Handled = true;
+                Dispatcher.BeginInvoke(new Action(ShowTemporaryAddressBar));
+                return;
+            }
+
+            if (e.Key == Key.W && CanCloseTemporaryPage())
+            {
+                e.Handled = true;
+                Dispatcher.BeginInvoke(new Action(() => _ = CloseTemporaryPageAsync()));
+            }
         }
 
         private static bool TryNormalizeWebAddress(string input, out Uri uri)
@@ -581,8 +834,7 @@ namespace Nexus
             uri = null!;
             string address = input.Trim();
 
-            if (string.IsNullOrEmpty(address) ||
-                string.Equals(address, TemporaryAddressPlaceholder, StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(address))
             {
                 return false;
             }
@@ -612,6 +864,11 @@ namespace Nexus
 
             await webView.EnsureCoreWebView2Async(environment);
 
+            webView.PreviewKeyDown += HostedWebView_PreviewKeyDown;
+
+            webView.CoreWebView2.ContainsFullScreenElementChanged += (_, _) =>
+                WebView_ContainsFullScreenElementChanged(webView);
+
             // Some pages open required work in a separate browser window: SSO/login
             // flows are the common case, but target="_blank" links can use this too.
             webView.CoreWebView2.NewWindowRequested += (s, args) =>
@@ -626,6 +883,22 @@ namespace Nexus
             };
 
             webView.Source = new Uri(site.Url);
+        }
+
+        private void HostedWebView_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control || e.Key != Key.L)
+            {
+                return;
+            }
+
+            if (_isWebContentFullscreen)
+            {
+                return;
+            }
+
+            e.Handled = true;
+            Dispatcher.BeginInvoke(new Action(ShowTemporaryAddressBar));
         }
 
         /// <summary>
@@ -647,9 +920,11 @@ namespace Nexus
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };
             var popupWebView = new WebView2();
+            var popupFullscreenController = new FullscreenWindowController();
             popupWindow.Content = popupWebView;
 
             _popupWindows.Add(popupWindow);
+            popupWindow.Closing += (_, _) => popupFullscreenController.Exit(popupWindow);
             popupWindow.Closed += (_, _) =>
             {
                 _popupWindows.Remove(popupWindow);
@@ -660,7 +935,7 @@ namespace Nexus
             // EnsureCoreWebView2Async is awaited - otherwise initialization hangs.
             popupWindow.Show();
 
-            _ = InitializePopupWebViewAsync(popupWebView, popupWindow, args, environment, deferral);
+            _ = InitializePopupWebViewAsync(popupWebView, popupWindow, args, environment, deferral, popupFullscreenController);
         }
 
         private static async Task InitializePopupWebViewAsync(
@@ -668,12 +943,40 @@ namespace Nexus
             Window popupWindow,
             CoreWebView2NewWindowRequestedEventArgs args,
             CoreWebView2Environment environment,
-            CoreWebView2Deferral deferral)
+            CoreWebView2Deferral deferral,
+            FullscreenWindowController popupFullscreenController)
         {
             try
             {
                 await popupWebView.EnsureCoreWebView2Async(environment);
                 popupWebView.CoreWebView2.WindowCloseRequested += (_, _) => popupWindow.Close();
+                var popupFullscreen = false;
+
+                popupWebView.CoreWebView2.ContainsFullScreenElementChanged += (_, _) =>
+                {
+                    bool fullscreen = popupWebView.CoreWebView2.ContainsFullScreenElement;
+                    if (fullscreen && popupWindow.Visibility != Visibility.Visible)
+                    {
+                        return;
+                    }
+
+                    if (popupFullscreen == fullscreen)
+                    {
+                        return;
+                    }
+
+                    popupFullscreen = fullscreen;
+
+                    if (fullscreen)
+                    {
+                        popupFullscreenController.Enter(popupWindow, Brushes.Black);
+                    }
+                    else
+                    {
+                        popupFullscreenController.Exit(popupWindow);
+                    }
+                };
+
                 args.NewWindow = popupWebView.CoreWebView2;
                 args.Handled = true;
             }
@@ -718,6 +1021,8 @@ namespace Nexus
             _source?.RemoveHook(WndProc);
             _source = null;
 
+            ExitAnyWebContentFullscreen();
+
             foreach (var popupWindow in _popupWindows.ToList())
             {
                 popupWindow.Close();
@@ -735,6 +1040,17 @@ namespace Nexus
             _temporaryWebView?.Dispose();
             _temporaryWebView = null;
             _temporaryEnvironment = null;
+        }
+
+        private void ExitAnyWebContentFullscreen()
+        {
+            if (_fullscreenWebView is null)
+            {
+                return;
+            }
+
+            _fullscreenWebView = null;
+            SetWebContentFullscreen(false);
         }
     }
 }

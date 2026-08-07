@@ -45,7 +45,7 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Grid>
+    <Grid x:Name="KeyboardFocusHost" Focusable="True" FocusVisualStyle="{x:Null}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="SidebarColumn" Width="Auto" />
             <ColumnDefinition Width="*" />
