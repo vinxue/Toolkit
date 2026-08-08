@@ -57,7 +57,7 @@
              regardless of Z-order, so a WPF sidebar cannot visually overlap it. -->
         <Border x:Name="SidebarPanel"
                 Grid.Column="0"
-                Width="60"
+                Width="52"
                 Background="{StaticResource SidebarBackground}"
                 BorderBrush="{StaticResource SidebarBorder}"
                 BorderThickness="0,0,1,0">
@@ -70,7 +70,7 @@
                             Style="{StaticResource IconButton}"
                             Width="40" Height="40"
                             HorizontalAlignment="Left"
-                            Margin="8,0,0,0"
+                            Margin="6,0,0,0"
                             Content="&#9776;"
                             ToolTip="Expand / collapse"
                             Click="ToggleButton_Click" />
@@ -82,12 +82,14 @@
                         BorderThickness="0,1,0,0">
                     <Button x:Name="AddSiteButton"
                             Style="{StaticResource IconButton}"
-                            Height="46"
-                            Margin="8"
+                            Height="40"
+                            Margin="6"
                             HorizontalContentAlignment="Left"
+                            VerticalContentAlignment="Center"
                             Click="AddSiteButton_Click"
                             ToolTip="Add a website">
-                        <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center">
                             <TextBlock Text="&#65291;"
                                        FontSize="18"
                                        Width="40"
@@ -151,9 +153,9 @@
                                 <Grid.ColumnDefinitions>
                                     <!-- Fixed (not Auto) so the avatar's centered position
                                          never shifts between collapsed and expanded states:
-                                         this width equals the full row content width when
+                                         this width equals the avatar area when
                                          collapsed, so the avatar sits centered there too. -->
-                                    <ColumnDefinition Width="49" />
+                                    <ColumnDefinition Width="40" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>

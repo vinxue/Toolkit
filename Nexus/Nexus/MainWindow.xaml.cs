@@ -18,7 +18,7 @@ namespace Nexus
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        private const double CollapsedWidth = 60;
+        private const double CollapsedWidth = 52;
         private const double ExpandedWidth = 220;
         private const double PopupWidth = 1180;
         private const double PopupHeight = 720;
