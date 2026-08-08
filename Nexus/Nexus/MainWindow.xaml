@@ -57,10 +57,10 @@
              regardless of Z-order, so a WPF sidebar cannot visually overlap it. -->
         <Border x:Name="SidebarPanel"
                 Grid.Column="0"
-                Width="60"
+                Width="52"
                 Background="{StaticResource SidebarBackground}"
                 BorderBrush="{StaticResource SidebarBorder}"
-                BorderThickness="0,0,1,0">
+                BorderThickness="0">
 
             <DockPanel LastChildFill="True">
 
@@ -70,7 +70,7 @@
                             Style="{StaticResource IconButton}"
                             Width="40" Height="40"
                             HorizontalAlignment="Left"
-                            Margin="8,0,0,0"
+                            Margin="6,0,0,0"
                             Content="&#9776;"
                             ToolTip="Expand / collapse"
                             Click="ToggleButton_Click" />
@@ -82,12 +82,14 @@
                         BorderThickness="0,1,0,0">
                     <Button x:Name="AddSiteButton"
                             Style="{StaticResource IconButton}"
-                            Height="46"
-                            Margin="8"
+                            Height="40"
+                            Margin="6"
                             HorizontalContentAlignment="Left"
+                            VerticalContentAlignment="Center"
                             Click="AddSiteButton_Click"
                             ToolTip="Add a website">
-                        <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center">
                             <TextBlock Text="&#65291;"
                                        FontSize="18"
                                        Width="40"
@@ -151,9 +153,9 @@
                                 <Grid.ColumnDefinitions>
                                     <!-- Fixed (not Auto) so the avatar's centered position
                                          never shifts between collapsed and expanded states:
-                                         this width equals the full row content width when
+                                         this width equals the avatar area when
                                          collapsed, so the avatar sits centered there too. -->
-                                    <ColumnDefinition Width="49" />
+                                    <ColumnDefinition Width="40" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
@@ -202,65 +204,70 @@
             </DockPanel>
         </Border>
 
-        <Grid Grid.Column="1" Background="#FFFFFF">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+        <Border Grid.Column="1"
+                BorderBrush="{StaticResource SidebarBorder}"
+                BorderThickness="1,0,0,0"
+                Background="#FFFFFF">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-            <Border x:Name="TemporaryAddressBar"
-                    Grid.Row="0"
-                    Background="#F6F8FB"
-                    BorderBrush="#D8DEE8"
-                    BorderThickness="0,0,0,1"
-                    Padding="16,12"
-                    Visibility="Collapsed">
-                <Border HorizontalAlignment="Stretch"
-                        Background="#E8EDF5"
-                        CornerRadius="10"
-                        Padding="1">
-                    <Grid>
-                        <TextBox x:Name="TemporaryAddressBox"
-                                 Style="{StaticResource TemporaryAddressTextBox}"
-                                 Height="38"
-                                 TextChanged="TemporaryAddressBox_TextChanged"
-                                 KeyDown="TemporaryAddressBox_KeyDown" />
-                        <TextBlock x:Name="TemporaryAddressPlaceholderText"
-                                   Text="Enter web address"
-                                   Foreground="#6B7280"
-                                   FontSize="14"
-                                   Margin="13,0"
-                                   VerticalAlignment="Center"
-                                   IsHitTestVisible="False" />
-                    </Grid>
+                <Border x:Name="TemporaryAddressBar"
+                        Grid.Row="0"
+                        Background="#F6F8FB"
+                        BorderBrush="#D8DEE8"
+                        BorderThickness="0,0,0,1"
+                        Padding="16,12"
+                        Visibility="Collapsed">
+                    <Border HorizontalAlignment="Stretch"
+                            Background="#E8EDF5"
+                            CornerRadius="10"
+                            Padding="1">
+                        <Grid>
+                            <TextBox x:Name="TemporaryAddressBox"
+                                     Style="{StaticResource TemporaryAddressTextBox}"
+                                     Height="38"
+                                     TextChanged="TemporaryAddressBox_TextChanged"
+                                     KeyDown="TemporaryAddressBox_KeyDown" />
+                            <TextBlock x:Name="TemporaryAddressPlaceholderText"
+                                       Text="Enter web address"
+                                       Foreground="#6B7280"
+                                       FontSize="14"
+                                       Margin="13,0"
+                                       VerticalAlignment="Center"
+                                       IsHitTestVisible="False" />
+                        </Grid>
+                    </Border>
                 </Border>
-            </Border>
 
-            <!-- Web content host -->
-            <Grid x:Name="WebHost" Grid.Row="1" Background="#FFFFFF">
-                <TextBlock x:Name="EmptyHint"
-                           Text="Select a site from the left to get started."
-                           Foreground="#8A94A6"
-                           FontSize="15"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center" />
-                <TextBlock x:Name="LoadingHint"
-                           Text="Loading..."
-                           Foreground="#8A94A6"
-                           FontSize="15"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           Visibility="Collapsed" />
-                <TextBlock x:Name="ErrorHint"
-                           Foreground="#DC2626"
-                           FontSize="14"
-                           TextWrapping="Wrap"
-                           TextAlignment="Center"
-                           Margin="40"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           Visibility="Collapsed" />
+                <!-- Web content host -->
+                <Grid x:Name="WebHost" Grid.Row="1" Background="#FFFFFF">
+                    <TextBlock x:Name="EmptyHint"
+                               Text="Select a site from the left to get started."
+                               Foreground="#8A94A6"
+                               FontSize="15"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                    <TextBlock x:Name="LoadingHint"
+                               Text="Loading..."
+                               Foreground="#8A94A6"
+                               FontSize="15"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Visibility="Collapsed" />
+                    <TextBlock x:Name="ErrorHint"
+                               Foreground="#DC2626"
+                               FontSize="14"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"
+                               Margin="40"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Visibility="Collapsed" />
+                </Grid>
             </Grid>
-        </Grid>
+        </Border>
     </Grid>
 </Window>
