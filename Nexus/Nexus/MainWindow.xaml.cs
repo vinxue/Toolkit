@@ -27,6 +27,7 @@ namespace Nexus
         private readonly ObservableCollection<SiteConfig> _sites = new();
         private readonly Dictionary<SiteConfig, WebView2> _webViews = new();
         private readonly HashSet<Window> _popupWindows = new();
+        private readonly FullscreenWindowController _appFullscreenController = new();
         private readonly FullscreenWindowController _mainFullscreenController = new();
 
         private WebView2? _temporaryWebView;
@@ -38,10 +39,14 @@ namespace Nexus
         private HwndSource? _source;
 
         private bool _isSidebarExpanded;
+        private bool _isAppFullscreen;
         private bool _isTemporaryPageVisible;
         private bool _isWebContentFullscreen;
         private Point _dragStartPoint;
         private SiteConfig? _dragCandidate;
+        private Brush? _webHostBackgroundBeforeAppFullscreen;
+        private Visibility _sidebarVisibilityBeforeAppFullscreen;
+        private Visibility _temporaryAddressBarVisibilityBeforeAppFullscreen;
         private Brush? _webHostBackgroundBeforeFullscreen;
         private Visibility _sidebarVisibilityBeforeFullscreen;
         private Visibility _temporaryAddressBarVisibilityBeforeFullscreen;
@@ -325,6 +330,13 @@ namespace Nexus
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (e.Key == Key.F11)
+            {
+                ToggleAppFullscreen();
+                e.Handled = true;
+                return;
+            }
+
             if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
             {
                 return;
@@ -350,6 +362,47 @@ namespace Nexus
         private bool CanCloseTemporaryPage() =>
             _isTemporaryPageVisible &&
             (!_isWebContentFullscreen || ReferenceEquals(_fullscreenWebView, _temporaryWebView));
+
+        private void ToggleAppFullscreen()
+        {
+            if (_isWebContentFullscreen)
+            {
+                return;
+            }
+
+            SetAppFullscreen(!_isAppFullscreen);
+        }
+
+        private void SetAppFullscreen(bool fullscreen)
+        {
+            if (_isAppFullscreen == fullscreen)
+            {
+                return;
+            }
+
+            _isAppFullscreen = fullscreen;
+
+            if (fullscreen)
+            {
+                _webHostBackgroundBeforeAppFullscreen = WebHost.Background;
+                _sidebarVisibilityBeforeAppFullscreen = SidebarPanel.Visibility;
+                _temporaryAddressBarVisibilityBeforeAppFullscreen = TemporaryAddressBar.Visibility;
+
+                SidebarPanel.Visibility = Visibility.Collapsed;
+                TemporaryAddressBar.Visibility = Visibility.Collapsed;
+                WebHost.Background = Brushes.Black;
+                _appFullscreenController.Enter(this);
+            }
+            else
+            {
+                SidebarPanel.Visibility = _sidebarVisibilityBeforeAppFullscreen;
+                TemporaryAddressBar.Visibility = _temporaryAddressBarVisibilityBeforeAppFullscreen;
+                WebHost.Background = _webHostBackgroundBeforeAppFullscreen ?? Brushes.White;
+                _appFullscreenController.Exit(this);
+            }
+
+            UpdateExtendedFrame();
+        }
 
         private void ShowTemporaryAddressBar()
         {
@@ -635,6 +688,11 @@ namespace Nexus
                 return;
             }
 
+            if (fullscreen && _isAppFullscreen)
+            {
+                SetAppFullscreen(false);
+            }
+
             _isWebContentFullscreen = fullscreen;
 
             if (fullscreen)
@@ -805,6 +863,13 @@ namespace Nexus
 
         private void TemporaryWebView_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (e.Key == Key.F11)
+            {
+                ToggleAppFullscreen();
+                e.Handled = true;
+                return;
+            }
+
             if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
             {
                 return;
@@ -887,6 +952,13 @@ namespace Nexus
 
         private void HostedWebView_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (e.Key == Key.F11)
+            {
+                ToggleAppFullscreen();
+                e.Handled = true;
+                return;
+            }
+
             if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control || e.Key != Key.L)
             {
                 return;
@@ -938,7 +1010,7 @@ namespace Nexus
             _ = InitializePopupWebViewAsync(popupWebView, popupWindow, args, environment, deferral, popupFullscreenController);
         }
 
-        private static async Task InitializePopupWebViewAsync(
+        private async Task InitializePopupWebViewAsync(
             WebView2 popupWebView,
             Window popupWindow,
             CoreWebView2NewWindowRequestedEventArgs args,
@@ -950,6 +1022,8 @@ namespace Nexus
             {
                 await popupWebView.EnsureCoreWebView2Async(environment);
                 popupWebView.CoreWebView2.WindowCloseRequested += (_, _) => popupWindow.Close();
+                popupWebView.CoreWebView2.NewWindowRequested += (_, popupArgs) =>
+                    OpenWebViewPopupWindow(popupArgs, environment);
                 var popupFullscreen = false;
 
                 popupWebView.CoreWebView2.ContainsFullScreenElementChanged += (_, _) =>
@@ -1020,6 +1094,11 @@ namespace Nexus
 
             _source?.RemoveHook(WndProc);
             _source = null;
+
+            if (_isAppFullscreen)
+            {
+                SetAppFullscreen(false);
+            }
 
             ExitAnyWebContentFullscreen();
 
