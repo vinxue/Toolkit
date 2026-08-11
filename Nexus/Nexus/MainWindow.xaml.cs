@@ -988,8 +988,7 @@ namespace Nexus
                 Title = "Nexus",
                 Width = PopupWidth,
                 Height = PopupHeight,
-                Owner = this,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner
+                WindowStartupLocation = WindowStartupLocation.CenterScreen
             };
             var popupWebView = new WebView2();
             var popupFullscreenController = new FullscreenWindowController();
