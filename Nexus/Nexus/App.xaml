@@ -9,12 +9,44 @@
              window in MainWindow's code-behind) shows through the sidebar. WebHost
              stays fully opaque, so only the sidebar area appears frosted/blurred. -->
         <SolidColorBrush x:Key="SidebarBackground" Color="#BBF3F3F3" />
-        <SolidColorBrush x:Key="SidebarHover" Color="#E9E9E9" />
+        <SolidColorBrush x:Key="SidebarHover" Color="#DEDEDE" />
         <SolidColorBrush x:Key="SidebarSelected" Color="#DCEEFB" />
         <SolidColorBrush x:Key="SidebarText" Color="#1B1B1B" />
         <SolidColorBrush x:Key="SidebarBorder" Color="#E0E0E0" />
         <SolidColorBrush x:Key="AccentBrush" Color="#0067C0" />
         <SolidColorBrush x:Key="AvatarBackground" Color="#0067C0" />
+
+        <Style x:Key="TemporaryAddressTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#111827" />
+            <Setter Property="CaretBrush" Value="#2563EB" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="13,0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="TextBoxBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="TextBoxBorder" Property="BorderBrush" Value="#2563EB" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TextBoxBorder" Property="BorderBrush" Value="#94A3B8" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <!-- Flat icon button used for the hamburger / add buttons -->
         <Style x:Key="IconButton" TargetType="Button">

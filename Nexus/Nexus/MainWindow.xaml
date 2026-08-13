@@ -13,37 +13,6 @@
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
-        <Style x:Key="TemporaryAddressTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#CBD5E1" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="#111827" />
-            <Setter Property="CaretBrush" Value="#2563EB" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Padding" Value="13,0" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border x:Name="TextBoxBorder"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="8">
-                            <ScrollViewer x:Name="PART_ContentHost" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="TextBoxBorder" Property="BorderBrush" Value="#2563EB" />
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="TextBoxBorder" Property="BorderBrush" Value="#94A3B8" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </Window.Resources>
     <Grid x:Name="KeyboardFocusHost" Focusable="True" FocusVisualStyle="{x:Null}">
         <Grid.ColumnDefinitions>
@@ -68,10 +37,11 @@
                 <Grid DockPanel.Dock="Top" Height="52">
                     <Button x:Name="ToggleButton"
                             Style="{StaticResource IconButton}"
+                            FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
                             Width="40" Height="40"
                             HorizontalAlignment="Left"
                             Margin="6,0,0,0"
-                            Content="&#9776;"
+                            Content="&#xE700;"
                             ToolTip="Expand / collapse"
                             Click="ToggleButton_Click" />
                 </Grid>
@@ -90,7 +60,8 @@
                             ToolTip="Add a website">
                         <StackPanel Orientation="Horizontal"
                                     VerticalAlignment="Center">
-                            <TextBlock Text="&#65291;"
+                            <TextBlock Text="&#xE710;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
                                        FontSize="18"
                                        Width="40"
                                        TextAlignment="Center"
@@ -121,83 +92,149 @@
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
                             <Setter Property="Padding" Value="0" />
-                            <Setter Property="Margin" Value="4,2" />
+                            <Setter Property="Margin" Value="0,2" />
                             <Setter Property="Foreground" Value="{StaticResource SidebarText}" />
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="ListBoxItem">
-                                        <Border x:Name="ItemBorder"
-                                                Background="Transparent"
-                                                CornerRadius="6"
-                                                Padding="1">
+                                        <Grid Height="40">
+                                            <Border x:Name="SelectionBackground"
+                                                    Background="Transparent" />
+                                            <Border x:Name="HoverBackground"
+                                                    Width="40"
+                                                    Height="40"
+                                                    Margin="6,0,0,0"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalAlignment="Center"
+                                                    CornerRadius="6"
+                                                    Background="{StaticResource SidebarHover}"
+                                                    Visibility="Collapsed" />
+                                            <Border x:Name="ExpandedHoverBackground"
+                                                    Background="{StaticResource SidebarHover}"
+                                                    Visibility="Collapsed" />
+                                            <Border x:Name="SelectionIndicator"
+                                                    Width="3"
+                                                    Height="40"
+                                                    HorizontalAlignment="Left"
+                                                    VerticalAlignment="Center"
+                                                    CornerRadius="1.5"
+                                                    Background="{StaticResource AccentBrush}"
+                                                    Visibility="Collapsed" />
                                             <ContentPresenter VerticalAlignment="Center" />
-                                        </Border>
+                                        </Grid>
                                         <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="ItemBorder" Property="Background"
-                                                        Value="{StaticResource SidebarHover}" />
-                                            </Trigger>
+                                            <MultiTrigger>
+                                                <MultiTrigger.Conditions>
+                                                    <Condition Property="IsMouseOver" Value="True" />
+                                                    <Condition Property="IsSelected" Value="False" />
+                                                </MultiTrigger.Conditions>
+                                                <Setter TargetName="HoverBackground" Property="Visibility"
+                                                        Value="Visible" />
+                                            </MultiTrigger>
+                                            <MultiTrigger>
+                                                <MultiTrigger.Conditions>
+                                                    <Condition Property="IsMouseOver" Value="True" />
+                                                    <Condition Property="IsSelected" Value="False" />
+                                                    <Condition Property="Tag" Value="Expanded" />
+                                                </MultiTrigger.Conditions>
+                                                <Setter TargetName="HoverBackground" Property="Visibility"
+                                                        Value="Collapsed" />
+                                                <Setter TargetName="ExpandedHoverBackground" Property="Visibility"
+                                                        Value="Visible" />
+                                            </MultiTrigger>
                                             <Trigger Property="IsSelected" Value="True">
-                                                <Setter TargetName="ItemBorder" Property="Background"
+                                                <Setter TargetName="SelectionBackground" Property="Background"
                                                         Value="{StaticResource SidebarSelected}" />
+                                                <Setter TargetName="SelectionIndicator" Property="Visibility"
+                                                        Value="Visible" />
+                                                <Setter TargetName="HoverBackground" Property="Visibility"
+                                                        Value="Collapsed" />
+                                                <Setter TargetName="ExpandedHoverBackground" Property="Visibility"
+                                                        Value="Collapsed" />
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </Setter.Value>
                             </Setter>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSidebarExpanded, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                    <Setter Property="Tag" Value="Expanded" />
+                                </DataTrigger>
+                            </Style.Triggers>
                         </Style>
                     </ListBox.ItemContainerStyle>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid Height="40" ToolTip="{Binding Name}">
-                                <Grid.ColumnDefinitions>
-                                    <!-- Fixed (not Auto) so the avatar's centered position
-                                         never shifts between collapsed and expanded states:
-                                         this width equals the avatar area when
-                                         collapsed, so the avatar sits centered there too. -->
-                                    <ColumnDefinition Width="40" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                                <Grid x:Name="CollapsedSiteItem">
+                                    <Border Width="40" Height="40"
+                                            Margin="6,0,0,0"
+                                            HorizontalAlignment="Left">
+                                        <Border Width="32" Height="32"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                CornerRadius="16"
+                                                Background="{StaticResource AvatarBackground}">
+                                            <TextBlock Text="{Binding Initial}"
+                                                       Foreground="White"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                        </Border>
+                                    </Border>
+                                </Grid>
 
-                                <!-- Avatar -->
-                                <Border Grid.Column="0"
-                                        Width="32" Height="32"
-                                        Margin="4,0"
-                                        HorizontalAlignment="Center"
-                                        CornerRadius="16"
-                                        Background="{StaticResource AvatarBackground}">
-                                    <TextBlock Text="{Binding Initial}"
-                                               Foreground="White"
-                                               FontSize="14"
-                                               FontWeight="SemiBold"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center" />
-                                </Border>
-                                <!-- Name (hidden when collapsed) -->
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding Name}"
-                                           VerticalAlignment="Center"
-                                           Margin="4,0,4,0"
-                                           FontSize="13"
-                                           TextTrimming="CharacterEllipsis"
-                                           Foreground="{StaticResource SidebarText}"
-                                           Visibility="{Binding IsSidebarExpanded,
-                                               RelativeSource={RelativeSource AncestorType=Window},
-                                               Converter={StaticResource BoolToVis}}" />
-                                <!-- Remove (hidden when collapsed) -->
-                                <Button Grid.Column="2"
-                                        Style="{StaticResource IconButton}"
-                                        Width="26" Height="26"
-                                        FontSize="12"
-                                        Margin="0,0,6,0"
-                                        Content="&#10005;"
-                                        ToolTip="Remove this site"
-                                        Click="DeleteSite_Click"
-                                        Visibility="{Binding IsSidebarExpanded,
-                                            RelativeSource={RelativeSource AncestorType=Window},
-                                            Converter={StaticResource BoolToVis}}" />
+                                <Grid x:Name="ExpandedSiteItem" Visibility="Collapsed">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="52" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0"
+                                            Width="40" Height="40"
+                                            Margin="6,0,0,0"
+                                            HorizontalAlignment="Left">
+                                        <Border Width="32" Height="32"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                CornerRadius="16"
+                                                Background="{StaticResource AvatarBackground}">
+                                            <TextBlock Text="{Binding Initial}"
+                                                       Foreground="White"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                        </Border>
+                                    </Border>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Name}"
+                                               VerticalAlignment="Center"
+                                               Margin="8,0,4,0"
+                                               FontSize="13"
+                                               TextTrimming="CharacterEllipsis"
+                                               Foreground="{StaticResource SidebarText}" />
+
+                                    <Button Grid.Column="2"
+                                            Style="{StaticResource IconButton}"
+                                            FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                            Width="26" Height="26"
+                                            FontSize="12"
+                                            Margin="0,0,6,0"
+                                            Content="&#xE711;"
+                                            ToolTip="Remove this site"
+                                            Click="DeleteSite_Click" />
+                                </Grid>
                             </Grid>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding IsSidebarExpanded, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                    <Setter TargetName="CollapsedSiteItem" Property="Visibility" Value="Collapsed" />
+                                    <Setter TargetName="ExpandedSiteItem" Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
