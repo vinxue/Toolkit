@@ -9,11 +9,13 @@ namespace Nexus
     {
         private readonly CoreWebView2Environment _environment;
         private readonly Action<CoreWebView2NewWindowRequestedEventArgs, CoreWebView2Environment> _openPopupWindow;
+        private readonly Func<Task> _openTemporaryPopupWindowAsync;
         private readonly FullscreenWindowController _appFullscreenController = new();
         private readonly FullscreenWindowController _webFullscreenController = new();
 
         private bool _isAppFullscreen;
         private bool _isWebContentFullscreen;
+        private bool _isInitialized;
         private Brush? _popupRootBackgroundBeforeAppFullscreen;
         private Brush? _popupRootBackgroundBeforeWebFullscreen;
         private Visibility _addressBarVisibilityBeforeAppFullscreen;
@@ -21,15 +23,36 @@ namespace Nexus
 
         public PopupWebViewWindow(
             CoreWebView2Environment environment,
-            Action<CoreWebView2NewWindowRequestedEventArgs, CoreWebView2Environment> openPopupWindow)
+            Action<CoreWebView2NewWindowRequestedEventArgs, CoreWebView2Environment> openPopupWindow,
+            Func<Task> openTemporaryPopupWindowAsync)
         {
             _environment = environment;
             _openPopupWindow = openPopupWindow;
+            _openTemporaryPopupWindowAsync = openTemporaryPopupWindowAsync;
             InitializeComponent();
         }
 
         public async Task InitializeAsync(CoreWebView2NewWindowRequestedEventArgs args)
         {
+            await InitializeCoreAsync();
+
+            args.NewWindow = PopupWebView.CoreWebView2;
+            args.Handled = true;
+        }
+
+        public async Task InitializeTemporaryAsync()
+        {
+            await InitializeCoreAsync();
+            ShowAddressBar();
+        }
+
+        private async Task InitializeCoreAsync()
+        {
+            if (_isInitialized)
+            {
+                return;
+            }
+
             await PopupWebView.EnsureCoreWebView2Async(_environment);
 
             PopupWebView.CoreWebView2.WindowCloseRequested += (_, _) => Close();
@@ -38,8 +61,7 @@ namespace Nexus
             PopupWebView.CoreWebView2.ContainsFullScreenElementChanged += (_, _) =>
                 SetWebContentFullscreen(PopupWebView.CoreWebView2.ContainsFullScreenElement);
 
-            args.NewWindow = PopupWebView.CoreWebView2;
-            args.Handled = true;
+            _isInitialized = true;
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -51,7 +73,24 @@ namespace Nexus
                 return;
             }
 
-            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.L)
+            if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
+            {
+                return;
+            }
+
+            if (e.Key == Key.N)
+            {
+                if (_isWebContentFullscreen)
+                {
+                    return;
+                }
+
+                e.Handled = true;
+                _ = _openTemporaryPopupWindowAsync();
+                return;
+            }
+
+            if (e.Key == Key.L)
             {
                 ShowAddressBar();
                 e.Handled = true;
@@ -67,7 +106,24 @@ namespace Nexus
                 return;
             }
 
-            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.L)
+            if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
+            {
+                return;
+            }
+
+            if (e.Key == Key.N)
+            {
+                if (_isWebContentFullscreen)
+                {
+                    return;
+                }
+
+                e.Handled = true;
+                Dispatcher.BeginInvoke(new Action(() => _ = _openTemporaryPopupWindowAsync()));
+                return;
+            }
+
+            if (e.Key == Key.L)
             {
                 e.Handled = true;
                 Dispatcher.BeginInvoke(new Action(ShowAddressBar));

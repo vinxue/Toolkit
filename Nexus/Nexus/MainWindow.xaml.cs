@@ -32,6 +32,7 @@ namespace Nexus
 
         private WebView2? _temporaryWebView;
         private CoreWebView2Environment? _temporaryEnvironment;
+        private CoreWebView2Environment? _temporaryPopupEnvironment;
         private WebView2? _fullscreenWebView;
         private SiteConfig? _siteBeforeTemporaryPage;
 
@@ -202,7 +203,17 @@ namespace Nexus
                 return;
             }
 
-            if (e.Key == Key.L)
+            if (e.Key == Key.N)
+            {
+                if (_isWebContentFullscreen)
+                {
+                    return;
+                }
+
+                e.Handled = true;
+                _ = OpenTemporaryPopupWindowAsync();
+            }
+            else if (e.Key == Key.L)
             {
                 if (_isWebContentFullscreen)
                 {
@@ -757,6 +768,18 @@ namespace Nexus
                 return;
             }
 
+            if (e.Key == Key.N)
+            {
+                if (_isWebContentFullscreen)
+                {
+                    return;
+                }
+
+                e.Handled = true;
+                Dispatcher.BeginInvoke(new Action(() => _ = OpenTemporaryPopupWindowAsync()));
+                return;
+            }
+
             if (e.Key == Key.W && CanCloseTemporaryPage())
             {
                 e.Handled = true;
@@ -800,7 +823,24 @@ namespace Nexus
                 return;
             }
 
-            if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control || e.Key != Key.L)
+            if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
+            {
+                return;
+            }
+
+            if (e.Key == Key.N)
+            {
+                if (_isWebContentFullscreen)
+                {
+                    return;
+                }
+
+                e.Handled = true;
+                Dispatcher.BeginInvoke(new Action(() => _ = OpenTemporaryPopupWindowAsync()));
+                return;
+            }
+
+            if (e.Key != Key.L)
             {
                 return;
             }
@@ -823,7 +863,21 @@ namespace Nexus
             CoreWebView2Environment environment)
         {
             var deferral = args.GetDeferral();
-            var popupWindow = new PopupWebViewWindow(environment, OpenWebViewPopupWindow)
+            var popupWindow = CreatePopupWindow(environment);
+
+            // Show the window first so the WebView2 control has a parent HWND before
+            // EnsureCoreWebView2Async is awaited - otherwise initialization hangs.
+            popupWindow.Show();
+
+            _ = InitializePopupWebViewAsync(popupWindow, args, deferral);
+        }
+
+        private PopupWebViewWindow CreatePopupWindow(CoreWebView2Environment environment)
+        {
+            var popupWindow = new PopupWebViewWindow(
+                environment,
+                OpenWebViewPopupWindow,
+                OpenTemporaryPopupWindowAsync)
             {
                 Width = PopupWidth,
                 Height = PopupHeight
@@ -831,12 +885,36 @@ namespace Nexus
 
             _popupWindows.Add(popupWindow);
             popupWindow.Closed += (_, _) => _popupWindows.Remove(popupWindow);
+            return popupWindow;
+        }
 
-            // Show the window first so the WebView2 control has a parent HWND before
-            // EnsureCoreWebView2Async is awaited - otherwise initialization hangs.
-            popupWindow.Show();
+        private async Task OpenTemporaryPopupWindowAsync()
+        {
+            PopupWebViewWindow? popupWindow = null;
 
-            _ = InitializePopupWebViewAsync(popupWindow, args, deferral);
+            try
+            {
+                _temporaryPopupEnvironment ??= await CoreWebView2Environment.CreateAsync(
+                    browserExecutableFolder: null,
+                    userDataFolder: SiteStore.TemporaryProfileFolder);
+
+                popupWindow = CreatePopupWindow(_temporaryPopupEnvironment);
+                // Show the window first so the WebView2 control has a parent HWND before
+                // EnsureCoreWebView2Async is awaited - otherwise initialization hangs.
+                popupWindow.Show();
+
+                await popupWindow.InitializeTemporaryAsync();
+            }
+            catch (Exception ex)
+            {
+                popupWindow?.Close();
+                MessageBox.Show(
+                    this,
+                    $"Could not open a temporary window.\n{ex.Message}",
+                    "Nexus",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
         }
 
         private async Task InitializePopupWebViewAsync(
@@ -913,6 +991,7 @@ namespace Nexus
             _temporaryWebView?.Dispose();
             _temporaryWebView = null;
             _temporaryEnvironment = null;
+            _temporaryPopupEnvironment = null;
         }
 
         private void ExitAnyWebContentFullscreen()
