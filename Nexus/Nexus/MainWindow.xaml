@@ -219,7 +219,7 @@
                                                Foreground="{StaticResource SidebarText}" />
 
                                     <Button Grid.Column="2"
-                                            Style="{StaticResource IconButton}"
+                                            Style="{StaticResource RemoveSiteButton}"
                                             FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
                                             Width="26" Height="26"
                                             FontSize="12"
