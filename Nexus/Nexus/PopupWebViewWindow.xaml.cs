@@ -1,35 +1,44 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Web.WebView2.Core;
+using Nexus.Core;
+using Nexus.Services;
 
 namespace Nexus
 {
     public partial class PopupWebViewWindow : Window
     {
-        private readonly CoreWebView2Environment _environment;
-        private readonly Action<CoreWebView2NewWindowRequestedEventArgs, CoreWebView2Environment> _openPopupWindow;
-        private readonly Func<Task> _openTemporaryPopupWindowAsync;
+        private readonly ProfileManager _profileManager;
+        private readonly ProfileContext _profile;
+        private readonly Action<CoreWebView2NewWindowRequestedEventArgs, ProfileContext> _openPopupWindow;
+        private readonly Func<ProfileContext, Task> _openNewWindowAsync;
         private readonly FullscreenWindowController _appFullscreenController = new();
         private readonly FullscreenWindowController _webFullscreenController = new();
 
         private bool _isAppFullscreen;
         private bool _isWebContentFullscreen;
         private bool _isInitialized;
-        private Brush? _popupRootBackgroundBeforeAppFullscreen;
-        private Brush? _popupRootBackgroundBeforeWebFullscreen;
-        private Visibility _addressBarVisibilityBeforeAppFullscreen;
-        private Visibility _addressBarVisibilityBeforeWebFullscreen;
+        private ChromeState? _chromeBeforeFullscreen;
 
         public PopupWebViewWindow(
-            CoreWebView2Environment environment,
-            Action<CoreWebView2NewWindowRequestedEventArgs, CoreWebView2Environment> openPopupWindow,
-            Func<Task> openTemporaryPopupWindowAsync)
+            ProfileManager profileManager,
+            ProfileContext profile,
+            Action<CoreWebView2NewWindowRequestedEventArgs, ProfileContext> openPopupWindow,
+            Func<ProfileContext, Task> openNewWindowAsync)
         {
-            _environment = environment;
+            _profileManager = profileManager;
+            _profile = profile;
             _openPopupWindow = openPopupWindow;
-            _openTemporaryPopupWindowAsync = openTemporaryPopupWindowAsync;
+            _openNewWindowAsync = openNewWindowAsync;
             InitializeComponent();
+
+            // Link popups have no address bar, so the title is the only place a
+            // private window can be told apart.
+            if (profile.IsInPrivate)
+            {
+                Title = "Private - Nexus";
+            }
         }
 
         public async Task InitializeAsync(CoreWebView2NewWindowRequestedEventArgs args)
@@ -40,7 +49,7 @@ namespace Nexus
             args.Handled = true;
         }
 
-        public async Task InitializeTemporaryAsync()
+        public async Task InitializeStandaloneAsync()
         {
             await InitializeCoreAsync();
             ShowAddressBar();
@@ -53,18 +62,28 @@ namespace Nexus
                 return;
             }
 
-            await PopupWebView.EnsureCoreWebView2Async(_environment);
+            await _profileManager.InitializeAsync(PopupWebView, _profile);
 
             PopupWebView.CoreWebView2.WindowCloseRequested += (_, _) => Close();
             PopupWebView.CoreWebView2.NewWindowRequested += (_, popupArgs) =>
-                _openPopupWindow(popupArgs, _environment);
+                _openPopupWindow(popupArgs, _profile);
             PopupWebView.CoreWebView2.ContainsFullScreenElementChanged += (_, _) =>
                 SetWebContentFullscreen(PopupWebView.CoreWebView2.ContainsFullScreenElement);
 
             _isInitialized = true;
         }
 
-        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e) =>
+            HandleShortcut(e, defer: false);
+
+        /// <summary>
+        /// Shortcuts arriving from the WebView2 run after its native key handling
+        /// returns, otherwise focus changes made here are swallowed.
+        /// </summary>
+        private void PopupWebView_PreviewKeyDown(object sender, KeyEventArgs e) =>
+            HandleShortcut(e, defer: true);
+
+        private void HandleShortcut(KeyEventArgs e, bool defer)
         {
             if (e.Key == Key.F11)
             {
@@ -78,55 +97,35 @@ namespace Nexus
                 return;
             }
 
-            if (e.Key == Key.N)
+            // Captured now: the action may run deferred, by which time Shift is released.
+            var newWindowProfile = (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift
+                ? SiteStore.PrivateProfile
+                : SiteStore.SharedProfile;
+
+            Action? action = e.Key switch
             {
-                if (_isWebContentFullscreen)
-                {
-                    return;
-                }
+                Key.N when !_isWebContentFullscreen => () => _ = _openNewWindowAsync(newWindowProfile),
+                Key.L => ShowAddressBar,
+                // An open address bar means the user is typing, so Ctrl+W must not
+                // close the window from under them.
+                Key.W when PopupAddressBar.Visibility != Visibility.Visible => Close,
+                _ => null
+            };
 
-                e.Handled = true;
-                _ = _openTemporaryPopupWindowAsync();
-                return;
-            }
-
-            if (e.Key == Key.L)
-            {
-                ShowAddressBar();
-                e.Handled = true;
-            }
-        }
-
-        private void PopupWebView_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.F11)
-            {
-                ToggleAppFullscreen();
-                e.Handled = true;
-                return;
-            }
-
-            if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
+            if (action is null)
             {
                 return;
             }
 
-            if (e.Key == Key.N)
-            {
-                if (_isWebContentFullscreen)
-                {
-                    return;
-                }
+            e.Handled = true;
 
-                e.Handled = true;
-                Dispatcher.BeginInvoke(new Action(() => _ = _openTemporaryPopupWindowAsync()));
-                return;
+            if (defer)
+            {
+                Dispatcher.BeginInvoke(action);
             }
-
-            if (e.Key == Key.L)
+            else
             {
-                e.Handled = true;
-                Dispatcher.BeginInvoke(new Action(ShowAddressBar));
+                action();
             }
         }
 
@@ -148,22 +147,32 @@ namespace Nexus
             }
 
             _isAppFullscreen = fullscreen;
+            SetChromeHidden(fullscreen, _appFullscreenController);
+        }
 
-            if (fullscreen)
+        /// <summary>
+        /// Both fullscreen modes hide the same chrome, and web-content fullscreen
+        /// leaves app fullscreen first, so a single saved state covers both.
+        /// </summary>
+        private void SetChromeHidden(bool hidden, FullscreenWindowController controller)
+        {
+            if (hidden)
             {
-                _popupRootBackgroundBeforeAppFullscreen = PopupRoot.Background;
-                _addressBarVisibilityBeforeAppFullscreen = PopupAddressBar.Visibility;
+                _chromeBeforeFullscreen = new ChromeState(PopupRoot.Background, PopupAddressBar.Visibility);
                 PopupAddressBar.Visibility = Visibility.Collapsed;
                 PopupRoot.Background = Brushes.Black;
-                _appFullscreenController.Enter(this, Brushes.Black);
+                controller.Enter(this, Brushes.Black);
             }
             else
             {
-                PopupAddressBar.Visibility = _addressBarVisibilityBeforeAppFullscreen;
-                PopupRoot.Background = _popupRootBackgroundBeforeAppFullscreen ?? Brushes.White;
-                _appFullscreenController.Exit(this);
+                PopupAddressBar.Visibility = _chromeBeforeFullscreen?.AddressBar ?? Visibility.Collapsed;
+                PopupRoot.Background = _chromeBeforeFullscreen?.RootBackground ?? Brushes.White;
+                _chromeBeforeFullscreen = null;
+                controller.Exit(this);
             }
         }
+
+        private readonly record struct ChromeState(Brush? RootBackground, Visibility AddressBar);
 
         private void ShowAddressBar()
         {
@@ -212,7 +221,18 @@ namespace Nexus
             }
 
             PopupAddressBar.Visibility = Visibility.Collapsed;
-            PopupWebView.Source = uri;
+
+            // Navigate rather than assigning Source, which no-ops when the address is
+            // unchanged and would make re-entering the current URL do nothing.
+            if (PopupWebView.CoreWebView2 is { } core)
+            {
+                core.Navigate(uri.AbsoluteUri);
+            }
+            else
+            {
+                PopupWebView.Source = uri;
+            }
+
             PopupWebView.Focus();
         }
 
@@ -229,28 +249,23 @@ namespace Nexus
             }
 
             _isWebContentFullscreen = fullscreen;
-
-            if (fullscreen)
-            {
-                _popupRootBackgroundBeforeWebFullscreen = PopupRoot.Background;
-                _addressBarVisibilityBeforeWebFullscreen = PopupAddressBar.Visibility;
-                PopupAddressBar.Visibility = Visibility.Collapsed;
-                PopupRoot.Background = Brushes.Black;
-                _webFullscreenController.Enter(this, Brushes.Black);
-            }
-            else
-            {
-                PopupAddressBar.Visibility = _addressBarVisibilityBeforeWebFullscreen;
-                PopupRoot.Background = _popupRootBackgroundBeforeWebFullscreen ?? Brushes.White;
-                _webFullscreenController.Exit(this);
-            }
+            SetChromeHidden(fullscreen, _webFullscreenController);
         }
 
         protected override void OnClosed(EventArgs e)
         {
             _appFullscreenController.Exit(this);
             _webFullscreenController.Exit(this);
-            PopupWebView.Dispose();
+
+            try
+            {
+                PopupWebView.Dispose();
+            }
+            catch (Exception)
+            {
+                // A browser process failure already tore the CoreWebView2 down.
+            }
+
             base.OnClosed(e);
         }
 

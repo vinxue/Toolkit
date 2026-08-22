@@ -46,27 +46,27 @@
                             Click="ToggleButton_Click" />
                 </Grid>
 
-                <!-- Footer: add site -->
+                <!-- Footer: settings -->
                 <Border DockPanel.Dock="Bottom"
                         BorderBrush="{StaticResource SidebarBorder}"
                         BorderThickness="0,1,0,0">
-                    <Button x:Name="AddSiteButton"
+                    <Button x:Name="SettingsButton"
                             Style="{StaticResource IconButton}"
                             Height="40"
                             Margin="6"
                             HorizontalContentAlignment="Left"
                             VerticalContentAlignment="Center"
-                            Click="AddSiteButton_Click"
-                            ToolTip="Add a website">
+                            Click="SettingsButton_Click"
+                            ToolTip="Settings">
                         <StackPanel Orientation="Horizontal"
                                     VerticalAlignment="Center">
-                            <TextBlock Text="&#xE710;"
+                            <TextBlock Text="&#xE713;"
                                        FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                       FontSize="18"
+                                       FontSize="16"
                                        Width="40"
                                        TextAlignment="Center"
                                        VerticalAlignment="Center" />
-                            <TextBlock Text="Add site"
+                            <TextBlock Text="Settings"
                                        VerticalAlignment="Center"
                                        FontSize="13"
                                        Foreground="{StaticResource SidebarText}"
@@ -170,18 +170,33 @@
                                     <Border Width="40" Height="40"
                                             Margin="6,0,0,0"
                                             HorizontalAlignment="Left">
-                                        <Border Width="32" Height="32"
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"
-                                                CornerRadius="16"
-                                                Background="{StaticResource AvatarBackground}">
-                                            <TextBlock Text="{Binding Initial}"
-                                                       Foreground="White"
-                                                       FontSize="14"
-                                                       FontWeight="SemiBold"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
-                                        </Border>
+                                        <Grid Width="32" Height="32"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              UseLayoutRounding="True">
+                                            <Border x:Name="CollapsedAvatar"
+                                                    CornerRadius="16"
+                                                    Background="{StaticResource AvatarChipBackground}"
+                                                    BorderBrush="{StaticResource AvatarChipBorder}"
+                                                    BorderThickness="1">
+                                                <TextBlock x:Name="CollapsedInitial"
+                                                           Text="{Binding Initial}"
+                                                           Foreground="White"
+                                                           FontSize="14"
+                                                           FontWeight="SemiBold"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Visibility="Collapsed" />
+                                            </Border>
+                                            <!-- 16px matches the size most sites ship, so the
+                                                 icon is never scaled up. -->
+                                            <Image x:Name="CollapsedFavicon"
+                                                   Source="{Binding Favicon}"
+                                                   Width="16" Height="16"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                                        </Grid>
                                     </Border>
                                 </Grid>
 
@@ -196,18 +211,31 @@
                                             Width="40" Height="40"
                                             Margin="6,0,0,0"
                                             HorizontalAlignment="Left">
-                                        <Border Width="32" Height="32"
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"
-                                                CornerRadius="16"
-                                                Background="{StaticResource AvatarBackground}">
-                                            <TextBlock Text="{Binding Initial}"
-                                                       Foreground="White"
-                                                       FontSize="14"
-                                                       FontWeight="SemiBold"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
-                                        </Border>
+                                        <Grid Width="32" Height="32"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              UseLayoutRounding="True">
+                                            <Border x:Name="ExpandedAvatar"
+                                                    CornerRadius="16"
+                                                    Background="{StaticResource AvatarChipBackground}"
+                                                    BorderBrush="{StaticResource AvatarChipBorder}"
+                                                    BorderThickness="1">
+                                                <TextBlock x:Name="ExpandedInitial"
+                                                           Text="{Binding Initial}"
+                                                           Foreground="White"
+                                                           FontSize="14"
+                                                           FontWeight="SemiBold"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Visibility="Collapsed" />
+                                            </Border>
+                                            <Image x:Name="ExpandedFavicon"
+                                                   Source="{Binding Favicon}"
+                                                   Width="16" Height="16"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                                        </Grid>
                                     </Border>
 
                                     <TextBlock Grid.Column="1"
@@ -218,18 +246,29 @@
                                                TextTrimming="CharacterEllipsis"
                                                Foreground="{StaticResource SidebarText}" />
 
-                                    <Button Grid.Column="2"
-                                            Style="{StaticResource RemoveSiteButton}"
-                                            FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                            Width="26" Height="26"
-                                            FontSize="12"
-                                            Margin="0,0,6,0"
-                                            Content="&#xE711;"
-                                            ToolTip="Remove this site"
-                                            Click="DeleteSite_Click" />
+                                    <TextBlock Grid.Column="2"
+                                               Text="&#xE72E;"
+                                               FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                               Foreground="{StaticResource SidebarText}"
+                                               FontSize="12"
+                                               Margin="0,0,12,0"
+                                               VerticalAlignment="Center"
+                                               ToolTip="Uses isolated profile"
+                                               Visibility="{Binding UsesIsolatedProfile,
+                                                   Converter={StaticResource BoolToVis}}" />
                                 </Grid>
                             </Grid>
                             <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Favicon}" Value="{x:Null}">
+                                    <Setter TargetName="CollapsedFavicon" Property="Visibility" Value="Collapsed" />
+                                    <Setter TargetName="ExpandedFavicon" Property="Visibility" Value="Collapsed" />
+                                    <Setter TargetName="CollapsedInitial" Property="Visibility" Value="Visible" />
+                                    <Setter TargetName="ExpandedInitial" Property="Visibility" Value="Visible" />
+                                    <Setter TargetName="CollapsedAvatar" Property="Background" Value="{StaticResource AvatarBackground}" />
+                                    <Setter TargetName="ExpandedAvatar" Property="Background" Value="{StaticResource AvatarBackground}" />
+                                    <Setter TargetName="CollapsedAvatar" Property="BorderThickness" Value="0" />
+                                    <Setter TargetName="ExpandedAvatar" Property="BorderThickness" Value="0" />
+                                </DataTrigger>
                                 <DataTrigger Binding="{Binding IsSidebarExpanded, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
                                     <Setter TargetName="CollapsedSiteItem" Property="Visibility" Value="Collapsed" />
                                     <Setter TargetName="ExpandedSiteItem" Property="Visibility" Value="Visible" />
@@ -283,13 +322,53 @@
                            FontSize="15"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center" />
-                <TextBlock x:Name="LoadingHint"
-                           Text="Loading..."
-                           Foreground="#8A94A6"
-                           FontSize="15"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           Visibility="Collapsed" />
+                <StackPanel x:Name="LoadingHint"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Visibility="Collapsed">
+                    <!-- WPF has no ProgressRing: a dashed ellipse renders as an arc,
+                         and rotating it gives the same spinner. -->
+                    <Ellipse Width="28"
+                             Height="28"
+                             StrokeThickness="3"
+                             Stroke="{StaticResource AccentBrush}"
+                             StrokeDashArray="20 10"
+                             StrokeDashCap="Round"
+                             HorizontalAlignment="Center"
+                             RenderTransformOrigin="0.5,0.5">
+                        <Ellipse.RenderTransform>
+                            <RotateTransform Angle="0" />
+                        </Ellipse.RenderTransform>
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Style.Triggers>
+                                    <Trigger Property="IsVisible" Value="True">
+                                        <Trigger.EnterActions>
+                                            <BeginStoryboard x:Name="SpinStoryboard">
+                                                <Storyboard>
+                                                    <DoubleAnimation
+                                                        Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                                        From="0"
+                                                        To="360"
+                                                        Duration="0:0:1.1"
+                                                        RepeatBehavior="Forever" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </Trigger.EnterActions>
+                                        <Trigger.ExitActions>
+                                            <StopStoryboard BeginStoryboardName="SpinStoryboard" />
+                                        </Trigger.ExitActions>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock Text="Loading..."
+                               Foreground="#8A94A6"
+                               FontSize="14"
+                               Margin="0,14,0,0"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
                 <TextBlock x:Name="ErrorHint"
                            Foreground="#DC2626"
                            FontSize="14"

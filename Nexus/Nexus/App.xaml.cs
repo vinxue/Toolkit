@@ -1,7 +1,4 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
-using System.Windows.Threading;
+﻿using System.Windows;
 
 namespace Nexus
 {
@@ -18,7 +15,7 @@ namespace Nexus
             DispatcherUnhandledException += (_, args) =>
             {
                 MessageBox.Show(
-                    args.Exception.ToString(),
+                    $"Nexus hit an unexpected error and may not work correctly until it is restarted.\n\n{args.Exception}",
                     "Unexpected error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
@@ -26,5 +23,4 @@ namespace Nexus
             };
         }
     }
-
 }

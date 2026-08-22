@@ -1,4 +1,6 @@
 using System.ComponentModel;
+using System.Text.Json.Serialization;
+using System.Windows.Media;
 
 namespace Nexus.Models
 {
@@ -9,8 +11,10 @@ namespace Nexus.Models
     {
         private string _id = Guid.NewGuid().ToString("N");
         private string _name = string.Empty;
-        private string _profileFolderName = string.Empty;
+        private string _profileName = string.Empty;
+        private SiteProfileMode _profileMode = SiteProfileMode.Shared;
         private string _url = string.Empty;
+        private ImageSource? _favicon;
 
         public string Id
         {
@@ -35,14 +39,26 @@ namespace Nexus.Models
             }
         }
 
-        public string ProfileFolderName
+        public string ProfileName
         {
-            get => _profileFolderName;
+            get => _profileName;
             set
             {
-                if (_profileFolderName == value) return;
-                _profileFolderName = value;
-                OnPropertyChanged(nameof(ProfileFolderName));
+                if (_profileName == value) return;
+                _profileName = value;
+                OnPropertyChanged(nameof(ProfileName));
+            }
+        }
+
+        public SiteProfileMode ProfileMode
+        {
+            get => _profileMode;
+            set
+            {
+                if (_profileMode == value) return;
+                _profileMode = value;
+                OnPropertyChanged(nameof(ProfileMode));
+                OnPropertyChanged(nameof(UsesIsolatedProfile));
             }
         }
 
@@ -62,6 +78,23 @@ namespace Nexus.Models
         /// </summary>
         public string Initial =>
             string.IsNullOrWhiteSpace(_name) ? "?" : _name.Trim().Substring(0, 1).ToUpperInvariant();
+
+        /// <summary>
+        /// Site icon shown in the sidebar. Cached on disk, never in the config file.
+        /// </summary>
+        [JsonIgnore]
+        public ImageSource? Favicon
+        {
+            get => _favicon;
+            set
+            {
+                if (ReferenceEquals(_favicon, value)) return;
+                _favicon = value;
+                OnPropertyChanged(nameof(Favicon));
+            }
+        }
+
+        public bool UsesIsolatedProfile => _profileMode == SiteProfileMode.Isolated;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

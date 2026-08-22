@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Input;
 using System.Windows.Media;
+using Nexus.Core;
 using Nexus.Models;
 using Nexus.Services;
 using Microsoft.Web.WebView2.Core;
@@ -26,13 +27,12 @@ namespace Nexus
 
         private readonly ObservableCollection<SiteConfig> _sites = new();
         private readonly Dictionary<SiteConfig, WebView2> _webViews = new();
-        private readonly HashSet<Window> _popupWindows = new();
+        private readonly ProfileManager _profileManager = new(SiteStore.UserDataFolder);
+        private readonly PopupWindowManager _popupWindowManager = new();
         private readonly FullscreenWindowController _appFullscreenController = new();
         private readonly FullscreenWindowController _webFullscreenController = new();
 
         private WebView2? _temporaryWebView;
-        private CoreWebView2Environment? _temporaryEnvironment;
-        private CoreWebView2Environment? _temporaryPopupEnvironment;
         private WebView2? _fullscreenWebView;
         private SiteConfig? _siteBeforeTemporaryPage;
 
@@ -43,14 +43,11 @@ namespace Nexus
         private bool _isAppFullscreen;
         private bool _isTemporaryPageVisible;
         private bool _isWebContentFullscreen;
+        private bool _isShuttingDown;
+        private bool _isRecoveringFromBrowserFailure;
         private Point _dragStartPoint;
         private SiteConfig? _dragCandidate;
-        private Brush? _webHostBackgroundBeforeAppFullscreen;
-        private Visibility _sidebarVisibilityBeforeAppFullscreen;
-        private Visibility _temporaryAddressBarVisibilityBeforeAppFullscreen;
-        private Brush? _webHostBackgroundBeforeFullscreen;
-        private Visibility _sidebarVisibilityBeforeFullscreen;
-        private Visibility _temporaryAddressBarVisibilityBeforeFullscreen;
+        private ChromeState? _chromeBeforeFullscreen;
 
         /// <summary>
         /// The site the user most recently asked to see. Since WebView2
@@ -65,8 +62,11 @@ namespace Nexus
         {
             InitializeComponent();
 
+            _profileManager.BrowserProcessFailed += (_, _) => RecoverFromBrowserProcessFailure();
+
             foreach (var site in SiteStore.Load())
             {
+                FaviconService.LoadCached(site, SiteStore.FaviconFolder);
                 _sites.Add(site);
             }
 
@@ -189,7 +189,17 @@ namespace Nexus
             IsSidebarExpanded = !IsSidebarExpanded;
         }
 
-        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e) =>
+            HandleShortcut(e, defer: false);
+
+        /// <summary>
+        /// Shortcuts arriving from a WebView2 run after its native key handling
+        /// returns, otherwise focus changes made here are swallowed.
+        /// </summary>
+        private void WebView_PreviewKeyDown(object sender, KeyEventArgs e) =>
+            HandleShortcut(e, defer: true);
+
+        private void HandleShortcut(KeyEventArgs e, bool defer)
         {
             if (e.Key == Key.F11)
             {
@@ -203,35 +213,41 @@ namespace Nexus
                 return;
             }
 
-            if (e.Key == Key.N)
-            {
-                if (_isWebContentFullscreen)
-                {
-                    return;
-                }
+            // Captured now: the action may run deferred, by which time Shift is released.
+            var newWindowProfile = (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift
+                ? SiteStore.PrivateProfile
+                : SiteStore.SharedProfile;
 
-                e.Handled = true;
-                _ = OpenTemporaryPopupWindowAsync();
-            }
-            else if (e.Key == Key.L)
+            Action? action = e.Key switch
             {
-                if (_isWebContentFullscreen)
-                {
-                    return;
-                }
+                Key.N when !_isWebContentFullscreen => () => _ = OpenNewWindowAsync(newWindowProfile),
+                Key.L when !_isWebContentFullscreen => ShowTemporaryAddressBar,
+                Key.W when CanCloseTemporaryPage() => () => _ = CloseTemporaryPageAsync(),
+                _ => null
+            };
 
-                ShowTemporaryAddressBar();
-                e.Handled = true;
-            }
-            else if (e.Key == Key.W && CanCloseTemporaryPage())
+            if (action is null)
             {
-                e.Handled = true;
-                _ = CloseTemporaryPageAsync();
+                return;
+            }
+
+            e.Handled = true;
+
+            if (defer)
+            {
+                Dispatcher.BeginInvoke(action);
+            }
+            else
+            {
+                action();
             }
         }
 
+        // An open address bar means the user is typing, so Ctrl+W must not pull the
+        // page out from under them.
         private bool CanCloseTemporaryPage() =>
             _isTemporaryPageVisible &&
+            TemporaryAddressBar.Visibility != Visibility.Visible &&
             (!_isWebContentFullscreen || ReferenceEquals(_fullscreenWebView, _temporaryWebView));
 
         private void ToggleAppFullscreen()
@@ -252,28 +268,40 @@ namespace Nexus
             }
 
             _isAppFullscreen = fullscreen;
+            SetChromeHidden(fullscreen, _appFullscreenController);
+        }
 
-            if (fullscreen)
+        /// <summary>
+        /// Both fullscreen modes hide the same chrome, and web-content fullscreen
+        /// leaves app fullscreen first, so a single saved state covers both.
+        /// </summary>
+        private void SetChromeHidden(bool hidden, FullscreenWindowController controller)
+        {
+            if (hidden)
             {
-                _webHostBackgroundBeforeAppFullscreen = WebHost.Background;
-                _sidebarVisibilityBeforeAppFullscreen = SidebarPanel.Visibility;
-                _temporaryAddressBarVisibilityBeforeAppFullscreen = TemporaryAddressBar.Visibility;
+                _chromeBeforeFullscreen = new ChromeState(
+                    WebHost.Background,
+                    SidebarPanel.Visibility,
+                    TemporaryAddressBar.Visibility);
 
                 SidebarPanel.Visibility = Visibility.Collapsed;
                 TemporaryAddressBar.Visibility = Visibility.Collapsed;
                 WebHost.Background = Brushes.Black;
-                _appFullscreenController.Enter(this);
+                controller.Enter(this);
             }
             else
             {
-                SidebarPanel.Visibility = _sidebarVisibilityBeforeAppFullscreen;
-                TemporaryAddressBar.Visibility = _temporaryAddressBarVisibilityBeforeAppFullscreen;
-                WebHost.Background = _webHostBackgroundBeforeAppFullscreen ?? Brushes.White;
-                _appFullscreenController.Exit(this);
+                SidebarPanel.Visibility = _chromeBeforeFullscreen?.Sidebar ?? Visibility.Visible;
+                TemporaryAddressBar.Visibility = _chromeBeforeFullscreen?.AddressBar ?? Visibility.Collapsed;
+                WebHost.Background = _chromeBeforeFullscreen?.WebHostBackground ?? Brushes.White;
+                _chromeBeforeFullscreen = null;
+                controller.Exit(this);
             }
 
             UpdateExtendedFrame();
         }
+
+        private readonly record struct ChromeState(Brush? WebHostBackground, Visibility Sidebar, Visibility AddressBar);
 
         private void ShowTemporaryAddressBar()
         {
@@ -434,37 +462,97 @@ namespace Nexus
             e.Handled = true;
         }
 
-        private void AddSiteButton_Click(object sender, RoutedEventArgs e)
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new AddSiteWindow(_sites) { Owner = this };
-            if (dialog.ShowDialog() == true && dialog.Result is not null)
+            var settingsWindow = new SettingsWindow(
+                _sites,
+                AddSiteFromSettings,
+                EditSiteFromSettings,
+                RemoveSiteFromSettings,
+                ClearSharedProfileBrowsingDataAsync,
+                ClearSiteBrowsingDataAsync)
             {
-                SiteStore.EnsureProfileFolderName(dialog.Result);
-                _sites.Add(dialog.Result);
-                SiteStore.Save(_sites);
-                SiteList.SelectedItem = dialog.Result;
-            }
+                Owner = this
+            };
+
+            settingsWindow.ShowDialog();
         }
 
-        private void DeleteSite_Click(object sender, RoutedEventArgs e)
+        private string? AddSiteFromSettings(SiteConfig site)
         {
-            if (sender is not FrameworkElement { DataContext: SiteConfig site })
+            string? error = ValidateSite(null, site.Name, site.Url, site.ProfileMode);
+            if (error is not null)
             {
-                return;
+                return error;
             }
 
-            var result = MessageBox.Show(
-                this,
-                $"Remove \"{site.Name}\" and its saved sign-in data?",
-                "Remove site",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
+            SiteStore.EnsureProfileConfiguration(site, _sites);
+            _sites.Add(site);
+            SiteStore.Save(_sites);
+            SiteList.SelectedItem = site;
+            return null;
+        }
 
-            if (result != MessageBoxResult.Yes)
+        /// <summary>
+        /// Isolated sites keep their own session, so the same URL twice is a valid
+        /// way to run two accounts side by side; only shared sites really collide.
+        /// </summary>
+        private string? ValidateSite(SiteConfig? editedSite, string name, string url, SiteProfileMode profileMode)
+        {
+            if (_sites.Any(existing => !ReferenceEquals(existing, editedSite) &&
+                string.Equals(existing.Name.Trim(), name.Trim(), StringComparison.OrdinalIgnoreCase)))
             {
-                return;
+                return "A site with this name already exists.";
             }
 
+            if (profileMode == SiteProfileMode.Shared &&
+                _sites.Any(existing => !ReferenceEquals(existing, editedSite) &&
+                    existing.ProfileMode == SiteProfileMode.Shared &&
+                    NormalizeUrl(existing.Url) == NormalizeUrl(url)))
+            {
+                return "This URL is already in the sidebar on the shared profile. Use an isolated profile to add it for a second account.";
+            }
+
+            return null;
+        }
+
+        private string? EditSiteFromSettings(SiteConfig site, string name, string url, SiteProfileMode profileMode)
+        {
+            string? error = ValidateSite(site, name, url, profileMode);
+            if (error is not null)
+            {
+                return error;
+            }
+
+            bool profileChanged = site.ProfileMode != profileMode;
+
+            site.Name = name;
+            site.Url = url;
+            site.ProfileMode = profileMode;
+
+            // The previous isolated profile name is kept so switching back to
+            // isolated later reuses its data instead of starting a new session.
+            SiteStore.EnsureProfileConfiguration(site, _sites);
+            SiteStore.Save(_sites);
+
+            if (profileChanged)
+            {
+                ReloadSiteProfile(site);
+            }
+            else if (_webViews.TryGetValue(site, out var webView))
+            {
+                webView.Source = new Uri(site.Url);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// A control's profile is fixed when its CoreWebView2 is created, so a site
+        /// that changed profile mode has to be torn down and rebuilt.
+        /// </summary>
+        private void ReloadSiteProfile(SiteConfig site)
+        {
             if (_webViews.TryGetValue(site, out var webView))
             {
                 ExitWebContentFullscreenIfOwnedBy(webView);
@@ -473,10 +561,55 @@ namespace Nexus
                 _webViews.Remove(site);
             }
 
+            if (ReferenceEquals(SiteList.SelectedItem, site) && !_isTemporaryPageVisible)
+            {
+                _ = ShowSiteAsync(site);
+            }
+        }
+
+        private bool RemoveSiteFromSettings(SiteConfig site, bool deleteProfileData)
+        {
+            if (!_sites.Contains(site))
+            {
+                return false;
+            }
+
+            // A site switched back to the shared profile keeps its old isolated
+            // profile on disk, so removal offers to delete that too.
+            bool deleteProfile = deleteProfileData && SiteStore.HasSiteProfile(site);
+            string profileName = site.ProfileName;
+
+            if (deleteProfile)
+            {
+                // A profile is only erased once every window using it has closed.
+                _popupWindowManager.CloseForProfile(profileName);
+            }
+
+            if (_webViews.TryGetValue(site, out var webView))
+            {
+                ExitWebContentFullscreenIfOwnedBy(webView);
+
+                var profile = webView.CoreWebView2?.Profile;
+                if (deleteProfile && string.Equals(profile?.ProfileName, profileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    DeleteProfile(profile!);
+                    deleteProfile = false;
+                }
+
+                WebHost.Children.Remove(webView);
+                webView.Dispose();
+                _webViews.Remove(site);
+            }
+
             bool wasSelected = ReferenceEquals(SiteList.SelectedItem, site);
             _sites.Remove(site);
             SiteStore.Save(_sites);
-            SiteStore.DeleteProfileFolder(site);
+            FaviconService.DeleteCached(site, SiteStore.FaviconFolder);
+
+            if (deleteProfile)
+            {
+                _ = DeleteUnloadedProfileAsync(profileName);
+            }
 
             if (wasSelected)
             {
@@ -485,6 +618,152 @@ namespace Nexus
                 LoadingHint.Visibility = Visibility.Collapsed;
                 EmptyHint.Visibility = Visibility.Visible;
             }
+
+            return true;
+        }
+
+        private void DeleteProfile(CoreWebView2Profile profile)
+        {
+            try
+            {
+                profile.Delete();
+            }
+            catch (Exception ex)
+            {
+                ShowProfileDeleteWarning(ex);
+            }
+        }
+
+        /// <summary>
+        /// Deleting a profile requires a live CoreWebView2 on it, so a site that was
+        /// never opened in this session needs a throwaway control first.
+        /// </summary>
+        private async Task DeleteUnloadedProfileAsync(string profileName)
+        {
+            try
+            {
+                await RunOnProfileAsync(
+                    new ProfileContext(profileName, IsInPrivate: false),
+                    webView =>
+                    {
+                        webView.CoreWebView2.Profile.Delete();
+                        return Task.CompletedTask;
+                    });
+            }
+            catch (Exception ex)
+            {
+                ShowProfileDeleteWarning(ex);
+            }
+        }
+
+        /// <summary>
+        /// Runs work against a profile that no visible WebView2 is currently using.
+        /// The control must be in the visual tree or initialization never completes.
+        /// </summary>
+        private async Task RunOnProfileAsync(ProfileContext profile, Func<WebView2, Task> action)
+        {
+            if (_isShuttingDown)
+            {
+                return;
+            }
+
+            var scratchWebView = new WebView2 { Visibility = Visibility.Hidden };
+            WebHost.Children.Add(scratchWebView);
+
+            try
+            {
+                await _profileManager.InitializeAsync(scratchWebView, profile);
+                await action(scratchWebView);
+            }
+            finally
+            {
+                WebHost.Children.Remove(scratchWebView);
+                scratchWebView.Dispose();
+            }
+        }
+
+        private void ShowProfileDeleteWarning(Exception ex) =>
+            MessageBox.Show(
+                this,
+                $"The site was removed, but its isolated profile data could not be deleted.\n{ex.Message}",
+                "Remove site",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+
+        private static string NormalizeUrl(string url)
+        {
+            if (!Uri.TryCreate(url.Trim(), UriKind.Absolute, out var uri))
+            {
+                return url.Trim().TrimEnd('/').ToLowerInvariant();
+            }
+
+            string authority = uri.IsDefaultPort ? uri.Host : $"{uri.Host}:{uri.Port}";
+            return $"{uri.Scheme.ToLowerInvariant()}://{authority.ToLowerInvariant()}{uri.PathAndQuery.TrimEnd('/')}";
+        }
+
+        private async Task ClearSharedProfileBrowsingDataAsync(CoreWebView2BrowsingDataKinds kinds) =>
+            await ClearProfileBrowsingDataAsync(SiteStore.SharedProfile, kinds);
+
+        private async Task ClearSiteBrowsingDataAsync(SiteConfig site, CoreWebView2BrowsingDataKinds kinds) =>
+            await ClearProfileBrowsingDataAsync(GetSiteProfile(site), kinds);
+
+        private async Task ClearProfileBrowsingDataAsync(ProfileContext profile, CoreWebView2BrowsingDataKinds kinds)
+        {
+            var webView = GetWebViewForProfile(profile.Name);
+            if (webView?.CoreWebView2 is not null)
+            {
+                await ProfileManager.ClearBrowsingDataAsync(webView, kinds);
+            }
+            else
+            {
+                await RunOnProfileAsync(profile, scratchWebView =>
+                    ProfileManager.ClearBrowsingDataAsync(scratchWebView, kinds));
+            }
+
+            ReloadWebViewsOnProfile(profile.Name);
+        }
+
+        /// <summary>
+        /// Loaded pages keep rendering their signed-in state until they navigate again,
+        /// so anything still open on the cleared profile is reloaded.
+        /// </summary>
+        private void ReloadWebViewsOnProfile(string profileName)
+        {
+            foreach (var view in _webViews.Values)
+            {
+                if (view.CoreWebView2 is { } core &&
+                    string.Equals(core.Profile.ProfileName, profileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    core.Reload();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Resolves a site's profile, persisting a newly generated profile name so the
+        /// site keeps the same session on the next launch.
+        /// </summary>
+        private ProfileContext GetSiteProfile(SiteConfig site)
+        {
+            if (SiteStore.EnsureProfileConfiguration(site, _sites))
+            {
+                SiteStore.Save(_sites);
+            }
+
+            return SiteStore.GetProfileContext(site);
+        }
+
+        private WebView2? GetWebViewForProfile(string profileName)
+        {
+            foreach (var pair in _webViews)
+            {
+                if (string.Equals(pair.Value.CoreWebView2?.Profile.ProfileName, profileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return pair.Value;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -497,13 +776,16 @@ namespace Nexus
             _isTemporaryPageVisible = false;
             TemporaryAddressBar.Visibility = Visibility.Collapsed;
 
-            if (_temporaryWebView is not null)
-            {
-                _temporaryWebView.Visibility = Visibility.Collapsed;
-            }
+            // Nothing can bring the temporary page back once a site is shown, so it is
+            // torn down rather than left running behind the site.
+            DisposeTemporaryWebView();
 
             EmptyHint.Visibility = Visibility.Collapsed;
             ErrorHint.Visibility = Visibility.Collapsed;
+
+            // Cleared up front: a still-running load for a site the user just left
+            // must not leave its hint on top of the site now being shown.
+            LoadingHint.Visibility = Visibility.Collapsed;
 
             // Hide all currently hosted web views.
             foreach (var view in _webViews.Values)
@@ -583,27 +865,7 @@ namespace Nexus
             }
 
             _isWebContentFullscreen = fullscreen;
-
-            if (fullscreen)
-            {
-                _webHostBackgroundBeforeFullscreen = WebHost.Background;
-                _sidebarVisibilityBeforeFullscreen = SidebarPanel.Visibility;
-                _temporaryAddressBarVisibilityBeforeFullscreen = TemporaryAddressBar.Visibility;
-
-                SidebarPanel.Visibility = Visibility.Collapsed;
-                TemporaryAddressBar.Visibility = Visibility.Collapsed;
-                WebHost.Background = Brushes.Black;
-                _webFullscreenController.Enter(this);
-            }
-            else
-            {
-                SidebarPanel.Visibility = _sidebarVisibilityBeforeFullscreen;
-                TemporaryAddressBar.Visibility = _temporaryAddressBarVisibilityBeforeFullscreen;
-                WebHost.Background = _webHostBackgroundBeforeFullscreen ?? Brushes.White;
-                _webFullscreenController.Exit(this);
-            }
-
-            UpdateExtendedFrame();
+            SetChromeHidden(fullscreen, _webFullscreenController);
         }
 
         private void WebView_ContainsFullScreenElementChanged(WebView2 webView)
@@ -681,7 +943,10 @@ namespace Nexus
             }
 
             _temporaryWebView.Visibility = Visibility.Visible;
-            _temporaryWebView.Source = uri;
+
+            // Navigate rather than assigning Source: re-entering the address that is
+            // already loaded must reload the page, and Source no-ops on equal values.
+            _temporaryWebView.CoreWebView2.Navigate(uri.AbsoluteUri);
             _isTemporaryPageVisible = true;
         }
 
@@ -691,15 +956,7 @@ namespace Nexus
             _isTemporaryPageVisible = false;
             _pendingSite = null;
 
-            if (_temporaryWebView is not null)
-            {
-                ExitWebContentFullscreenIfOwnedBy(_temporaryWebView);
-                _temporaryWebView.PreviewKeyDown -= TemporaryWebView_PreviewKeyDown;
-                WebHost.Children.Remove(_temporaryWebView);
-                _temporaryWebView.Dispose();
-                _temporaryWebView = null;
-                _temporaryEnvironment = null;
-            }
+            DisposeTemporaryWebView();
 
             if (_siteBeforeTemporaryPage is not null && _sites.Contains(_siteBeforeTemporaryPage))
             {
@@ -727,64 +984,19 @@ namespace Nexus
 
         private async Task InitializeTemporaryWebViewAsync(WebView2 webView)
         {
-            _temporaryEnvironment = await CoreWebView2Environment.CreateAsync(
-                browserExecutableFolder: null,
-                userDataFolder: SiteStore.TemporaryProfileFolder);
+            // Ad-hoc links are usually to services the shared sites are already signed
+            // in to, so the temporary page must not start signed out.
+            var profile = SiteStore.SharedProfile;
 
-            await webView.EnsureCoreWebView2Async(_temporaryEnvironment);
+            await _profileManager.InitializeAsync(webView, profile);
 
-            webView.PreviewKeyDown += TemporaryWebView_PreviewKeyDown;
+            webView.PreviewKeyDown += WebView_PreviewKeyDown;
 
             webView.CoreWebView2.ContainsFullScreenElementChanged += (_, _) =>
                 WebView_ContainsFullScreenElementChanged(webView);
 
             webView.CoreWebView2.NewWindowRequested += (s, args) =>
-                OpenWebViewPopupWindow(args, _temporaryEnvironment);
-        }
-
-        private void TemporaryWebView_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.F11)
-            {
-                ToggleAppFullscreen();
-                e.Handled = true;
-                return;
-            }
-
-            if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
-            {
-                return;
-            }
-
-            if (e.Key == Key.L)
-            {
-                if (_isWebContentFullscreen)
-                {
-                    return;
-                }
-
-                e.Handled = true;
-                Dispatcher.BeginInvoke(new Action(ShowTemporaryAddressBar));
-                return;
-            }
-
-            if (e.Key == Key.N)
-            {
-                if (_isWebContentFullscreen)
-                {
-                    return;
-                }
-
-                e.Handled = true;
-                Dispatcher.BeginInvoke(new Action(() => _ = OpenTemporaryPopupWindowAsync()));
-                return;
-            }
-
-            if (e.Key == Key.W && CanCloseTemporaryPage())
-            {
-                e.Handled = true;
-                Dispatcher.BeginInvoke(new Action(() => _ = CloseTemporaryPageAsync()));
-            }
+                OpenWebViewPopupWindow(args, profile);
         }
 
         /// <summary>
@@ -794,64 +1006,24 @@ namespace Nexus
         /// </summary>
         private async Task InitializeWebViewAsync(WebView2 webView, SiteConfig site)
         {
-            string profileFolder = SiteStore.GetProfileFolder(site);
-            var environment = await CoreWebView2Environment.CreateAsync(
-                browserExecutableFolder: null,
-                userDataFolder: profileFolder);
+            var profile = GetSiteProfile(site);
 
-            await webView.EnsureCoreWebView2Async(environment);
+            await _profileManager.InitializeAsync(webView, profile);
 
-            webView.PreviewKeyDown += HostedWebView_PreviewKeyDown;
+            webView.PreviewKeyDown += WebView_PreviewKeyDown;
 
             webView.CoreWebView2.ContainsFullScreenElementChanged += (_, _) =>
                 WebView_ContainsFullScreenElementChanged(webView);
 
+            webView.CoreWebView2.FaviconChanged += (_, _) =>
+                _ = FaviconService.UpdateAsync(webView.CoreWebView2, site, SiteStore.FaviconFolder);
+
             // Some pages open required work in a separate browser window: SSO/login
             // flows are the common case, but target="_blank" links can use this too.
             webView.CoreWebView2.NewWindowRequested += (s, args) =>
-                OpenWebViewPopupWindow(args, environment);
+                OpenWebViewPopupWindow(args, profile);
 
             webView.Source = new Uri(site.Url);
-        }
-
-        private void HostedWebView_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.F11)
-            {
-                ToggleAppFullscreen();
-                e.Handled = true;
-                return;
-            }
-
-            if ((Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
-            {
-                return;
-            }
-
-            if (e.Key == Key.N)
-            {
-                if (_isWebContentFullscreen)
-                {
-                    return;
-                }
-
-                e.Handled = true;
-                Dispatcher.BeginInvoke(new Action(() => _ = OpenTemporaryPopupWindowAsync()));
-                return;
-            }
-
-            if (e.Key != Key.L)
-            {
-                return;
-            }
-
-            if (_isWebContentFullscreen)
-            {
-                return;
-            }
-
-            e.Handled = true;
-            Dispatcher.BeginInvoke(new Action(ShowTemporaryAddressBar));
         }
 
         /// <summary>
@@ -860,10 +1032,10 @@ namespace Nexus
         /// </summary>
         private void OpenWebViewPopupWindow(
             CoreWebView2NewWindowRequestedEventArgs args,
-            CoreWebView2Environment environment)
+            ProfileContext profile)
         {
             var deferral = args.GetDeferral();
-            var popupWindow = CreatePopupWindow(environment);
+            var popupWindow = CreatePopupWindow(profile);
 
             // Show the window first so the WebView2 control has a parent HWND before
             // EnsureCoreWebView2Async is awaited - otherwise initialization hangs.
@@ -872,45 +1044,41 @@ namespace Nexus
             _ = InitializePopupWebViewAsync(popupWindow, args, deferral);
         }
 
-        private PopupWebViewWindow CreatePopupWindow(CoreWebView2Environment environment)
+        private PopupWebViewWindow CreatePopupWindow(ProfileContext profile)
         {
             var popupWindow = new PopupWebViewWindow(
-                environment,
+                _profileManager,
+                profile,
                 OpenWebViewPopupWindow,
-                OpenTemporaryPopupWindowAsync)
+                OpenNewWindowAsync)
             {
                 Width = PopupWidth,
                 Height = PopupHeight
             };
 
-            _popupWindows.Add(popupWindow);
-            popupWindow.Closed += (_, _) => _popupWindows.Remove(popupWindow);
+            _popupWindowManager.Track(popupWindow, profile.Name);
             return popupWindow;
         }
 
-        private async Task OpenTemporaryPopupWindowAsync()
+        private async Task OpenNewWindowAsync(ProfileContext profile)
         {
             PopupWebViewWindow? popupWindow = null;
 
             try
             {
-                _temporaryPopupEnvironment ??= await CoreWebView2Environment.CreateAsync(
-                    browserExecutableFolder: null,
-                    userDataFolder: SiteStore.TemporaryProfileFolder);
-
-                popupWindow = CreatePopupWindow(_temporaryPopupEnvironment);
+                popupWindow = CreatePopupWindow(profile);
                 // Show the window first so the WebView2 control has a parent HWND before
                 // EnsureCoreWebView2Async is awaited - otherwise initialization hangs.
                 popupWindow.Show();
 
-                await popupWindow.InitializeTemporaryAsync();
+                await popupWindow.InitializeStandaloneAsync();
             }
             catch (Exception ex)
             {
                 popupWindow?.Close();
                 MessageBox.Show(
                     this,
-                    $"Could not open a temporary window.\n{ex.Message}",
+                    $"Could not open a new window.\n{ex.Message}",
                     "Nexus",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
@@ -936,6 +1104,98 @@ namespace Nexus
             }
         }
 
+        /// <summary>
+        /// All profiles share one browser process, so its death invalidates every
+        /// WebView2 in the app: they are torn down and the visible site is rebuilt
+        /// against a fresh environment.
+        /// </summary>
+        private void RecoverFromBrowserProcessFailure()
+        {
+            if (_isRecoveringFromBrowserFailure || _isShuttingDown)
+            {
+                return;
+            }
+
+            _isRecoveringFromBrowserFailure = true;
+
+            // Deferred: the WebView2 objects cannot be disposed inside their own
+            // ProcessFailed callback.
+            Dispatcher.BeginInvoke(new Action(async () =>
+            {
+                try
+                {
+                    var site = SiteList.SelectedItem as SiteConfig;
+
+                    _popupWindowManager.CloseAll();
+                    ExitAnyWebContentFullscreen();
+                    DisposeAllWebViews();
+
+                    _isTemporaryPageVisible = false;
+                    TemporaryAddressBar.Visibility = Visibility.Collapsed;
+                    _profileManager.Reset();
+
+                    if (site is not null && _sites.Contains(site))
+                    {
+                        await ShowSiteAsync(site);
+                        return;
+                    }
+
+                    LoadingHint.Visibility = Visibility.Collapsed;
+                    ErrorHint.Visibility = Visibility.Collapsed;
+                    EmptyHint.Visibility = Visibility.Visible;
+                }
+                catch (Exception ex)
+                {
+                    ShowError($"The browser process stopped and could not be restarted.\n{ex.Message}");
+                }
+                finally
+                {
+                    _isRecoveringFromBrowserFailure = false;
+                }
+            }));
+        }
+
+        private void DisposeAllWebViews()
+        {
+            foreach (var view in _webViews.Values)
+            {
+                WebHost.Children.Remove(view);
+                SafeDispose(view);
+            }
+
+            _webViews.Clear();
+            DisposeTemporaryWebView();
+        }
+
+        private void DisposeTemporaryWebView()
+        {
+            if (_temporaryWebView is null)
+            {
+                return;
+            }
+
+            ExitWebContentFullscreenIfOwnedBy(_temporaryWebView);
+            _temporaryWebView.PreviewKeyDown -= WebView_PreviewKeyDown;
+            WebHost.Children.Remove(_temporaryWebView);
+            SafeDispose(_temporaryWebView);
+            _temporaryWebView = null;
+        }
+
+        /// <summary>
+        /// After a browser process failure the underlying CoreWebView2 objects are
+        /// already gone, so releasing them can fail with nothing left to clean up.
+        /// </summary>
+        private static void SafeDispose(WebView2 webView)
+        {
+            try
+            {
+                webView.Dispose();
+            }
+            catch (Exception)
+            {
+            }
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         private void OnPropertyChanged(string propertyName) =>
@@ -956,14 +1216,21 @@ namespace Nexus
             return null;
         }
 
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            _isShuttingDown = true;
+            base.OnClosing(e);
+        }
+
         /// <summary>
-        /// Disposes all cached WebView2 instances on shutdown so their browser
-        /// processes and profile folder locks are released immediately.
+        /// Disposes all cached WebView2 instances on shutdown so the browser process
+        /// and its profile locks are released immediately.
         /// </summary>
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
 
+            _isShuttingDown = true;
             _source?.RemoveHook(WndProc);
             _source = null;
 
@@ -974,24 +1241,9 @@ namespace Nexus
 
             ExitAnyWebContentFullscreen();
 
-            foreach (var popupWindow in _popupWindows.ToList())
-            {
-                popupWindow.Close();
-            }
-
-            _popupWindows.Clear();
-
-            foreach (var webView in _webViews.Values)
-            {
-                webView.Dispose();
-            }
-
-            _webViews.Clear();
-
-            _temporaryWebView?.Dispose();
-            _temporaryWebView = null;
-            _temporaryEnvironment = null;
-            _temporaryPopupEnvironment = null;
+            _popupWindowManager.CloseAll();
+            DisposeAllWebViews();
+            _profileManager.Reset();
         }
 
         private void ExitAnyWebContentFullscreen()
