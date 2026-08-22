@@ -1,33 +1,55 @@
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using Nexus.Core;
 using Nexus.Models;
 
 namespace Nexus.Services
 {
     /// <summary>
-    /// Loads and saves the list of hosted websites to a JSON file kept next to the app
-    /// (falling back to %AppData%\Nexus if that location isn't writable, e.g. when
-    /// installed under Program Files). Uses only built-in System.Text.Json.
+    /// Loads and saves the list of hosted websites under a writable app data folder,
+    /// migrating older app-adjacent sites.json files when present.
     /// </summary>
     public static class SiteStore
     {
         private const int ProfileIdSuffixLength = 7;
+        private const int MaxProfileNameLength = 64;
+        private const string SiteProfileNamePrefix = "site-";
+
+        public const string SharedProfileName = "shared";
+        public const string PrivateProfileName = "private";
 
         private static readonly string AppFolder = ResolveAppFolder();
 
         private static readonly string ConfigPath = Path.Combine(AppFolder, "sites.json");
 
         /// <summary>
-        /// Root folder that holds one isolated WebView2 profile per site.
+        /// Where sites.json and the WebView2 profiles live. Resolved at startup, so
+        /// it is surfaced in the UI rather than left for the user to guess.
         /// </summary>
-        public static string ProfilesRoot => Path.Combine(AppFolder, "profiles");
+        public static string DataFolder => AppFolder;
 
-        public static string TemporaryProfileFolder => Path.Combine(ProfilesRoot, "_temporary");
+        /// <summary>
+        /// Cached site icons, kept outside the WebView2 user data folder so clearing
+        /// browsing data does not blank the sidebar.
+        /// </summary>
+        public static string FaviconFolder => Path.Combine(AppFolder, "favicons");
+
+        /// <summary>
+        /// The single WebView2 user data folder. Sites are separated by profile name
+        /// inside it, which keeps one browser process group for the whole app.
+        /// </summary>
+        public static string UserDataFolder => Path.Combine(AppFolder, "webview2");
+
+        public static ProfileContext SharedProfile => new(SharedProfileName, IsInPrivate: false);
+
+        public static ProfileContext PrivateProfile => new(PrivateProfileName, IsInPrivate: true);
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
-            WriteIndented = true
+            WriteIndented = true,
+            Converters = { new JsonStringEnumConverter() }
         };
 
         /// <summary>
@@ -76,7 +98,7 @@ namespace Nexus.Services
                     var sites = JsonSerializer.Deserialize<List<SiteConfig>>(json, JsonOptions);
                     if (sites is { Count: > 0 })
                     {
-                        if (EnsureProfileFolderNames(sites))
+                        if (EnsureProfileNames(sites))
                         {
                             Save(sites);
                         }
@@ -91,100 +113,172 @@ namespace Nexus.Services
             }
 
             var defaults = CreateDefaults();
-            EnsureProfileFolderNames(defaults);
+            EnsureProfileNames(defaults);
             Save(defaults);
             return defaults;
         }
 
         /// <summary>
-        /// Persists the site list to disk.
+        /// Persists the site list to disk. Written to a temporary file first so an
+        /// interrupted write cannot leave a truncated config behind.
         /// </summary>
         public static void Save(IEnumerable<SiteConfig> sites)
         {
             Directory.CreateDirectory(AppFolder);
             string json = JsonSerializer.Serialize(sites, JsonOptions);
-            File.WriteAllText(ConfigPath, json, Encoding.UTF8);
+            string tempPath = ConfigPath + ".tmp";
+            File.WriteAllText(tempPath, json, Encoding.UTF8);
+            File.Move(tempPath, ConfigPath, overwrite: true);
         }
 
         /// <summary>
-        /// Returns an isolated WebView2 user-data folder path for the given site.
+        /// Returns the WebView2 profile the given site must be hosted in.
         /// </summary>
-        public static string GetProfileFolder(SiteConfig site)
+        public static ProfileContext GetProfileContext(SiteConfig site)
         {
-            EnsureProfileFolderName(site);
-            return Path.Combine(ProfilesRoot, site.ProfileFolderName);
+            if (!UsesIsolatedProfile(site))
+            {
+                return SharedProfile;
+            }
+
+            EnsureProfileName(site);
+            return new ProfileContext(site.ProfileName, IsInPrivate: false);
         }
 
-        public static bool EnsureProfileFolderName(SiteConfig site)
+        public static bool UsesIsolatedProfile(SiteConfig site) =>
+            site.ProfileMode == SiteProfileMode.Isolated;
+
+        /// <summary>
+        /// True while the site still owns isolated profile data, including after it
+        /// has been switched back to the shared profile.
+        /// </summary>
+        public static bool HasSiteProfile(SiteConfig site) =>
+            IsUsableSiteProfileName(site.ProfileName);
+
+        public static bool EnsureProfileConfiguration(SiteConfig site, IEnumerable<SiteConfig>? siblings = null)
         {
-            if (!string.IsNullOrWhiteSpace(site.ProfileFolderName))
+            if (!UsesIsolatedProfile(site))
             {
                 return false;
             }
 
-            string safeId = Sanitize(site.Id);
-            if (string.IsNullOrEmpty(safeId))
+            return EnsureProfileName(site, siblings);
+        }
+
+        public static bool EnsureProfileName(SiteConfig site, IEnumerable<SiteConfig>? siblings = null)
+        {
+            if (IsUsableSiteProfileName(site.ProfileName) && !IsProfileNameTaken(site.ProfileName, site, siblings))
             {
-                safeId = Guid.NewGuid().ToString("N");
-                site.Id = safeId;
+                return false;
             }
 
-            string prefix = GetProfileFolderPrefix(site);
-            string shortId = safeId[..Math.Min(ProfileIdSuffixLength, safeId.Length)];
-            site.ProfileFolderName = string.IsNullOrEmpty(prefix) ? shortId : $"{prefix}-{shortId}";
+            string id = SanitizeProfileSegment(site.Id);
+            if (id.Length == 0)
+            {
+                site.Id = Guid.NewGuid().ToString("N");
+                id = site.Id;
+            }
+
+            string label = SanitizeProfileSegment(GetProfileLabel(site));
+
+            // Two sites may legitimately point at the same URL (one account each), so
+            // the id suffix grows until the generated name is unique.
+            for (int suffixLength = ProfileIdSuffixLength; suffixLength <= id.Length; suffixLength++)
+            {
+                string candidate = BuildProfileName(label, id[..suffixLength]);
+                if (!IsProfileNameTaken(candidate, site, siblings))
+                {
+                    site.ProfileName = candidate;
+                    return true;
+                }
+            }
+
+            site.ProfileName = BuildProfileName(label, Guid.NewGuid().ToString("N"));
             return true;
         }
 
+        private static string BuildProfileName(string label, string suffix)
+        {
+            int roomForLabel = MaxProfileNameLength - SiteProfileNamePrefix.Length - suffix.Length - 1;
+            if (label.Length > roomForLabel)
+            {
+                label = roomForLabel <= 0 ? string.Empty : label[..roomForLabel].Trim('-', '.', '_');
+            }
+
+            return label.Length == 0
+                ? $"{SiteProfileNamePrefix}{suffix}"
+                : $"{SiteProfileNamePrefix}{label}-{suffix}";
+        }
+
+        private static bool IsProfileNameTaken(string name, SiteConfig site, IEnumerable<SiteConfig>? siblings) =>
+            siblings is not null &&
+            siblings.Any(other =>
+                !ReferenceEquals(other, site) &&
+                string.Equals(other.ProfileName, name, StringComparison.OrdinalIgnoreCase));
+
         /// <summary>
-        /// Deletes the isolated profile folder (login/cookies/cache) for a removed site.
-        /// Any failure (e.g. files still in use) is ignored - this is best-effort cleanup.
+        /// WebView2 only accepts ASCII letters, digits, '.', '-' and '_', at most 64
+        /// characters, with no leading or trailing period. Reserved names are rejected
+        /// so a hand-edited config cannot point a site at the shared profile.
         /// </summary>
-        public static void DeleteProfileFolder(SiteConfig site)
+        private static bool IsUsableSiteProfileName(string name)
         {
-            try
+            if (string.IsNullOrEmpty(name) || name.Length > MaxProfileNameLength)
             {
-                string folder = GetProfileFolder(site);
-                if (Directory.Exists(folder))
-                {
-                    Directory.Delete(folder, recursive: true);
-                }
+                return false;
             }
-            catch
+
+            if (name.StartsWith('.') || name.EndsWith('.'))
             {
-                // Best-effort cleanup only.
+                return false;
             }
+
+            if (string.Equals(name, SharedProfileName, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(name, PrivateProfileName, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return name.All(IsAllowedProfileNameChar);
         }
 
-        private static string Sanitize(string name)
+        private static bool IsAllowedProfileNameChar(char c) =>
+            c is >= 'a' and <= 'z' ||
+            c is >= 'A' and <= 'Z' ||
+            c is >= '0' and <= '9' ||
+            c is '.' or '-' or '_';
+
+        private static string SanitizeProfileSegment(string value)
         {
-            var builder = new StringBuilder(name.Length);
-            foreach (char c in name.Trim())
+            var builder = new StringBuilder(value.Length);
+            foreach (char c in value.Trim())
             {
-                builder.Append(Array.IndexOf(Path.GetInvalidFileNameChars(), c) >= 0 ? '_' : c);
+                builder.Append(IsAllowedProfileNameChar(c) ? char.ToLowerInvariant(c) : '-');
             }
 
-            return builder.ToString();
+            return builder.ToString().Trim('-', '.', '_');
         }
 
-        private static bool EnsureProfileFolderNames(IEnumerable<SiteConfig> sites)
+        private static bool EnsureProfileNames(IEnumerable<SiteConfig> sites)
         {
+            var list = sites as IReadOnlyCollection<SiteConfig> ?? sites.ToList();
             bool changed = false;
-            foreach (var site in sites)
+            foreach (var site in list)
             {
-                changed |= EnsureProfileFolderName(site);
+                changed |= EnsureProfileConfiguration(site, list);
             }
 
             return changed;
         }
 
-        private static string GetProfileFolderPrefix(SiteConfig site)
+        private static string GetProfileLabel(SiteConfig site)
         {
             if (Uri.TryCreate(site.Url, UriKind.Absolute, out var uri))
             {
-                return Sanitize(uri.Host.Replace('.', '-').ToLowerInvariant());
+                return uri.Host;
             }
 
-            return Sanitize(site.Name).ToLowerInvariant();
+            return site.Name;
         }
 
         private static void BackupCorruptConfig()
