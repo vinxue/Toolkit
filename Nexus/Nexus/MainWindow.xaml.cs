@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Interop;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -30,6 +31,7 @@ namespace Nexus
         private const int WmDpiChanged = 0x02E0;
 
         private readonly ObservableCollection<SiteConfig> _sites = new();
+        private readonly CollectionViewSource _visibleSites = new();
         private readonly Dictionary<SiteConfig, WebView2> _webViews = new();
         private readonly ProfileManager _profileManager = new(SiteStore.UserDataFolder);
         private readonly PopupWindowManager _popupWindowManager = new();
@@ -71,10 +73,58 @@ namespace Nexus
             foreach (var site in SiteStore.Load())
             {
                 FaviconService.LoadCached(site, SiteStore.FaviconFolder);
+                site.PropertyChanged += Site_PropertyChanged;
                 _sites.Add(site);
             }
 
-            SiteList.ItemsSource = _sites;
+            _visibleSites.Source = _sites;
+            _visibleSites.Filter += VisibleSites_Filter;
+            SiteList.ItemsSource = _visibleSites.View;
+        }
+
+        private void VisibleSites_Filter(object sender, FilterEventArgs e) =>
+            e.Accepted = e.Item is SiteConfig site && !site.IsHiddenInSidebar;
+
+        private void Site_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (sender is not SiteConfig site || e.PropertyName != nameof(SiteConfig.IsHiddenInSidebar))
+            {
+                return;
+            }
+
+            if (site.IsHiddenInSidebar)
+            {
+                HideSelectedSiteIfNeeded(site);
+            }
+
+            _visibleSites.View.Refresh();
+        }
+
+        private void HideSelectedSiteIfNeeded(SiteConfig site)
+        {
+            if (ReferenceEquals(_siteBeforeTemporaryPage, site))
+            {
+                _siteBeforeTemporaryPage = null;
+            }
+
+            if (!ReferenceEquals(SiteList.SelectedItem, site) || _isTemporaryPageVisible)
+            {
+                return;
+            }
+
+            _pendingSite = null;
+            SiteList.SelectedItem = null;
+
+            if (_webViews.TryGetValue(site, out var webView))
+            {
+                ExitWebContentFullscreenIfOwnedBy(webView);
+                webView.Visibility = Visibility.Collapsed;
+            }
+
+            TemporaryAddressBar.Visibility = Visibility.Collapsed;
+            LoadingHint.Visibility = Visibility.Collapsed;
+            ErrorHint.Visibility = Visibility.Collapsed;
+            EmptyHint.Visibility = Visibility.Visible;
         }
 
         #region Win11 Acrylic via DWM
@@ -511,6 +561,7 @@ namespace Nexus
             }
 
             SiteStore.EnsureProfileConfiguration(site, _sites);
+            site.PropertyChanged += Site_PropertyChanged;
             _sites.Add(site);
             SiteStore.Save(_sites);
             SiteList.SelectedItem = site;
@@ -635,6 +686,7 @@ namespace Nexus
             }
 
             bool wasSelected = ReferenceEquals(SiteList.SelectedItem, site);
+            site.PropertyChanged -= Site_PropertyChanged;
             _sites.Remove(site);
             SiteStore.Save(_sites);
             FaviconService.DeleteCached(site, SiteStore.FaviconFolder);

@@ -455,6 +455,22 @@
                                                             ToolTip="Move site down"
                                                             Loaded="MoveSiteButton_Loaded"
                                                             Click="MoveSiteDown_Click" />
+                                                    <Button Tag="{Binding}"
+                                                            Margin="6,0,0,0"
+                                                            Click="ToggleSidebarVisibility_Click">
+                                                        <Button.Style>
+                                                            <Style TargetType="Button" BasedOn="{StaticResource SettingsIconButton}">
+                                                                <Setter Property="Content" Value="&#xED1A;" />
+                                                                <Setter Property="ToolTip" Value="Hide from sidebar" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsHiddenInSidebar}" Value="True">
+                                                                        <Setter Property="Content" Value="&#xE890;" />
+                                                                        <Setter Property="ToolTip" Value="Show in sidebar" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Button.Style>
+                                                    </Button>
                                                     <Button Style="{StaticResource SettingsIconButton}"
                                                             Content="&#xE70F;"
                                                             Margin="6,0,0,0"

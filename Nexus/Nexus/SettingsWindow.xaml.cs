@@ -193,6 +193,17 @@ namespace Nexus
         private void MoveSiteButton_Loaded(object sender, RoutedEventArgs e) =>
             UpdateSiteMoveButtonState(sender as Button);
 
+        private void ToggleSidebarVisibility_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not FrameworkElement { Tag: SiteConfig site })
+            {
+                return;
+            }
+
+            site.IsHiddenInSidebar = !site.IsHiddenInSidebar;
+            SiteStore.Save(_sites);
+        }
+
         private void MoveSiteUp_Click(object sender, RoutedEventArgs e) =>
             MoveSite(sender, -1);
 

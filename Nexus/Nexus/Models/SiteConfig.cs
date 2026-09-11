@@ -14,6 +14,7 @@ namespace Nexus.Models
         private string _profileName = string.Empty;
         private SiteProfileMode _profileMode = SiteProfileMode.Shared;
         private string _url = string.Empty;
+        private bool _isHiddenInSidebar;
         private ImageSource? _favicon;
 
         public string Id
@@ -70,6 +71,17 @@ namespace Nexus.Models
                 if (_url == value) return;
                 _url = value;
                 OnPropertyChanged(nameof(Url));
+            }
+        }
+
+        public bool IsHiddenInSidebar
+        {
+            get => _isHiddenInSidebar;
+            set
+            {
+                if (_isHiddenInSidebar == value) return;
+                _isHiddenInSidebar = value;
+                OnPropertyChanged(nameof(IsHiddenInSidebar));
             }
         }
 

@@ -95,6 +95,7 @@
                          AllowDrop="True"
                          Background="Transparent"
                          BorderThickness="0"
+                         IsSynchronizedWithCurrentItem="False"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                          HorizontalContentAlignment="Stretch"
                          SelectionChanged="SiteList_SelectionChanged"
