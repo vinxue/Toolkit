@@ -1,0 +1,38 @@
+<Window x:Class="Nexus.ContentDialogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Nexus"
+        Width="440"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+    <DockPanel Background="{DynamicResource ContentDialogBackground}">
+        <Grid DockPanel.Dock="Bottom" Margin="24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="8" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button x:Name="PrimaryButton"
+                    Grid.Column="0"
+                    Style="{DynamicResource AccentButtonStyle}"
+                    HorizontalAlignment="Stretch"
+                    IsDefault="True"
+                    Click="PrimaryButton_Click" />
+            <Button x:Name="CloseButton"
+                    Grid.Column="2"
+                    HorizontalAlignment="Stretch"
+                    IsCancel="True" />
+        </Grid>
+
+        <Border Style="{StaticResource DialogContentArea}">
+            <StackPanel>
+                <TextBlock x:Name="TitleText" Style="{StaticResource DialogTitle}" />
+                <TextBlock x:Name="MessageText"
+                           FontSize="14"
+                           TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+    </DockPanel>
+</Window>

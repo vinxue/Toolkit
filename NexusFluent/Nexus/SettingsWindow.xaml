@@ -1,0 +1,671 @@
+<Window x:Class="Nexus.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:Nexus.Models"
+        Title="Settings"
+        Width="920"
+        Height="620"
+        MinWidth="800"
+        MinHeight="540"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        FontFamily="Segoe UI Variable Text, Segoe UI">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <Style x:Key="SettingsNavButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBackground"
+                                Background="{TemplateBinding Background}"
+                                Margin="8,0"
+                                CornerRadius="4"
+                                Height="36">
+                            <Grid>
+                                <Border x:Name="SelectionIndicator"
+                                        Width="3"
+                                        Height="16"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        CornerRadius="1.5"
+                                        Background="{DynamicResource AccentFillColorDefaultBrush}"
+                                        Visibility="Collapsed" />
+                                <ContentPresenter Margin="12,0,10,0"
+                                                  HorizontalAlignment="Stretch"
+                                                  VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBackground" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBackground" Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+                            </Trigger>
+                            <Trigger Property="Tag" Value="Selected">
+                                <Setter TargetName="ButtonBackground" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                                <Setter TargetName="SelectionIndicator" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SettingsCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="18" />
+        </Style>
+
+        <Style x:Key="PageTitle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe UI Variable Display, Segoe UI" />
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style x:Key="PageSubtitle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Margin" Value="0,4,0,0" />
+        </Style>
+
+        <Style x:Key="CardTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style x:Key="CardCaption" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Margin" Value="0,0,0,5" />
+        </Style>
+
+        <Style x:Key="SettingsIconButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0"
+                Padding="0,18">
+            <DockPanel LastChildFill="True">
+                <StackPanel Margin="0,10,0,0">
+                    <Button x:Name="SitesNavButton"
+                            Style="{StaticResource SettingsNavButton}"
+                            Tag="Selected"
+                            Click="SitesNavButton_Click">
+                        <StackPanel Orientation="Horizontal" Margin="2,0,0,0">
+                            <TextBlock Text="&#xE774;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="15"
+                                       Width="24"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="Sites" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="ProfilesNavButton"
+                            Style="{StaticResource SettingsNavButton}"
+                            Margin="0,4,0,0"
+                            Click="ProfilesNavButton_Click">
+                        <StackPanel Orientation="Horizontal" Margin="2,0,0,0">
+                            <TextBlock Text="&#xE77B;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="15"
+                                       Width="24"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="Profiles" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="AppearanceNavButton"
+                            Style="{StaticResource SettingsNavButton}"
+                            Margin="0,4,0,0"
+                            Click="AppearanceNavButton_Click">
+                        <StackPanel Orientation="Horizontal" Margin="2,0,0,0">
+                            <TextBlock Text="&#xE771;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="15"
+                                       Width="24"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="Appearance" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="AboutNavButton"
+                            Style="{StaticResource SettingsNavButton}"
+                            Margin="0,4,0,0"
+                            Click="AboutNavButton_Click">
+                        <StackPanel Orientation="Horizontal" Margin="2,0,0,0">
+                            <TextBlock Text="&#xE946;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="15"
+                                       Width="24"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="About &amp; help" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <ScrollViewer Grid.Column="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <Grid Margin="28,24,32,28">
+                <Grid x:Name="SitesPage">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,18">
+                        <TextBlock Text="Sites" Style="{StaticResource PageTitle}" />
+                        <TextBlock Text="Add and manage websites in your workspace."
+                                   Style="{StaticResource PageSubtitle}" />
+                    </StackPanel>
+
+                    <Border Grid.Row="1"
+                            x:Name="SiteFormCard"
+                            Style="{StaticResource SettingsCard}"
+                            Margin="0,0,0,18"
+                            Visibility="Collapsed">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="14" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Row="0"
+                                       Grid.ColumnSpan="3"
+                                       x:Name="SiteFormTitle"
+                                       Text="Add site"
+                                       Style="{StaticResource CardTitle}"
+                                       Margin="0,0,0,14" />
+                            <TextBlock Grid.Row="1" Text="Name" Style="{StaticResource FieldLabel}" />
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text="URL" Style="{StaticResource FieldLabel}" />
+                            <TextBox x:Name="NameBox"
+                                     Grid.Row="2" />
+                            <TextBox x:Name="UrlBox"
+                                     Grid.Row="2"
+                                     Grid.Column="2"
+                                     Text="https://" />
+                            <CheckBox x:Name="UseIsolatedProfileBox"
+                                      Grid.Row="3"
+                                      Grid.ColumnSpan="3"
+                                      Content="Use an isolated profile for this site"
+                                      Margin="0,14,0,0" />
+                            <Grid Grid.Row="4"
+                                  Grid.ColumnSpan="3"
+                                  Margin="0,16,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="AddErrorText"
+                                           Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                           FontSize="12"
+                                           VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis"
+                                           Visibility="Collapsed" />
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button x:Name="CancelEditButton"
+                                        Content="Cancel"
+                                        Margin="0,0,10,0"
+                                        Click="CancelEdit_Click" />
+                                    <Button x:Name="SaveSiteButton"
+                                        Content="Add site"
+                                        Style="{DynamicResource AccentButtonStyle}"
+                                        Click="SaveSite_Click" />
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="2" Style="{StaticResource SettingsCard}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Pinned sites"
+                                           Style="{StaticResource CardTitle}"
+                                           VerticalAlignment="Center" />
+                                <Button x:Name="AddSiteButton"
+                                        Grid.Column="1"
+                                        Content="Add site"
+                                        Style="{DynamicResource AccentButtonStyle}"
+                                        Click="AddSite_Click" />
+                            </Grid>
+                            <ListBox x:Name="SitesList"
+                                     Grid.Row="1"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                     HorizontalContentAlignment="Stretch"
+                                     Margin="-18,0,-18,-18">
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                        <Setter Property="Padding" Value="0" />
+                                        <Setter Property="Margin" Value="0,1" />
+                                        <Setter Property="BorderThickness" Value="0" />
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ListBoxItem">
+                                                    <Border x:Name="ItemBackground"
+                                                            Background="Transparent">
+                                                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                          VerticalAlignment="Center" />
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="ItemBackground" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type models:SiteConfig}">
+                                        <Border BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                                                BorderThickness="0,0,0,1"
+                                                Padding="18,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <Border Grid.Column="0"
+                                                    Padding="0,3">
+                                                    <StackPanel>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding Name}"
+                                                                       FontSize="14"
+                                                                       LineHeight="18"
+                                                                       FontWeight="SemiBold"
+                                                                       VerticalAlignment="Center" />
+                                                            <Border Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                                                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="8"
+                                                                    Padding="7,1"
+                                                                    Margin="8,0,0,0"
+                                                                    VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding ProfileMode}"
+                                                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                                           FontSize="10" />
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding Url}"
+                                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                                   FontSize="12"
+                                                                   LineHeight="16"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                </Border>
+
+                                                <StackPanel Grid.Column="1"
+                                                            Orientation="Horizontal"
+                                                            HorizontalAlignment="Right"
+                                                            VerticalAlignment="Center"
+                                                            Margin="12,0,0,0">
+                                                    <Button x:Name="MoveSiteUpButton"
+                                                            Style="{StaticResource SettingsIconButton}"
+                                                            Content="&#xE74A;"
+                                                            Tag="{Binding}"
+                                                            ToolTip="Move site up"
+                                                            Loaded="MoveSiteButton_Loaded"
+                                                            Click="MoveSiteUp_Click" />
+                                                    <Button x:Name="MoveSiteDownButton"
+                                                            Style="{StaticResource SettingsIconButton}"
+                                                            Content="&#xE74B;"
+                                                            Margin="6,0,0,0"
+                                                            Tag="{Binding}"
+                                                            ToolTip="Move site down"
+                                                            Loaded="MoveSiteButton_Loaded"
+                                                            Click="MoveSiteDown_Click" />
+                                                    <Button Tag="{Binding}"
+                                                            Margin="6,0,0,0"
+                                                            Click="ToggleSidebarVisibility_Click">
+                                                        <Button.Style>
+                                                            <Style TargetType="Button" BasedOn="{StaticResource SettingsIconButton}">
+                                                                <Setter Property="Content" Value="&#xED1A;" />
+                                                                <Setter Property="ToolTip" Value="Hide from sidebar" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsHiddenInSidebar}" Value="True">
+                                                                        <Setter Property="Content" Value="&#xE890;" />
+                                                                        <Setter Property="ToolTip" Value="Show in sidebar" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Button.Style>
+                                                    </Button>
+                                                    <Button Style="{StaticResource SettingsIconButton}"
+                                                            Content="&#xE70F;"
+                                                            Margin="6,0,0,0"
+                                                            Tag="{Binding}"
+                                                            ToolTip="Edit site"
+                                                            Click="EditSite_Click" />
+                                                    <Button Style="{StaticResource SettingsIconButton}"
+                                                            Content="&#xE74D;"
+                                                            Margin="6,0,0,0"
+                                                            Tag="{Binding}"
+                                                            ToolTip="Remove site"
+                                                            Click="RemoveSite_Click" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <Grid x:Name="ProfilesPage" Visibility="Collapsed">
+                    <StackPanel>
+                        <StackPanel Margin="0,0,0,18">
+                            <TextBlock Text="Profiles" Style="{StaticResource PageTitle}" />
+                            <TextBlock Text="Each profile is a separate identity: its own sign-ins, cookies and cache."
+                                       Style="{StaticResource PageSubtitle}" />
+                        </StackPanel>
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <StackPanel>
+                                <TextBlock Text="Data to clear" Style="{StaticResource CardTitle}" />
+                                <TextBlock Text="Pick the data types here, then clear them for a profile below."
+                                           Style="{StaticResource CardCaption}"
+                                           Margin="0,4,0,14" />
+
+                                <WrapPanel Orientation="Horizontal">
+                                    <CheckBox x:Name="ClearCacheBox"
+                                              Content="Cached images and files"
+                                              ToolTip="Frees space and reloads cached resources."
+                                              IsChecked="True"
+                                              Width="250"
+                                              MinHeight="30" />
+                                    <CheckBox x:Name="ClearCookiesBox"
+                                              Content="Cookies and site data"
+                                              ToolTip="Signs you out and removes website storage."
+                                              Width="250"
+                                              MinHeight="30" />
+                                    <CheckBox x:Name="ClearBrowsingHistoryBox"
+                                              Content="Browsing history"
+                                              ToolTip="Clears visited page history."
+                                              Width="250"
+                                              MinHeight="30" />
+                                    <CheckBox x:Name="ClearDownloadHistoryBox"
+                                              Content="Download history"
+                                              ToolTip="Clears download records, not downloaded files."
+                                              Width="250"
+                                              MinHeight="30" />
+                                    <CheckBox x:Name="ClearAutofillBox"
+                                              Content="Autofill form data"
+                                              ToolTip="Clears saved form entries."
+                                              Width="250"
+                                              MinHeight="30" />
+                                    <CheckBox x:Name="ClearSavedPasswordsBox"
+                                              Content="Saved passwords"
+                                              ToolTip="Clears saved website passwords. This cannot be undone."
+                                              Width="250"
+                                              MinHeight="30" />
+                                    <CheckBox x:Name="ClearSiteSettingsBox"
+                                              Content="Site settings"
+                                              ToolTip="Clears site permissions and preferences."
+                                              Width="250"
+                                              MinHeight="30" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingsCard}" Margin="0,18,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Shared profile" Style="{StaticResource CardTitle}" />
+
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="SharedProfileUsageText"
+                                               Style="{StaticResource CardCaption}"
+                                               VerticalAlignment="Center" />
+                                    <Button Grid.Column="1"
+                                            Content="Clear"
+                                            Margin="20,0,0,0"
+                                            Click="ClearSharedData_Click" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="IsolatedProfilesCard"
+                                Style="{StaticResource SettingsCard}"
+                                Margin="0,18,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Isolated profiles" Style="{StaticResource CardTitle}" />
+                                <TextBlock Text="Sites that keep a separate identity from everything else."
+                                           Style="{StaticResource CardCaption}"
+                                           Margin="0,4,0,0" />
+
+                                <ItemsControl x:Name="IsolatedProfilesList" Margin="0,6,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type models:SiteConfig}">
+                                            <Grid Margin="0,10,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}"
+                                                               FontSize="13" />
+                                                    <TextBlock Text="{Binding ProfileName}"
+                                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                               FontSize="11"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+                                                <Button Grid.Column="1"
+                                                        Content="Clear"
+                                                        Margin="20,0,0,0"
+                                                        Tag="{Binding}"
+                                                        Click="ClearSiteData_Click" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingsCard}" Margin="0,18,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Private windows" Style="{StaticResource CardTitle}" />
+                                <TextBlock Text="Ctrl+Shift+N opens a window that keeps nothing on disk, so there is nothing to clear. Temporary pages and ordinary new windows use the shared profile."
+                                           Style="{StaticResource CardCaption}"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingsCard}" Margin="0,18,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Data folder" Style="{StaticResource CardTitle}" />
+                                    <TextBlock Text="Holds settings.json (your sites and preferences) and every WebView2 profile. Copy settings.json to back up or move your setup."
+                                               Style="{StaticResource CardCaption}"
+                                               Margin="0,4,0,6" />
+                                    <!-- Unstyled (null Style) so it reads as plain selectable text, not a Fluent input field. -->
+                                    <TextBox x:Name="DataFolderText"
+                                             Style="{x:Null}"
+                                             IsReadOnly="True"
+                                             BorderThickness="0"
+                                             Background="Transparent"
+                                             Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                             FontSize="12"
+                                             Padding="0"
+                                             TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <Button Grid.Column="1"
+                                        Content="Open folder"
+                                        VerticalAlignment="Bottom"
+                                        Margin="20,0,0,0"
+                                        Click="OpenDataFolder_Click" />
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid x:Name="AppearancePage" Visibility="Collapsed">
+                    <StackPanel>
+                        <StackPanel Margin="0,0,0,18">
+                            <TextBlock Text="Appearance" Style="{StaticResource PageTitle}" />
+                            <TextBlock Text="Choose how Nexus follows Windows color mode."
+                                       Style="{StaticResource PageSubtitle}" />
+                        </StackPanel>
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="220" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="App theme" Style="{StaticResource CardTitle}" />
+                                    <TextBlock Text="Use the Windows setting, or keep Nexus in light or dark mode."
+                                               Style="{StaticResource CardCaption}"
+                                               Margin="0,4,0,0" />
+                                </StackPanel>
+
+                                <ComboBox x:Name="ThemeModeBox"
+                                          Grid.Column="1"
+                                          VerticalAlignment="Center"
+                                          SelectionChanged="ThemeModeBox_SelectionChanged">
+                                    <ComboBoxItem Content="Use Windows setting" />
+                                    <ComboBoxItem Content="Light" />
+                                    <ComboBoxItem Content="Dark" />
+                                </ComboBox>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid x:Name="AboutPage" Visibility="Collapsed">
+                    <StackPanel>
+                        <StackPanel Margin="0,0,0,18">
+                            <TextBlock Text="About &amp; help" Style="{StaticResource PageTitle}" />
+                            <TextBlock Text="Nexus keeps your frequently used websites organized in a compact, focused workspace."
+                                       Style="{StaticResource PageSubtitle}" />
+                        </StackPanel>
+
+                        <Border Style="{StaticResource SettingsCard}">
+                            <StackPanel>
+                                <TextBlock x:Name="AppNameText"
+                                           Text="Nexus"
+                                           FontFamily="Segoe UI Variable Display, Segoe UI"
+                                           FontSize="18"
+                                           FontWeight="SemiBold" />
+                                <TextBlock x:Name="AppVersionText"
+                                           Text="Version"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                           FontSize="13"
+                                           Margin="0,14,0,0" />
+                                <TextBlock x:Name="DotNetVersionText"
+                                           Text=".NET"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                           FontSize="13"
+                                           Margin="0,4,0,0" />
+                                <TextBlock x:Name="WebView2VersionText"
+                                           Text="WebView2"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                           FontSize="13"
+                                           Margin="0,4,0,0" />
+                                <TextBlock x:Name="CopyrightText"
+                                           Text="Copyright"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                           FontSize="13"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource SettingsCard}" Margin="0,18,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="90" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.ColumnSpan="2"
+                                           Text="Keyboard shortcuts"
+                                           Style="{StaticResource CardTitle}"
+                                           Margin="0,0,0,4" />
+                                <TextBlock Grid.Row="1" Text="Open address bar" FontSize="13" Margin="0,10,0,0" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="Ctrl+L" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="13" HorizontalAlignment="Right" Margin="0,10,0,0" />
+                                <TextBlock Grid.Row="2" Text="Open new window" FontSize="13" Margin="0,12,0,0" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="Ctrl+N" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="13" HorizontalAlignment="Right" Margin="0,12,0,0" />
+                                <TextBlock Grid.Row="3" Text="Open private window" FontSize="13" Margin="0,12,0,0" />
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="Ctrl+Shift+N" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="13" HorizontalAlignment="Right" Margin="0,12,0,0" />
+                                <TextBlock Grid.Row="4" Text="Close current page or window" FontSize="13" Margin="0,12,0,0" />
+                                <TextBlock Grid.Row="4" Grid.Column="1" Text="Ctrl+W" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="13" HorizontalAlignment="Right" Margin="0,12,0,0" />
+                                <TextBlock Grid.Row="5" Text="Toggle fullscreen" FontSize="13" Margin="0,12,0,0" />
+                                <TextBlock Grid.Row="5" Grid.Column="1" Text="F11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="13" HorizontalAlignment="Right" Margin="0,12,0,0" />
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</Window>

@@ -1,0 +1,48 @@
+<Window x:Class="Nexus.RemoveSiteWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Nexus"
+        Width="440"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+    <DockPanel Background="{DynamicResource ContentDialogBackground}">
+        <Grid DockPanel.Dock="Bottom" Margin="24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="8" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0"
+                    Content="Remove"
+                    Style="{DynamicResource AccentButtonStyle}"
+                    HorizontalAlignment="Stretch"
+                    IsDefault="True"
+                    Click="Remove_Click" />
+            <Button Grid.Column="2"
+                    Content="Cancel"
+                    HorizontalAlignment="Stretch"
+                    IsCancel="True" />
+        </Grid>
+
+        <Border Style="{StaticResource DialogContentArea}">
+            <StackPanel>
+                <TextBlock Text="Remove site" Style="{StaticResource DialogTitle}" />
+
+                <TextBlock x:Name="MessageText"
+                           FontSize="14"
+                           TextWrapping="Wrap" />
+
+                <CheckBox x:Name="DeleteProfileDataBox"
+                          Margin="0,16,0,0">
+                    <CheckBox.ContentTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                        </DataTemplate>
+                    </CheckBox.ContentTemplate>
+                </CheckBox>
+            </StackPanel>
+        </Border>
+    </DockPanel>
+</Window>

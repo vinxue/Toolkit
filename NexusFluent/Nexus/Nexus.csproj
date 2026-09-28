@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>Nexus</AssemblyName>
+    <RootNamespace>Nexus</RootNamespace>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <ApplicationIcon>appicon.ico</ApplicationIcon>
+    <Copyright>Copyright © 2026 Gavin Xue</Copyright>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>3.0.0.1</Version>
+    <FileVersion>3.0.0.1</FileVersion>
+    <AssemblyVersion>3.0.0.1</AssemblyVersion>
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="appicon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
+  </ItemGroup>
+
+  <Target Name="PostBuildCleanup" AfterTargets="Build">
+    <Delete Files="$(OutputPath)Microsoft.Web.WebView2.WinForms.dll" />
+  </Target>
+
+</Project>
