@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shell;
 using Nexus.Core;
 using Nexus.Models;
 using Nexus.Services;
@@ -27,6 +28,10 @@ namespace Nexus
         private const double ExpandedWidth = ExpandedContentWidth + SidebarDividerWidth;
         private const double PopupWidth = 1180;
         private const double PopupHeight = 720;
+        private const double TitleBarHeight = 40;
+
+        // WebView2's native window would cover the right and bottom resize borders.
+        private const double ResizeBorderWidth = 4;
 
         private readonly ObservableCollection<SiteConfig> _sites = new();
         private readonly CollectionViewSource _visibleSites = new();
@@ -62,6 +67,10 @@ namespace Nexus
         public MainWindow()
         {
             InitializeComponent();
+
+            // A maximized window moved to another monitor keeps its state but changes overhang.
+            SizeChanged += (_, _) => UpdateChromeLayout();
+            LocationChanged += (_, _) => UpdateChromeLayout();
 
             _profileManager.BrowserProcessFailed += (_, _) => RecoverFromBrowserProcessFailure();
             _profileManager.SetColorScheme(ToWebColorScheme(ConfigStore.Config.Theme));
@@ -141,6 +150,27 @@ namespace Nexus
         private void ToggleButton_Click(object sender, RoutedEventArgs e)
         {
             IsSidebarExpanded = !IsSidebarExpanded;
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            base.OnStateChanged(e);
+            UpdateChromeLayout();
+        }
+
+        private void UpdateChromeLayout()
+        {
+            bool maximized = WindowState == WindowState.Maximized;
+            bool fullscreen = _isAppFullscreen || _isWebContentFullscreen;
+
+            var chrome = WindowChrome.GetWindowChrome(this);
+            chrome.CaptionHeight = fullscreen ? 0 : TitleBarHeight;
+            chrome.ResizeBorderThickness = new Thickness(fullscreen ? 0 : ResizeBorderWidth);
+
+            KeyboardFocusHost.Margin = maximized ? WindowFrame.GetMaximizedOverhang(this) : new Thickness(0);
+            WebHost.Margin = maximized || fullscreen
+                ? new Thickness(0)
+                : new Thickness(0, 0, ResizeBorderWidth, ResizeBorderWidth);
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e) =>
@@ -258,18 +288,26 @@ namespace Nexus
                     TemporaryAddressBar.Visibility);
 
                 SidebarPanel.Visibility = Visibility.Collapsed;
+                TitleBar.Visibility = Visibility.Collapsed;
                 TemporaryAddressBar.Visibility = Visibility.Collapsed;
-                WebHost.Background = Brushes.Black;
+                // App fullscreen can show the empty/loading hints, which need the normal background.
+                if (_isWebContentFullscreen)
+                {
+                    WebHost.Background = Brushes.Black;
+                }
                 controller.Enter(this);
             }
             else
             {
                 SidebarPanel.Visibility = _chromeBeforeFullscreen?.Sidebar ?? Visibility.Visible;
+                TitleBar.Visibility = Visibility.Visible;
                 TemporaryAddressBar.Visibility = _chromeBeforeFullscreen?.AddressBar ?? Visibility.Collapsed;
                 WebHost.ClearValue(Panel.BackgroundProperty);
                 _chromeBeforeFullscreen = null;
                 controller.Exit(this);
             }
+
+            UpdateChromeLayout();
         }
 
         private readonly record struct ChromeState(Visibility Sidebar, Visibility AddressBar);
@@ -1125,6 +1163,12 @@ namespace Nexus
             }
             catch (Exception ex)
             {
+                // Closing the window mid-initialization aborts it; that is not an error.
+                if (popupWindow?.IsClosed == true || _isShuttingDown)
+                {
+                    return;
+                }
+
                 popupWindow?.Close();
                 ContentDialogWindow.ShowMessage(
                     this,

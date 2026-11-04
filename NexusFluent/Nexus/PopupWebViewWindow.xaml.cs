@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shell;
 using System.Runtime.InteropServices;
 using Microsoft.Web.WebView2.Core;
 using Nexus.Core;
@@ -10,6 +11,11 @@ namespace Nexus
 {
     public partial class PopupWebViewWindow : Window
     {
+        private const double TitleBarHeight = 40;
+
+        // WebView2's native window would cover the left, right and bottom resize borders.
+        private const double ResizeBorderWidth = 4;
+
         private readonly ProfileManager _profileManager;
         private readonly ProfileContext _profile;
         private readonly Action<CoreWebView2NewWindowRequestedEventArgs, ProfileContext> _openPopupWindow;
@@ -21,6 +27,8 @@ namespace Nexus
         private bool _isWebContentFullscreen;
         private bool _isInitialized;
         private ChromeState? _chromeBeforeFullscreen;
+
+        public bool IsClosed { get; private set; }
 
         public PopupWebViewWindow(
             ProfileManager profileManager,
@@ -34,12 +42,20 @@ namespace Nexus
             _openNewWindowAsync = openNewWindowAsync;
             InitializeComponent();
 
-            // Link popups have no address bar, so the title is the only place a
-            // private window can be told apart.
-            if (profile.IsInPrivate)
-            {
-                Title = "Private - Nexus";
-            }
+            // A maximized window moved to another monitor keeps its state but changes overhang.
+            SizeChanged += (_, _) => UpdateChromeLayout();
+            LocationChanged += (_, _) => UpdateChromeLayout();
+            UpdateChromeLayout();
+
+            UpdateTitle(null);
+        }
+
+        // Link popups have no address bar, so the title is the only place a
+        // private window can be told apart.
+        private void UpdateTitle(string? documentTitle)
+        {
+            string appTitle = _profile.IsInPrivate ? "Private - Nexus" : "Nexus";
+            Title = string.IsNullOrWhiteSpace(documentTitle) ? appTitle : $"{documentTitle} - {appTitle}";
         }
 
         public async Task InitializeAsync(CoreWebView2NewWindowRequestedEventArgs args)
@@ -70,6 +86,8 @@ namespace Nexus
                 _openPopupWindow(popupArgs, _profile);
             PopupWebView.CoreWebView2.ContainsFullScreenElementChanged += (_, _) =>
                 SetWebContentFullscreen(PopupWebView.CoreWebView2.ContainsFullScreenElement);
+            PopupWebView.CoreWebView2.DocumentTitleChanged += (_, _) =>
+                UpdateTitle(PopupWebView.CoreWebView2.DocumentTitle);
 
             _isInitialized = true;
         }
@@ -177,17 +195,45 @@ namespace Nexus
             if (hidden)
             {
                 _chromeBeforeFullscreen = new ChromeState(PopupAddressBar.Visibility);
+                TitleBar.Visibility = Visibility.Collapsed;
                 PopupAddressBar.Visibility = Visibility.Collapsed;
-                PopupRoot.Background = Brushes.Black;
+                if (_isWebContentFullscreen)
+                {
+                    PopupRoot.Background = Brushes.Black;
+                }
                 controller.Enter(this);
             }
             else
             {
+                TitleBar.Visibility = Visibility.Visible;
                 PopupAddressBar.Visibility = _chromeBeforeFullscreen?.AddressBar ?? Visibility.Collapsed;
                 PopupRoot.ClearValue(System.Windows.Controls.Panel.BackgroundProperty);
                 _chromeBeforeFullscreen = null;
                 controller.Exit(this);
             }
+
+            UpdateChromeLayout();
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            base.OnStateChanged(e);
+            UpdateChromeLayout();
+        }
+
+        private void UpdateChromeLayout()
+        {
+            bool maximized = WindowState == WindowState.Maximized;
+            bool fullscreen = _isAppFullscreen || _isWebContentFullscreen;
+
+            var chrome = WindowChrome.GetWindowChrome(this);
+            chrome.CaptionHeight = fullscreen ? 0 : TitleBarHeight;
+            chrome.ResizeBorderThickness = new Thickness(fullscreen ? 0 : ResizeBorderWidth);
+
+            PopupRoot.Margin = maximized ? WindowFrame.GetMaximizedOverhang(this) : new Thickness(0);
+            PopupWebView.Margin = maximized || fullscreen
+                ? new Thickness(0)
+                : new Thickness(ResizeBorderWidth, 0, ResizeBorderWidth, ResizeBorderWidth);
         }
 
         private readonly record struct ChromeState(Visibility AddressBar);
@@ -272,6 +318,7 @@ namespace Nexus
 
         protected override void OnClosed(EventArgs e)
         {
+            IsClosed = true;
             _appFullscreenController.Exit(this);
             _webFullscreenController.Exit(this);
 
