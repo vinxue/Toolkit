@@ -8,6 +8,7 @@
         <!-- Borderless button; WPF Fluent has no built-in subtle button style. -->
         <Style x:Key="SubtleButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
             <Setter Property="Padding" Value="8,4" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
@@ -16,7 +17,7 @@
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="Bd"
                                 Background="{TemplateBinding Background}"
-                                BorderBrush="Transparent"
+                                BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="1"
                                 CornerRadius="4"
                                 Padding="{TemplateBinding Padding}">
@@ -40,6 +41,11 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <!-- Flat button with a hairline outline, so it reads as a button without a raised look. -->
+        <Style x:Key="OutlineButton" TargetType="Button" BasedOn="{StaticResource SubtleButton}">
+            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
         </Style>
     </Application.Resources>
 </Application>

@@ -45,7 +45,7 @@ namespace Calendar.Core
             [(12, 23)] = "小年",
         };
 
-        private static readonly Dictionary<int, Dictionary<DateOnly, string>> TermCache = [];
+        private static readonly Dictionary<int, DateOnly[]> TermDateCache = [];
 
         public static LunarDate? GetLunar(DateOnly date)
         {
@@ -99,18 +99,27 @@ namespace Calendar.Core
 
         public static string? GetSolarTerm(DateOnly date)
         {
-            if (!TermCache.TryGetValue(date.Year, out var terms))
+            int index = Array.IndexOf(TermDates(date.Year), date);
+            return index < 0 ? null : TermNames[index];
+        }
+
+        // Index = ecliptic longitude / 15 degrees (0 = March equinox, 21 = Lichun).
+        public static DateOnly TermDate(int year, int termIndex) => TermDates(year)[termIndex];
+
+        private static DateOnly[] TermDates(int year)
+        {
+            if (!TermDateCache.TryGetValue(year, out var dates))
             {
-                terms = [];
-                for (int i = 0; i < 24; i++)
+                dates = new DateOnly[24];
+                for (int i = 0; i < dates.Length; i++)
                 {
-                    terms[ComputeTermDate(date.Year, i)] = TermNames[i];
+                    dates[i] = ComputeTermDate(year, i);
                 }
 
-                TermCache[date.Year] = terms;
+                TermDateCache[year] = dates;
             }
 
-            return terms.GetValueOrDefault(date);
+            return dates;
         }
 
         // Date of the term in China Standard Time; Meeus low-precision solar longitude (~15 min).

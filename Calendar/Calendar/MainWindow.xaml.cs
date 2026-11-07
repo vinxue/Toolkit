@@ -15,7 +15,7 @@ namespace Calendar
     {
         private static readonly DateOnly MinDate = new(1901, 1, 1);
         private static readonly DateOnly MaxDate = new(2100, 12, 31);
-        private const double DetailPaneMinWindowWidth = 700;
+        private const double DetailPaneMinWindowWidth = 660;
 
         private DateOnly _today = DateOnly.FromDateTime(DateTime.Today);
         private DateOnly _selected;
@@ -115,6 +115,12 @@ namespace Calendar
             ClockText.Text = now.ToString(timePattern);
             ClockSuffix.Text = timePattern == pattern ? "" : now.ToString("tt");
 
+            var (shichen, range) = GanZhi.Shichen(now);
+            ClockShichen.Text = $"{shichen}时 · {range}";
+            CompactClockText.Text = ClockText.Text;
+            CompactClockSuffix.Text = ClockSuffix.Text;
+            CompactShichen.Text = ClockShichen.Text;
+
             if (DateOnly.FromDateTime(now) != _today)
             {
                 RefreshToday();
@@ -194,12 +200,20 @@ namespace Calendar
             DetailLunarYear.Text = lunar is null ? "" : $"{lunar.YearName}（{lunar.Zodiac}）";
             DetailLunarYear.Visibility = lunar is null ? Visibility.Collapsed : Visibility.Visible;
 
-            var tags = new[] { festival, term }.Where(t => t is not null);
-            DetailTags.Text = string.Join(" · ", tags);
-            DetailTagPanel.Visibility = DetailTags.Text.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+            var (ganzhiYear, ganzhiMonth) = GanZhi.YearAndMonth(date);
+            DetailGanZhi.Text = $"{ganzhiYear}年 {ganzhiMonth}月 {GanZhi.Day(date)}日";
+
+            SetRow(DetailFestivalLabel, DetailFestival, festival);
+            SetRow(DetailSolarTermLabel, DetailSolarTerm, term);
 
             DetailWeek.Text = $"第 {WeekNumber.Of(date)} 周";
             DetailDayOfYear.Text = $"第 {date.DayOfYear} 天";
+        }
+
+        private static void SetRow(TextBlock label, TextBlock value, string? text)
+        {
+            value.Text = text ?? "";
+            label.Visibility = value.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private void DayList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -226,7 +240,9 @@ namespace Calendar
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            DetailPane.Visibility = e.NewSize.Width < DetailPaneMinWindowWidth ? Visibility.Collapsed : Visibility.Visible;
+            bool showPane = e.NewSize.Width >= DetailPaneMinWindowWidth;
+            DetailPane.Visibility = showPane ? Visibility.Visible : Visibility.Collapsed;
+            CompactClock.Visibility = showPane ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
