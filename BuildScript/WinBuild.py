@@ -7,6 +7,7 @@ import concurrent.futures
 # Define the solution paths and platforms
 solution_paths = [
     ("BitViewer", "x64"),
+    ("Calendar", "dotnet"),
     ("ClockApp", "Any CPU"),
     ("FileForge", "x64"),
     ("HexViewer", "Any CPU"),
