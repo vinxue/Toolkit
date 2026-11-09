@@ -19,6 +19,9 @@
             <TabItem Header="ECDSA Tool" Background="Transparent">
                 <local:EcdsaToolWindow />
             </TabItem>
+            <TabItem Header="Base64" Background="Transparent">
+                <local:Base64ToolWindow />
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

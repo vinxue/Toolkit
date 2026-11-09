@@ -1,0 +1,131 @@
+<UserControl x:Class="SecKit.Base64ToolWindow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Loaded="UserControl_Loaded">
+    <UserControl.Resources>
+        <Style x:Key="ToolButton" TargetType="Button">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Margin" Value="4,0,0,0"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+    </UserControl.Resources>
+    <UserControl.CommandBindings>
+        <CommandBinding Command="Save" Executed="Save_Executed" CanExecute="Result_CanExecute"/>
+    </UserControl.CommandBindings>
+    <UserControl.InputBindings>
+        <KeyBinding Command="Save" Modifiers="Control" Key="S"/>
+    </UserControl.InputBindings>
+    <Grid Margin="10" AllowDrop="True" PreviewDragOver="File_DragOver" PreviewDrop="File_Drop">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid x:Name="SettingsBar" Margin="0,0,0,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="140"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <RadioButton x:Name="TextMode" Content="Text" IsChecked="True" GroupName="Mode"
+                             Margin="0,0,16,0" Checked="Mode_Changed"/>
+                <RadioButton x:Name="FileMode" Content="File" GroupName="Mode" Checked="Mode_Changed"/>
+            </StackPanel>
+            <TextBlock Grid.Column="2" Text="Format" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <ComboBox x:Name="Variant" Grid.Column="3" SelectedIndex="0" Height="26"
+                      VerticalContentAlignment="Center" SelectionChanged="Options_Changed"
+                      AutomationProperties.Name="Base64 format">
+                <ComboBoxItem Content="Base64"/>
+                <ComboBoxItem Content="Base64URL"/>
+            </ComboBox>
+        </Grid>
+
+        <Grid x:Name="TextPanel" Grid.Row="1" Margin="0,0,0,8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <DockPanel Margin="0,0,0,4">
+                <TextBlock Text="Input" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBlock Text="Data" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ComboBox x:Name="DataFormat" SelectedIndex="0" Width="90" Height="24"
+                              VerticalContentAlignment="Center" SelectionChanged="Options_Changed"
+                              ToolTip="Raw data format: encoding input or decoded output"
+                              AutomationProperties.Name="Raw data format">
+                        <ComboBoxItem Content="UTF-8"/>
+                        <ComboBoxItem Content="Hex"/>
+                    </ComboBox>
+                </StackPanel>
+            </DockPanel>
+            <TextBox x:Name="InputText" Grid.Row="1" AcceptsReturn="True" AcceptsTab="True"
+                     FontFamily="Consolas" FontSize="13" Padding="4" TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto" TextChanged="Input_Changed"
+                     AutomationProperties.Name="Input"/>
+            <TextBlock x:Name="OutputLabel" Grid.Row="2" Text="Output" Margin="0,5,0,4"/>
+            <TextBox x:Name="OutputText" Grid.Row="3" IsReadOnly="True" AcceptsReturn="True"
+                     FontFamily="Consolas" FontSize="13" Padding="4" TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto" AutomationProperties.Name="Output"/>
+        </Grid>
+
+        <Grid x:Name="FilePanel" Grid.Row="1" Visibility="Collapsed" Margin="0,8,0,8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="Input file" Margin="0,0,0,6"/>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="FilePathText" IsReadOnly="True" Height="28" Padding="4"
+                         VerticalContentAlignment="Center" AutomationProperties.Name="Input file"
+                         TextChanged="Input_Changed"/>
+                <Button Grid.Column="1" Style="{StaticResource ToolButton}" Content="&#xE8E5;"
+                        ToolTip="Open input file" AutomationProperties.Name="Open input file" Click="Browse_Click"/>
+            </Grid>
+            <TextBlock x:Name="FileDetails" Grid.Row="2" Margin="0,8,0,0" Foreground="#666666"/>
+            <TextBlock x:Name="SavedPathText" Grid.Row="3" VerticalAlignment="Bottom" TextWrapping="Wrap"
+                       Foreground="#246B45" TextTrimming="CharacterEllipsis" MaxHeight="48"/>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="EncodeButton" Content="Encode" Width="84" Height="28" Click="Encode_Click"/>
+            <Button x:Name="DecodeButton" Grid.Column="1" Content="Decode" Width="84" Height="28"
+                    Margin="8,0,0,0" Click="Decode_Click"/>
+            <StackPanel Grid.Column="3" Orientation="Horizontal">
+                <Button x:Name="CancelButton" Content="Cancel" Width="70" Height="28" Margin="4,0,0,0"
+                        Visibility="Collapsed" Click="Cancel_Click"/>
+                <Button x:Name="CopyButton" Style="{StaticResource ToolButton}" Content="&#xE8C8;"
+                        ToolTip="Copy output" AutomationProperties.Name="Copy output" IsEnabled="False" Click="Copy_Click"/>
+                <Button x:Name="SaveButton" Style="{StaticResource ToolButton}" Content="&#xE74E;"
+                        ToolTip="Save result (Ctrl+S)" AutomationProperties.Name="Save result" IsEnabled="False" Click="Save_Click"/>
+                <Button x:Name="ClearButton" Style="{StaticResource ToolButton}" Content="&#xE74D;"
+                        ToolTip="Clear" AutomationProperties.Name="Clear" Click="Clear_Click"/>
+            </StackPanel>
+        </Grid>
+        <TextBlock x:Name="StatusText" Grid.Row="3" FontSize="11" Foreground="#555555" Margin="0,5,0,0"
+                   Text="Ready" TextWrapping="Wrap" MaxHeight="30" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                   AutomationProperties.LiveSetting="Polite"/>
+        <ProgressBar x:Name="FileProgress" Grid.Row="4" Height="3" Margin="0,4,0,0"
+                     Minimum="0" Maximum="1" Visibility="Collapsed"/>
+    </Grid>
+</UserControl>
