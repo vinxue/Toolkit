@@ -1,15 +1,13 @@
 ﻿using System.IO;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Nexus.Core;
 using Nexus.Models;
 
 namespace Nexus.Services
 {
     /// <summary>
-    /// Loads and saves the list of hosted websites under a writable app data folder,
-    /// migrating older app-adjacent sites.json files when present.
+    /// The hosted websites and their WebView2 profiles, persisted in settings.json
+    /// under a writable app data folder.
     /// </summary>
     public static class SiteStore
     {
@@ -22,10 +20,8 @@ namespace Nexus.Services
 
         private static readonly string AppFolder = ResolveAppFolder();
 
-        private static readonly string ConfigPath = Path.Combine(AppFolder, "sites.json");
-
         /// <summary>
-        /// Where sites.json and the WebView2 profiles live. Resolved at startup, so
+        /// Where settings.json and the WebView2 profiles live. Resolved at startup, so
         /// it is surfaced in the UI rather than left for the user to guess.
         /// </summary>
         public static string DataFolder => AppFolder;
@@ -45,12 +41,6 @@ namespace Nexus.Services
         public static ProfileContext SharedProfile => new(SharedProfileName, IsInPrivate: false);
 
         public static ProfileContext PrivateProfile => new(PrivateProfileName, IsInPrivate: true);
-
-        private static readonly JsonSerializerOptions JsonOptions = new()
-        {
-            WriteIndented = true,
-            Converters = { new JsonStringEnumConverter() }
-        };
 
         /// <summary>
         /// Picks the folder used to store app data: a "data" folder next to the
@@ -90,26 +80,15 @@ namespace Nexus.Services
         /// </summary>
         public static List<SiteConfig> Load()
         {
-            try
+            var sites = ConfigStore.Config.Sites;
+            if (sites.Count > 0)
             {
-                if (File.Exists(ConfigPath))
+                if (EnsureProfileNames(sites))
                 {
-                    string json = File.ReadAllText(ConfigPath);
-                    var sites = JsonSerializer.Deserialize<List<SiteConfig>>(json, JsonOptions);
-                    if (sites is { Count: > 0 })
-                    {
-                        if (EnsureProfileNames(sites))
-                        {
-                            Save(sites);
-                        }
-
-                        return sites;
-                    }
+                    Save(sites);
                 }
-            }
-            catch
-            {
-                BackupCorruptConfig();
+
+                return sites;
             }
 
             var defaults = CreateDefaults();
@@ -118,17 +97,10 @@ namespace Nexus.Services
             return defaults;
         }
 
-        /// <summary>
-        /// Persists the site list to disk. Written to a temporary file first so an
-        /// interrupted write cannot leave a truncated config behind.
-        /// </summary>
         public static void Save(IEnumerable<SiteConfig> sites)
         {
-            Directory.CreateDirectory(AppFolder);
-            string json = JsonSerializer.Serialize(sites, JsonOptions);
-            string tempPath = ConfigPath + ".tmp";
-            File.WriteAllText(tempPath, json, Encoding.UTF8);
-            File.Move(tempPath, ConfigPath, overwrite: true);
+            ConfigStore.Config.Sites = sites.ToList();
+            ConfigStore.Save();
         }
 
         /// <summary>
@@ -279,26 +251,6 @@ namespace Nexus.Services
             }
 
             return site.Name;
-        }
-
-        private static void BackupCorruptConfig()
-        {
-            try
-            {
-                if (!File.Exists(ConfigPath))
-                {
-                    return;
-                }
-
-                string backupPath = Path.Combine(
-                    AppFolder,
-                    $"sites.corrupt.{DateTime.Now:yyyyMMddHHmmss}.json");
-                File.Move(ConfigPath, backupPath);
-            }
-            catch
-            {
-                // Best-effort only: if backup fails, defaults still let the app start.
-            }
         }
 
         private static List<SiteConfig> CreateDefaults() => new()

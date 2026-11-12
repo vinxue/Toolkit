@@ -17,7 +17,7 @@ solution_paths = [
     ("KbSim", "Win32"),
     ("Memo", "dotnet"),
     ("Nexus", "dotnet"),
-    (r"NexusFluent\Nexus", "dotnet"),
+    (r"NexusClassic\Nexus", "dotnet"),
     ("PCIe", "Win32"),
     ("PdfForge", "dotnet"),
     ("PdfKit", "Any CPU"),

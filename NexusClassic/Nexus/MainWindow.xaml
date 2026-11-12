@@ -4,41 +4,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Nexus"
-        xmlns:controls="clr-namespace:Nexus.Controls"
         mc:Ignorable="d"
         Title="Nexus" Height="720" Width="1180"
         WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        Loaded="Window_Loaded"
         PreviewKeyDown="Window_PreviewKeyDown">
-
-    <!-- GlassFrameThickness -1 keeps Mica, the DWM shadow and rounded corners. CaptionHeight
-         and ResizeBorderThickness are switched off in fullscreen by UpdateChromeLayout. -->
-    <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="40"
-                      ResizeBorderThickness="4"
-                      GlassFrameThickness="-1"
-                      CornerRadius="0"
-                      UseAeroCaptionButtons="False" />
-    </WindowChrome.WindowChrome>
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
-
-        <Style x:Key="KeyCap" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
-            <Setter Property="BorderThickness" Value="1,1,1,2" />
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Padding" Value="6,1" />
-            <Setter Property="Margin" Value="0,0,4,0" />
-            <Setter Property="TextElement.FontSize" Value="12" />
-        </Style>
-
-        <Style x:Key="ShortcutLabel" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="Margin" Value="12,0,0,0" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
     </Window.Resources>
     <Grid x:Name="KeyboardFocusHost" Focusable="True" FocusVisualStyle="{x:Null}">
         <Grid.ColumnDefinitions>
@@ -62,16 +36,15 @@
 
             <DockPanel Grid.Column="0"
                        LastChildFill="True"
-                       Background="Transparent">
+                       Background="{StaticResource SidebarBackground}">
 
-                <!-- Header: hamburger toggle. 40 wide so its highlight lines up with the site items'. -->
-                <Grid DockPanel.Dock="Top" Height="40">
+                <!-- Header: hamburger toggle -->
+                <Grid DockPanel.Dock="Top" Height="48">
                     <Grid Width="48" HorizontalAlignment="Left">
                         <Button x:Name="ToggleButton"
                                 Style="{StaticResource IconButton}"
-                                WindowChrome.IsHitTestVisibleInChrome="True"
                                 FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                Width="40" Height="32"
+                                Width="40" Height="40"
                                 HorizontalAlignment="Center"
                                 Content="&#xE700;"
                                 ToolTip="Expand / collapse"
@@ -81,7 +54,7 @@
 
                 <!-- Footer: settings -->
                 <Border DockPanel.Dock="Bottom"
-                        BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                        BorderBrush="{StaticResource SidebarBorder}"
                         BorderThickness="0,1,0,0">
                     <Button x:Name="SettingsButton"
                             Style="{StaticResource SidebarFooterButton}"
@@ -109,6 +82,7 @@
                                        Margin="8,0,0,0"
                                        VerticalAlignment="Center"
                                        FontSize="13"
+                                       Foreground="{StaticResource SidebarText}"
                                        Visibility="{Binding IsSidebarExpanded,
                                            RelativeSource={RelativeSource AncestorType=Window},
                                            Converter={StaticResource BoolToVis}}" />
@@ -165,50 +139,73 @@
                         <Style TargetType="ListBoxItem">
                             <Setter Property="Padding" Value="0" />
                             <Setter Property="Margin" Value="0,2" />
-                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource SidebarText}" />
                             <Setter Property="Template">
                                 <Setter.Value>
-                                    <!-- Inset rounded highlight + accent pill, as in the Windows 11 navigation pane. -->
                                     <ControlTemplate TargetType="ListBoxItem">
-                                        <Grid Height="40" Background="Transparent">
-                                            <Border x:Name="ItemBackground"
-                                                    Margin="4,0"
-                                                    CornerRadius="4"
+                                        <Grid Height="40">
+                                            <Border x:Name="SelectionBackground"
                                                     Background="Transparent" />
+                                            <Border x:Name="HoverBackground"
+                                                    Width="40"
+                                                    Height="40"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    CornerRadius="6"
+                                                    Background="{StaticResource SidebarHover}"
+                                                    Visibility="Collapsed" />
+                                            <Border x:Name="ExpandedHoverBackground"
+                                                    Background="{StaticResource SidebarHover}"
+                                                    Visibility="Collapsed" />
                                             <Border x:Name="SelectionIndicator"
                                                     Width="3"
-                                                    Height="16"
-                                                    Margin="4,0,0,0"
+                                                    Height="40"
                                                     HorizontalAlignment="Left"
                                                     VerticalAlignment="Center"
                                                     CornerRadius="1.5"
-                                                    Background="{DynamicResource AccentFillColorDefaultBrush}"
+                                                    Background="{StaticResource AccentBrush}"
                                                     Visibility="Collapsed" />
                                             <ContentPresenter VerticalAlignment="Center" />
                                         </Grid>
                                         <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="ItemBackground" Property="Background"
-                                                        Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
-                                            </Trigger>
-                                            <Trigger Property="IsSelected" Value="True">
-                                                <Setter TargetName="ItemBackground" Property="Background"
-                                                        Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
-                                                <Setter TargetName="SelectionIndicator" Property="Visibility"
-                                                        Value="Visible" />
-                                            </Trigger>
                                             <MultiTrigger>
                                                 <MultiTrigger.Conditions>
                                                     <Condition Property="IsMouseOver" Value="True" />
-                                                    <Condition Property="IsSelected" Value="True" />
+                                                    <Condition Property="IsSelected" Value="False" />
                                                 </MultiTrigger.Conditions>
-                                                <Setter TargetName="ItemBackground" Property="Background"
-                                                        Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+                                                <Setter TargetName="HoverBackground" Property="Visibility"
+                                                        Value="Visible" />
                                             </MultiTrigger>
+                                            <MultiTrigger>
+                                                <MultiTrigger.Conditions>
+                                                    <Condition Property="IsMouseOver" Value="True" />
+                                                    <Condition Property="IsSelected" Value="False" />
+                                                    <Condition Property="Tag" Value="Expanded" />
+                                                </MultiTrigger.Conditions>
+                                                <Setter TargetName="HoverBackground" Property="Visibility"
+                                                        Value="Collapsed" />
+                                                <Setter TargetName="ExpandedHoverBackground" Property="Visibility"
+                                                        Value="Visible" />
+                                            </MultiTrigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="SelectionBackground" Property="Background"
+                                                        Value="{StaticResource SidebarSelected}" />
+                                                <Setter TargetName="SelectionIndicator" Property="Visibility"
+                                                        Value="Visible" />
+                                                <Setter TargetName="HoverBackground" Property="Visibility"
+                                                        Value="Collapsed" />
+                                                <Setter TargetName="ExpandedHoverBackground" Property="Visibility"
+                                                        Value="Collapsed" />
+                                            </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </Setter.Value>
                             </Setter>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSidebarExpanded, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                    <Setter Property="Tag" Value="Expanded" />
+                                </DataTrigger>
+                            </Style.Triggers>
                         </Style>
                     </ListBox.ItemContainerStyle>
                     <ListBox.ItemTemplate>
@@ -221,15 +218,14 @@
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center"
                                               UseLayoutRounding="True">
-                                            <!-- Kept white in both themes: most favicons are drawn for a light background. -->
                                             <Border x:Name="CollapsedAvatar"
                                                     CornerRadius="16"
-                                                    Background="White"
-                                                    BorderBrush="{DynamicResource ControlStrokeColorSecondaryBrush}"
+                                                    Background="{StaticResource AvatarChipBackground}"
+                                                    BorderBrush="{StaticResource AvatarChipBorder}"
                                                     BorderThickness="1">
                                                 <TextBlock x:Name="CollapsedInitial"
                                                            Text="{Binding Initial}"
-                                                           Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                                                           Foreground="White"
                                                            FontSize="14"
                                                            FontWeight="SemiBold"
                                                            HorizontalAlignment="Center"
@@ -264,12 +260,12 @@
                                               UseLayoutRounding="True">
                                             <Border x:Name="ExpandedAvatar"
                                                     CornerRadius="16"
-                                                    Background="White"
-                                                    BorderBrush="{DynamicResource ControlStrokeColorSecondaryBrush}"
+                                                    Background="{StaticResource AvatarChipBackground}"
+                                                    BorderBrush="{StaticResource AvatarChipBorder}"
                                                     BorderThickness="1">
                                                 <TextBlock x:Name="ExpandedInitial"
                                                            Text="{Binding Initial}"
-                                                           Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                                                           Foreground="White"
                                                            FontSize="14"
                                                            FontWeight="SemiBold"
                                                            HorizontalAlignment="Center"
@@ -290,7 +286,8 @@
                                                VerticalAlignment="Center"
                                                Margin="8,0,4,0"
                                                FontSize="13"
-                                               TextTrimming="CharacterEllipsis" />
+                                               TextTrimming="CharacterEllipsis"
+                                               Foreground="{StaticResource SidebarText}" />
 
                                     <Grid Grid.Column="2"
                                           Width="46"
@@ -304,7 +301,7 @@
                                         <TextBlock Grid.Column="0"
                                                    Text="&#xE72E;"
                                                    FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                   Foreground="{StaticResource SidebarText}"
                                                    FontSize="12"
                                                    HorizontalAlignment="Center"
                                                    VerticalAlignment="Center"
@@ -330,8 +327,8 @@
                                     <Setter TargetName="ExpandedFavicon" Property="Visibility" Value="Collapsed" />
                                     <Setter TargetName="CollapsedInitial" Property="Visibility" Value="Visible" />
                                     <Setter TargetName="ExpandedInitial" Property="Visibility" Value="Visible" />
-                                    <Setter TargetName="CollapsedAvatar" Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
-                                    <Setter TargetName="ExpandedAvatar" Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+                                    <Setter TargetName="CollapsedAvatar" Property="Background" Value="{StaticResource AvatarBackground}" />
+                                    <Setter TargetName="ExpandedAvatar" Property="Background" Value="{StaticResource AvatarBackground}" />
                                     <Setter TargetName="CollapsedAvatar" Property="BorderThickness" Value="0" />
                                     <Setter TargetName="ExpandedAvatar" Property="BorderThickness" Value="0" />
                                 </DataTrigger>
@@ -347,125 +344,51 @@
 
             <Border x:Name="SidebarDivider"
                     Grid.Column="1"
-                    Background="{DynamicResource DividerStrokeColorDefaultBrush}" />
+                    Background="{StaticResource SidebarBorder}" />
         </Grid>
 
-        <Grid Grid.Column="1">
+        <Grid Grid.Column="1" Background="#FFFFFF">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- The title bar stays transparent so its Mica matches the sidebar. -->
-            <Border Grid.Row="1"
-                    Grid.RowSpan="2"
-                    Background="{DynamicResource LayerFillColorDefaultBrush}" />
-
-            <Border x:Name="TitleBar"
-                    Grid.Row="0"
-                    Height="40"
-                    BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
-                    BorderThickness="0,0,0,1">
-                <controls:CaptionButtons HorizontalAlignment="Right" />
-            </Border>
-
             <Border x:Name="TemporaryAddressBar"
-                    Grid.Row="1"
-                    BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                    Grid.Row="0"
+                    Background="#F6F8FB"
+                    BorderBrush="#D8DEE8"
                     BorderThickness="0,0,0,1"
-                    Padding="12,8"
+                    Padding="16,12"
                     Visibility="Collapsed">
-                <Grid>
-                    <TextBox x:Name="TemporaryAddressBox"
-                             FontSize="14"
-                             VerticalContentAlignment="Center"
-                             TextChanged="TemporaryAddressBox_TextChanged"
-                             KeyDown="TemporaryAddressBox_KeyDown" />
-                    <!-- WPF TextBox has no PlaceholderText. -->
-                    <TextBlock x:Name="TemporaryAddressPlaceholderText"
-                               Text="Enter web address"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                               FontSize="14"
-                               Margin="11,0"
-                               VerticalAlignment="Center"
-                               IsHitTestVisible="False" />
-                </Grid>
+                <Border HorizontalAlignment="Stretch"
+                        Background="#E8EDF5"
+                        CornerRadius="10"
+                        Padding="1">
+                    <Grid>
+                        <TextBox x:Name="TemporaryAddressBox"
+                                 Style="{StaticResource TemporaryAddressTextBox}"
+                                 Height="38"
+                                 TextChanged="TemporaryAddressBox_TextChanged"
+                                 KeyDown="TemporaryAddressBox_KeyDown" />
+                        <TextBlock x:Name="TemporaryAddressPlaceholderText"
+                                   Text="Enter web address"
+                                   Foreground="#6B7280"
+                                   FontSize="14"
+                                   Margin="13,0"
+                                   VerticalAlignment="Center"
+                                   IsHitTestVisible="False" />
+                    </Grid>
+                </Border>
             </Border>
 
             <!-- Web content host -->
-            <Grid x:Name="WebHost" Grid.Row="2">
-                <StackPanel x:Name="EmptyHint"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-                    <Border Width="72" Height="72"
-                            CornerRadius="36"
-                            HorizontalAlignment="Center"
-                            Background="{DynamicResource SubtleFillColorSecondaryBrush}">
-                        <TextBlock Text="&#xE774;"
-                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                   FontSize="32"
-                                   Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Border>
-
-                    <TextBlock Text="Pick a site to get started"
-                               FontFamily="Segoe UI Variable Display, Segoe UI"
-                               FontSize="20"
-                               FontWeight="SemiBold"
-                               Margin="0,20,0,0"
-                               HorizontalAlignment="Center" />
-                    <TextBlock Text="Choose a site from the sidebar, or add a new one."
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                               FontSize="14"
-                               Margin="0,6,0,0"
-                               HorizontalAlignment="Center" />
-
-                    <Button Style="{DynamicResource AccentButtonStyle}"
-                            Content="Add a site"
-                            MinWidth="120"
-                            Margin="0,20,0,0"
-                            HorizontalAlignment="Center"
-                            Click="SettingsButton_Click" />
-
-                    <Grid Margin="0,32,0,0" HorizontalAlignment="Center">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="28" />
-                            <RowDefinition Height="28" />
-                            <RowDefinition Height="28" />
-                            <RowDefinition Height="28" />
-                        </Grid.RowDefinitions>
-
-                        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <Border Style="{StaticResource KeyCap}"><TextBlock Text="Ctrl" /></Border>
-                            <Border Style="{StaticResource KeyCap}" Margin="0"><TextBlock Text="L" /></Border>
-                        </StackPanel>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource ShortcutLabel}" Text="Open a web address" />
-
-                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <Border Style="{StaticResource KeyCap}"><TextBlock Text="Ctrl" /></Border>
-                            <Border Style="{StaticResource KeyCap}" Margin="0"><TextBlock Text="N" /></Border>
-                        </StackPanel>
-                        <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource ShortcutLabel}" Text="New window" />
-
-                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <Border Style="{StaticResource KeyCap}"><TextBlock Text="Ctrl" /></Border>
-                            <Border Style="{StaticResource KeyCap}"><TextBlock Text="Shift" /></Border>
-                            <Border Style="{StaticResource KeyCap}" Margin="0"><TextBlock Text="N" /></Border>
-                        </StackPanel>
-                        <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource ShortcutLabel}" Text="New private window" />
-
-                        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <Border Style="{StaticResource KeyCap}" Margin="0"><TextBlock Text="F11" /></Border>
-                        </StackPanel>
-                        <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource ShortcutLabel}" Text="Full screen" />
-                    </Grid>
-                </StackPanel>
+            <Grid x:Name="WebHost" Grid.Row="1" Background="#FFFFFF">
+                <TextBlock x:Name="EmptyHint"
+                           Text="Select a site from the left to get started."
+                           Foreground="#8A94A6"
+                           FontSize="15"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
                 <StackPanel x:Name="LoadingHint"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
@@ -475,7 +398,7 @@
                     <Ellipse Width="28"
                              Height="28"
                              StrokeThickness="3"
-                             Stroke="{DynamicResource AccentFillColorDefaultBrush}"
+                             Stroke="{StaticResource AccentBrush}"
                              StrokeDashArray="20 10"
                              StrokeDashCap="Round"
                              HorizontalAlignment="Center"
@@ -508,13 +431,13 @@
                         </Ellipse.Style>
                     </Ellipse>
                     <TextBlock Text="Loading..."
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Foreground="#8A94A6"
                                FontSize="14"
                                Margin="0,14,0,0"
                                HorizontalAlignment="Center" />
                 </StackPanel>
                 <TextBlock x:Name="ErrorHint"
-                           Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                           Foreground="#DC2626"
                            FontSize="14"
                            TextWrapping="Wrap"
                            TextAlignment="Center"

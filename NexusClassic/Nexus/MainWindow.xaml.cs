@@ -4,9 +4,9 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Interop;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shell;
 using Nexus.Core;
 using Nexus.Models;
 using Nexus.Services;
@@ -28,10 +28,7 @@ namespace Nexus
         private const double ExpandedWidth = ExpandedContentWidth + SidebarDividerWidth;
         private const double PopupWidth = 1180;
         private const double PopupHeight = 720;
-        private const double TitleBarHeight = 40;
-
-        // WebView2's native window would cover the right and bottom resize borders.
-        private const double ResizeBorderWidth = 4;
+        private const int WmDpiChanged = 0x02E0;
 
         private readonly ObservableCollection<SiteConfig> _sites = new();
         private readonly CollectionViewSource _visibleSites = new();
@@ -44,6 +41,9 @@ namespace Nexus
         private WebView2? _temporaryWebView;
         private WebView2? _fullscreenWebView;
         private SiteConfig? _siteBeforeTemporaryPage;
+
+        private IntPtr _hwnd;
+        private HwndSource? _source;
 
         private bool _isSidebarExpanded;
         private bool _isAppFullscreen;
@@ -68,12 +68,7 @@ namespace Nexus
         {
             InitializeComponent();
 
-            // A maximized window moved to another monitor keeps its state but changes overhang.
-            SizeChanged += (_, _) => UpdateChromeLayout();
-            LocationChanged += (_, _) => UpdateChromeLayout();
-
             _profileManager.BrowserProcessFailed += (_, _) => RecoverFromBrowserProcessFailure();
-            _profileManager.SetColorScheme(ToWebColorScheme(ConfigStore.Config.Theme));
 
             foreach (var site in SiteStore.Load())
             {
@@ -132,6 +127,101 @@ namespace Nexus
             EmptyHint.Visibility = Visibility.Visible;
         }
 
+        #region Win11 Acrylic via DWM
+        private static class DwmApi
+        {
+            public const int DWMWA_CAPTION_COLOR = 35;
+            public const int DWMWA_SYSTEMBACKDROP_TYPE = 38;
+            public const int DWMSBT_TRANSIENTWINDOW = 3; // Acrylic
+
+            [DllImport("dwmapi.dll", PreserveSig = true)]
+            public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
+        }
+
+        // Without WindowChrome, DwmExtendFrameIntoClientArea must be called directly:
+        // it tells DWM which client pixels participate in frame/backdrop compositing.
+        // Keep this restricted to the acrylic sidebar. WebView2 is a native child HWND;
+        // if the frame is extended across the whole client area, a maximized window can
+        // draw the title bar over the top of the web content.
+        private static class NonClientRegionApi
+        {
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Margins
+            {
+                public int cxLeftWidth, cxRightWidth, cyTopHeight, cyBottomHeight;
+            }
+
+            [DllImport("dwmapi.dll")]
+            public static extern int DwmExtendFrameIntoClientArea(IntPtr hwnd, ref Margins margins);
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            _hwnd = new WindowInteropHelper(this).Handle;
+
+            // Request the Acrylic system backdrop (Win11 22H2+; silently ignored on
+            // older OS, which just keeps today's normal opaque window look). This
+            // applies to the whole window (title bar + client area) regardless of
+            // whether WindowChrome/a custom frame is used.
+            int backdropType = DwmApi.DWMSBT_TRANSIENTWINDOW;
+            DwmApi.DwmSetWindowAttribute(_hwnd, DwmApi.DWMWA_SYSTEMBACKDROP_TYPE,
+                ref backdropType, Marshal.SizeOf<int>());
+
+            // DWMWA_SYSTEMBACKDROP_TYPE is window-scoped, so the native title bar also
+            // gets Acrylic. Override the caption with an opaque Windows 11 light color
+            // so the title bar stays visually normal while the client sidebar remains
+            // backed by Acrylic.
+            int titleBarColor = ToColorRef(Color.FromRgb(0xEF, 0xF4, 0xF9));
+            DwmApi.DwmSetWindowAttribute(_hwnd, DwmApi.DWMWA_CAPTION_COLOR,
+                ref titleBarColor, Marshal.SizeOf<int>());
+
+            UpdateExtendedFrame();
+
+            // Make WPF's composition surface transparent so the DWM backdrop can show
+            // through wherever our own content (the sidebar) is semi-transparent.
+            _source = HwndSource.FromHwnd(_hwnd);
+            if (_source?.CompositionTarget != null)
+            {
+                _source.CompositionTarget.BackgroundColor = Colors.Transparent;
+                _source.AddHook(WndProc);
+            }
+        }
+
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == WmDpiChanged)
+            {
+                Dispatcher.BeginInvoke(UpdateExtendedFrame, System.Windows.Threading.DispatcherPriority.Loaded);
+            }
+
+            return IntPtr.Zero;
+        }
+
+        private void UpdateExtendedFrame()
+        {
+            if (_hwnd == IntPtr.Zero)
+            {
+                return;
+            }
+
+            double dpiScaleX = PresentationSource.FromVisual(this)?.CompositionTarget?.TransformToDevice.M11 ?? 1.0;
+            double sidebarWidth = _isWebContentFullscreen || SidebarPanel.Visibility != Visibility.Visible
+                ? 0
+                : SidebarPanel.Width;
+            var margins = new NonClientRegionApi.Margins
+            {
+                cxLeftWidth = (int)Math.Ceiling(sidebarWidth * dpiScaleX),
+                cxRightWidth = 0,
+                cyTopHeight = 0,
+                cyBottomHeight = 0
+            };
+            NonClientRegionApi.DwmExtendFrameIntoClientArea(_hwnd, ref margins);
+        }
+
+        private static int ToColorRef(Color color) =>
+            color.R | (color.G << 8) | (color.B << 16);
+        #endregion
+
         /// <summary>
         /// Whether the sidebar shows site names (expanded) or icons only (collapsed).
         /// </summary>
@@ -143,6 +233,7 @@ namespace Nexus
                 if (_isSidebarExpanded == value) return;
                 _isSidebarExpanded = value;
                 SidebarPanel.Width = value ? ExpandedWidth : CollapsedWidth;
+                UpdateExtendedFrame();
                 OnPropertyChanged(nameof(IsSidebarExpanded));
             }
         }
@@ -150,27 +241,6 @@ namespace Nexus
         private void ToggleButton_Click(object sender, RoutedEventArgs e)
         {
             IsSidebarExpanded = !IsSidebarExpanded;
-        }
-
-        protected override void OnStateChanged(EventArgs e)
-        {
-            base.OnStateChanged(e);
-            UpdateChromeLayout();
-        }
-
-        private void UpdateChromeLayout()
-        {
-            bool maximized = WindowState == WindowState.Maximized;
-            bool fullscreen = _isAppFullscreen || _isWebContentFullscreen;
-
-            var chrome = WindowChrome.GetWindowChrome(this);
-            chrome.CaptionHeight = fullscreen ? 0 : TitleBarHeight;
-            chrome.ResizeBorderThickness = new Thickness(fullscreen ? 0 : ResizeBorderWidth);
-
-            KeyboardFocusHost.Margin = maximized ? WindowFrame.GetMaximizedOverhang(this) : new Thickness(0);
-            WebHost.Margin = maximized || fullscreen
-                ? new Thickness(0)
-                : new Thickness(0, 0, ResizeBorderWidth, ResizeBorderWidth);
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e) =>
@@ -284,33 +354,28 @@ namespace Nexus
             if (hidden)
             {
                 _chromeBeforeFullscreen = new ChromeState(
+                    WebHost.Background,
                     SidebarPanel.Visibility,
                     TemporaryAddressBar.Visibility);
 
                 SidebarPanel.Visibility = Visibility.Collapsed;
-                TitleBar.Visibility = Visibility.Collapsed;
                 TemporaryAddressBar.Visibility = Visibility.Collapsed;
-                // App fullscreen can show the empty/loading hints, which need the normal background.
-                if (_isWebContentFullscreen)
-                {
-                    WebHost.Background = Brushes.Black;
-                }
+                WebHost.Background = Brushes.Black;
                 controller.Enter(this);
             }
             else
             {
                 SidebarPanel.Visibility = _chromeBeforeFullscreen?.Sidebar ?? Visibility.Visible;
-                TitleBar.Visibility = Visibility.Visible;
                 TemporaryAddressBar.Visibility = _chromeBeforeFullscreen?.AddressBar ?? Visibility.Collapsed;
-                WebHost.ClearValue(Panel.BackgroundProperty);
+                WebHost.Background = _chromeBeforeFullscreen?.WebHostBackground ?? Brushes.White;
                 _chromeBeforeFullscreen = null;
                 controller.Exit(this);
             }
 
-            UpdateChromeLayout();
+            UpdateExtendedFrame();
         }
 
-        private readonly record struct ChromeState(Visibility Sidebar, Visibility AddressBar);
+        private readonly record struct ChromeState(Brush? WebHostBackground, Visibility Sidebar, Visibility AddressBar);
 
         private void ShowTemporaryAddressBar()
         {
@@ -478,8 +543,6 @@ namespace Nexus
                 AddSiteFromSettings,
                 EditSiteFromSettings,
                 RemoveSite,
-                GetThemePreference,
-                SetThemePreference,
                 ClearSharedProfileBrowsingDataAsync,
                 ClearSiteBrowsingDataAsync)
             {
@@ -488,28 +551,6 @@ namespace Nexus
 
             settingsWindow.ShowDialog();
         }
-
-        private AppTheme GetThemePreference() => ConfigStore.Config.Theme;
-
-        private void SetThemePreference(AppTheme theme)
-        {
-            if (ConfigStore.Config.Theme == theme)
-            {
-                return;
-            }
-
-            ConfigStore.Config.Theme = theme;
-            ConfigStore.Save();
-            Application.Current.ThemeMode = App.ToWpfThemeMode(theme);
-            _profileManager.SetColorScheme(ToWebColorScheme(theme));
-        }
-
-        private static CoreWebView2PreferredColorScheme ToWebColorScheme(AppTheme theme) => theme switch
-        {
-            AppTheme.Light => CoreWebView2PreferredColorScheme.Light,
-            AppTheme.Dark => CoreWebView2PreferredColorScheme.Dark,
-            _ => CoreWebView2PreferredColorScheme.Auto
-        };
 
         private string? AddSiteFromSettings(SiteConfig site)
         {
@@ -727,10 +768,12 @@ namespace Nexus
         }
 
         private void ShowProfileDeleteWarning(Exception ex) =>
-            ContentDialogWindow.ShowMessage(
+            MessageBox.Show(
                 this,
+                $"The site was removed, but its isolated profile data could not be deleted.\n{ex.Message}",
                 "Remove site",
-                $"The site was removed, but its isolated profile data could not be deleted.\n{ex.Message}");
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
 
         private static string NormalizeUrl(string url)
         {
@@ -773,32 +816,11 @@ namespace Nexus
         {
             foreach (var view in _webViews.Values)
             {
-                ReloadIfProfileMatches(view, profileName);
-            }
-
-            if (_temporaryWebView is not null)
-            {
-                ReloadIfProfileMatches(_temporaryWebView, profileName);
-            }
-
-            _popupWindowManager.ReloadForProfile(profileName);
-        }
-
-        private static void ReloadIfProfileMatches(WebView2 webView, string profileName)
-        {
-            if (webView.CoreWebView2 is not { } core ||
-                !string.Equals(core.Profile.ProfileName, profileName, StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            try
-            {
-                core.Reload();
-            }
-            catch (Exception ex) when (ex is InvalidOperationException or COMException)
-            {
-                // The WebView may already be closing or recovering from a browser failure.
+                if (view.CoreWebView2 is { } core &&
+                    string.Equals(core.Profile.ProfileName, profileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    core.Reload();
+                }
             }
         }
 
@@ -1163,17 +1185,13 @@ namespace Nexus
             }
             catch (Exception ex)
             {
-                // Closing the window mid-initialization aborts it; that is not an error.
-                if (popupWindow?.IsClosed == true || _isShuttingDown)
-                {
-                    return;
-                }
-
                 popupWindow?.Close();
-                ContentDialogWindow.ShowMessage(
+                MessageBox.Show(
                     this,
-                    "New window",
-                    $"Could not open a new window.\n{ex.Message}");
+                    $"Could not open a new window.\n{ex.Message}",
+                    "Nexus",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
 
@@ -1338,6 +1356,8 @@ namespace Nexus
             base.OnClosed(e);
 
             _isShuttingDown = true;
+            _source?.RemoveHook(WndProc);
+            _source = null;
 
             if (_isAppFullscreen)
             {

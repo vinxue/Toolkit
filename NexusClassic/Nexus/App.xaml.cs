@@ -1,6 +1,4 @@
 ﻿using System.Windows;
-using Nexus.Models;
-using Nexus.Services;
 
 namespace Nexus
 {
@@ -11,6 +9,8 @@ namespace Nexus
     {
         protected override void OnStartup(StartupEventArgs e)
         {
+            base.OnStartup(e);
+
             // Surface any unhandled error instead of leaving the window blank/silent.
             DispatcherUnhandledException += (_, args) =>
             {
@@ -21,17 +21,6 @@ namespace Nexus
                     MessageBoxImage.Error);
                 args.Handled = true;
             };
-
-            ThemeMode = ToWpfThemeMode(ConfigStore.Config.Theme);
-
-            base.OnStartup(e);
         }
-
-        internal static ThemeMode ToWpfThemeMode(AppTheme theme) => theme switch
-        {
-            AppTheme.Light => ThemeMode.Light,
-            AppTheme.Dark => ThemeMode.Dark,
-            _ => ThemeMode.System
-        };
     }
 }

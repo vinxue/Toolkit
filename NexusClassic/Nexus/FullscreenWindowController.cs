@@ -9,7 +9,7 @@ namespace Nexus
     {
         private WindowFullscreenState? _state;
 
-        public void Enter(Window window)
+        public void Enter(Window window, Brush? fullscreenBackground = null)
         {
             if (_state is not null)
             {
@@ -21,13 +21,18 @@ namespace Nexus
                 WindowState: window.WindowState,
                 WindowStyle: window.WindowStyle,
                 ResizeMode: window.ResizeMode,
-                Topmost: window.Topmost);
+                Topmost: window.Topmost,
+                Background: window.Background);
 
             var monitorBounds = GetMonitorBounds(window);
             window.WindowState = WindowState.Normal;
             window.WindowStyle = WindowStyle.None;
             window.ResizeMode = ResizeMode.NoResize;
             window.Topmost = true;
+            if (fullscreenBackground is not null)
+            {
+                window.Background = fullscreenBackground;
+            }
 
             window.Left = monitorBounds.Left;
             window.Top = monitorBounds.Top;
@@ -45,6 +50,7 @@ namespace Nexus
             WindowFullscreenState state = _state;
             _state = null;
 
+            window.Background = state.Background;
             window.WindowState = WindowState.Normal;
             window.WindowStyle = state.WindowStyle;
             window.ResizeMode = state.ResizeMode;
@@ -109,7 +115,8 @@ namespace Nexus
             WindowState WindowState,
             WindowStyle WindowStyle,
             ResizeMode ResizeMode,
-            bool Topmost);
+            bool Topmost,
+            Brush? Background);
 
         private static class MonitorApi
         {

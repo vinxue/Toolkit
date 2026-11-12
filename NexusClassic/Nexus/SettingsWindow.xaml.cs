@@ -18,8 +18,6 @@ namespace Nexus
         private readonly Func<SiteConfig, string?> _addSite;
         private readonly Func<SiteConfig, string, string, SiteProfileMode, string?> _editSite;
         private readonly Func<SiteConfig, bool, bool> _removeSite;
-        private readonly Func<AppTheme> _getThemePreference;
-        private readonly Action<AppTheme> _setThemePreference;
         private readonly Func<CoreWebView2BrowsingDataKinds, Task> _clearSharedBrowsingDataAsync;
         private readonly Func<SiteConfig, CoreWebView2BrowsingDataKinds, Task> _clearSiteBrowsingDataAsync;
         private SiteConfig? _editingSite;
@@ -29,8 +27,6 @@ namespace Nexus
             Func<SiteConfig, string?> addSite,
             Func<SiteConfig, string, string, SiteProfileMode, string?> editSite,
             Func<SiteConfig, bool, bool> removeSite,
-            Func<AppTheme> getThemePreference,
-            Action<AppTheme> setThemePreference,
             Func<CoreWebView2BrowsingDataKinds, Task> clearSharedBrowsingDataAsync,
             Func<SiteConfig, CoreWebView2BrowsingDataKinds, Task> clearSiteBrowsingDataAsync)
         {
@@ -38,8 +34,6 @@ namespace Nexus
             _addSite = addSite;
             _editSite = editSite;
             _removeSite = removeSite;
-            _getThemePreference = getThemePreference;
-            _setThemePreference = setThemePreference;
             _clearSharedBrowsingDataAsync = clearSharedBrowsingDataAsync;
             _clearSiteBrowsingDataAsync = clearSiteBrowsingDataAsync;
 
@@ -47,7 +41,6 @@ namespace Nexus
             SitesList.ItemsSource = _sites;
             _sites.CollectionChanged += Sites_CollectionChanged;
             DataFolderText.Text = SiteStore.DataFolder;
-            ThemeModeBox.SelectedIndex = (int)_getThemePreference();
             InitializeAboutInfo();
         }
 
@@ -75,7 +68,7 @@ namespace Nexus
             }
             catch (Exception ex)
             {
-                ContentDialogWindow.ShowMessage(this, "Data folder", $"Could not open the data folder.\n{ex.Message}");
+                MessageBox.Show(this, $"Could not open the data folder.\n{ex.Message}", "Data folder", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -119,9 +112,6 @@ namespace Nexus
             ShowPage(ProfilesPage);
         }
 
-        private void AppearanceNavButton_Click(object sender, RoutedEventArgs e) =>
-            ShowPage(AppearancePage);
-
         private void AboutNavButton_Click(object sender, RoutedEventArgs e) =>
             ShowPage(AboutPage);
 
@@ -129,22 +119,10 @@ namespace Nexus
         {
             SitesPage.Visibility = ReferenceEquals(visiblePage, SitesPage) ? Visibility.Visible : Visibility.Collapsed;
             ProfilesPage.Visibility = ReferenceEquals(visiblePage, ProfilesPage) ? Visibility.Visible : Visibility.Collapsed;
-            AppearancePage.Visibility = ReferenceEquals(visiblePage, AppearancePage) ? Visibility.Visible : Visibility.Collapsed;
             AboutPage.Visibility = ReferenceEquals(visiblePage, AboutPage) ? Visibility.Visible : Visibility.Collapsed;
             SitesNavButton.Tag = ReferenceEquals(visiblePage, SitesPage) ? "Selected" : null;
             ProfilesNavButton.Tag = ReferenceEquals(visiblePage, ProfilesPage) ? "Selected" : null;
-            AppearanceNavButton.Tag = ReferenceEquals(visiblePage, AppearancePage) ? "Selected" : null;
             AboutNavButton.Tag = ReferenceEquals(visiblePage, AboutPage) ? "Selected" : null;
-        }
-
-        private void ThemeModeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (ThemeModeBox.SelectedIndex < 0)
-            {
-                return;
-            }
-
-            _setThemePreference((AppTheme)ThemeModeBox.SelectedIndex);
         }
 
         private void RefreshProfilesPage()
@@ -305,7 +283,8 @@ namespace Nexus
                 ? "Move this site to an isolated profile?\n\nIt will reload and you may need to sign in again. Its previous isolated session, if any, is reused."
                 : "Move this site back to the shared profile?\n\nIt will reload with the shared session. Its isolated data is kept and reused if you switch back.";
 
-            return ContentDialogWindow.Confirm(this, "Change profile", message, "Change");
+            return MessageBox.Show(this, message, "Change profile", MessageBoxButton.OKCancel, MessageBoxImage.Question)
+                == MessageBoxResult.OK;
         }
 
         private async void ClearSiteData_Click(object sender, RoutedEventArgs e)
@@ -359,20 +338,21 @@ namespace Nexus
             CoreWebView2BrowsingDataKinds kinds = GetSelectedBrowsingDataKinds();
             if (kinds == 0)
             {
-                ContentDialogWindow.ShowMessage(this, "Profiles", "Select at least one type of data to clear.");
+                MessageBox.Show(this, "Select at least one type of data to clear.", "Profiles", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             if (IncludesSignOutRisk(kinds))
             {
                 string selectedData = string.Join(Environment.NewLine, GetSelectedBrowsingDataDescriptions());
-                bool confirmed = ContentDialogWindow.Confirm(
+                var result = MessageBox.Show(
                     this,
-                    "Clear browsing data",
                     $"Clear the selected data for {target}?{Environment.NewLine}{Environment.NewLine}{selectedData}{Environment.NewLine}{Environment.NewLine}This may sign you out or remove local website data.",
-                    "Clear");
+                    "Clear browsing data",
+                    MessageBoxButton.OKCancel,
+                    MessageBoxImage.Warning);
 
-                if (!confirmed)
+                if (result != MessageBoxResult.OK)
                 {
                     return;
                 }
@@ -381,11 +361,11 @@ namespace Nexus
             try
             {
                 await clearAsync(kinds);
-                ContentDialogWindow.ShowMessage(this, "Profiles", "Selected browsing data cleared.");
+                MessageBox.Show(this, "Selected browsing data cleared.", "Profiles", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                ContentDialogWindow.ShowMessage(this, "Profiles", $"Could not clear selected browsing data.\n{ex.Message}");
+                MessageBox.Show(this, $"Could not clear selected browsing data.\n{ex.Message}", "Profiles", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

@@ -31,5 +31,10 @@ namespace Nexus
             DeleteProfileData = DeleteProfileDataBox.IsChecked == true;
             DialogResult = true;
         }
+
+        private void Cancel_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
+        }
     }
 }

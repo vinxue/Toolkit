@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 
@@ -13,14 +12,9 @@ namespace Nexus.Core
     {
         private readonly string _userDataFolder;
 
-        // Color scheme is a per-profile setting, so one live object per profile is enough to update it.
-        private readonly Dictionary<ProfileContext, CoreWebView2Profile> _profiles = new();
-
         private Task<CoreWebView2Environment>? _environmentTask;
 
         public ProfileManager(string userDataFolder) => _userDataFolder = userDataFolder;
-
-        public CoreWebView2PreferredColorScheme ColorScheme { get; private set; } = CoreWebView2PreferredColorScheme.Auto;
 
         /// <summary>
         /// Raised when the shared browser process dies, which invalidates every
@@ -55,30 +49,6 @@ namespace Nexus.Core
             await webView.EnsureCoreWebView2Async(environment, options);
 
             webView.CoreWebView2.ProcessFailed += OnProcessFailed;
-
-            var coreProfile = webView.CoreWebView2.Profile;
-            coreProfile.PreferredColorScheme = ColorScheme;
-            _profiles[profile] = coreProfile;
-        }
-
-        /// <summary>
-        /// Tells pages which light/dark scheme to use (prefers-color-scheme) in every profile opened so far.
-        /// </summary>
-        public void SetColorScheme(CoreWebView2PreferredColorScheme scheme)
-        {
-            ColorScheme = scheme;
-
-            foreach (var coreProfile in _profiles.Values)
-            {
-                try
-                {
-                    coreProfile.PreferredColorScheme = scheme;
-                }
-                catch (Exception ex) when (ex is InvalidOperationException or COMException)
-                {
-                    // Every WebView2 on this profile is gone; the next one picks up ColorScheme on init.
-                }
-            }
         }
 
         private void OnProcessFailed(object? sender, CoreWebView2ProcessFailedEventArgs e)
@@ -90,11 +60,7 @@ namespace Nexus.Core
             }
         }
 
-        public void Reset()
-        {
-            _environmentTask = null;
-            _profiles.Clear();
-        }
+        public void Reset() => _environmentTask = null;
 
         public static Task ClearBrowsingDataAsync(WebView2 webView, CoreWebView2BrowsingDataKinds kinds) =>
             webView.CoreWebView2.Profile.ClearBrowsingDataAsync(kinds);
