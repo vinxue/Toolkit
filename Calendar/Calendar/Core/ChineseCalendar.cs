@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Calendar.Core
+namespace CalendarApp.Core
 {
     public sealed record LunarDate(string YearName, string Zodiac, string MonthName, string DayName, int Month, int Day, bool IsLeapMonth);
 

@@ -1,4 +1,4 @@
-<Window x:Class="Calendar.MainWindow"
+<Window x:Class="CalendarApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Calendar"
@@ -323,7 +323,12 @@
                     BorderThickness="0,1,0,0"
                     Visibility="Collapsed">
                 <Grid>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock x:Name="CompactClockText"
                                    FontFamily="Segoe UI Variable Display, Segoe UI"
                                    FontSize="20"
@@ -337,10 +342,24 @@
                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                     </StackPanel>
                     <TextBlock x:Name="CompactShichen"
+                               Grid.Column="1"
                                FontSize="13"
                                HorizontalAlignment="Right"
                                VerticalAlignment="Center"
+                               Margin="0,0,8,0"
                                Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    <Button Grid.Column="2"
+                            Style="{StaticResource SubtleButton}"
+                            Width="36" Height="32"
+                            VerticalAlignment="Center"
+                            ToolTip="World Clock"
+                            Click="WorldClock_Click"
+                            AutomationProperties.Name="World Clock">
+                        <TextBlock Text="&#xE909;"
+                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="15"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </Button>
                 </Grid>
             </Border>
         </Grid>
@@ -404,21 +423,41 @@
 
             <StackPanel Grid.Row="2">
                 <Border Height="1" Margin="0,0,0,16" Background="{DynamicResource DividerStrokeColorDefaultBrush}" />
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock x:Name="ClockText"
-                               FontFamily="Segoe UI Variable Display, Segoe UI"
-                               FontSize="28"
-                               FontWeight="SemiBold"
-                               Typography.NumeralAlignment="Tabular" />
-                    <TextBlock x:Name="ClockSuffix"
-                               FontSize="14"
-                               FontWeight="SemiBold"
-                               VerticalAlignment="Bottom"
-                               Margin="6,0,0,7"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                </StackPanel>
-                <TextBlock x:Name="ClockShichen" FontSize="13" Margin="0,2,0,0"
-                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="ClockText"
+                                       FontFamily="Segoe UI Variable Display, Segoe UI"
+                                       FontSize="28"
+                                       FontWeight="SemiBold"
+                                       Typography.NumeralAlignment="Tabular" />
+                            <TextBlock x:Name="ClockSuffix"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Bottom"
+                                       Margin="6,0,0,7"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <TextBlock x:Name="ClockShichen" FontSize="13" Margin="0,2,0,0"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Style="{StaticResource SubtleButton}"
+                            Width="36" Height="32"
+                            VerticalAlignment="Center"
+                            ToolTip="World Clock"
+                            Click="WorldClock_Click"
+                            AutomationProperties.Name="World Clock">
+                        <TextBlock Text="&#xE909;"
+                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="16"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </Button>
+                </Grid>
             </StackPanel>
             </Grid>
         </Border>

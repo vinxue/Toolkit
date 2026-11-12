@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace Calendar.Core
+namespace CalendarApp.Core
 {
     public sealed class WeekRow(int number) : INotifyPropertyChanged
     {

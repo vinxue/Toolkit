@@ -1,0 +1,356 @@
+<Window x:Class="CalendarApp.WorldClockWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="World Clock"
+        Width="540" Height="600"
+        MinWidth="420" MinHeight="320"
+        WindowStartupLocation="CenterOwner"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    <Border Padding="20,16,20,20" Background="Transparent" MouseLeftButtonDown="Content_MouseLeftButtonDown">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Button x:Name="DatePickerButton"
+                        Grid.Column="0"
+                        Padding="10,4"
+                        Style="{StaticResource SubtleButton}"
+                        ToolTip="Select local date (or scroll mouse wheel)"
+                        Click="DatePickerButton_Click"
+                        PreviewMouseWheel="DatePickerButton_MouseWheel"
+                        AutomationProperties.Name="Select local date">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="SelectedDateText"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   FontFamily="Segoe UI Variable Display, Segoe UI"
+                                   Typography.NumeralAlignment="Tabular" />
+                        <TextBlock Text="&#xE70D;"
+                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="10"
+                                   VerticalAlignment="Center"
+                                   Margin="6,2,0,0"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="TimePickerButton"
+                        Grid.Column="1"
+                        Margin="2,0,0,0"
+                        Padding="8,4"
+                        Style="{StaticResource SubtleButton}"
+                        ToolTip="Select local time (or scroll mouse wheel)"
+                        Click="TimePickerButton_Click"
+                        PreviewMouseWheel="TimePickerButton_MouseWheel"
+                        AutomationProperties.Name="Select local time">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="SelectedTimeText"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   FontFamily="Segoe UI Variable Display, Segoe UI"
+                                   Typography.NumeralAlignment="Tabular" />
+                        <TextBlock Text="&#xE70D;"
+                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="10"
+                                   VerticalAlignment="Center"
+                                   Margin="6,2,0,0"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="NowButton"
+                        Grid.Column="2"
+                        Style="{StaticResource OutlineButton}"
+                        Height="32"
+                        Padding="10,0"
+                        Margin="6,0,0,0"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Content="Now"
+                        IsEnabled="False"
+                        Click="NowButton_Click" />
+
+                <Popup x:Name="DatePickerPopup"
+                       PlacementTarget="{Binding ElementName=DatePickerButton}"
+                       Placement="Bottom"
+                       StaysOpen="False"
+                       AllowsTransparency="True"
+                       PopupAnimation="Fade">
+                    <Border Margin="8"
+                            CornerRadius="8"
+                            Background="{DynamicResource ContentDialogBackground}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.25" />
+                        </Border.Effect>
+                        <Calendar x:Name="PopupCalendar"
+                                  Language="en-US"
+                                  BorderThickness="0"
+                                  Background="Transparent"
+                                  SelectedDatesChanged="PopupCalendar_SelectedDatesChanged"
+                                  PreviewMouseUp="PopupCalendar_PreviewMouseUp" />
+                    </Border>
+                </Popup>
+
+                <Popup x:Name="TimePickerPopup"
+                       PlacementTarget="{Binding ElementName=TimePickerButton}"
+                       Placement="Bottom"
+                       StaysOpen="False"
+                       AllowsTransparency="True"
+                       PopupAnimation="Fade">
+                    <Border Margin="8"
+                            Padding="10"
+                            CornerRadius="8"
+                            Background="{DynamicResource ContentDialogBackground}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            Width="264">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.25" />
+                        </Border.Effect>
+                        <StackPanel>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0"
+                                        Style="{StaticResource SubtleButton}"
+                                        Height="28"
+                                        Padding="8,0"
+                                        FontSize="12"
+                                        Content="-30m"
+                                        Click="TimeShiftMinus_Click" />
+                                <TextBlock x:Name="PopupTimeText"
+                                           Grid.Column="1"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           FontFamily="Segoe UI Variable Display, Segoe UI"
+                                           Typography.NumeralAlignment="Tabular"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                                <Button Grid.Column="2"
+                                        Style="{StaticResource SubtleButton}"
+                                        Height="28"
+                                        Padding="8,0"
+                                        FontSize="12"
+                                        Content="+30m"
+                                        Click="TimeShiftPlus_Click" />
+                            </Grid>
+                            <ItemsControl x:Name="PickerHours">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="4" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Style="{StaticResource SubtleButton}"
+                                                Tag="{Binding}"
+                                                Height="34"
+                                                Margin="1"
+                                                FontSize="12"
+                                                FontFamily="Segoe UI Variable Display, Segoe UI"
+                                                Typography.NumeralAlignment="Tabular"
+                                                Content="{Binding}"
+                                                ContentStringFormat="{}{0:D2}:00"
+                                                Click="PickerHour_Click" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </Popup>
+
+                <Button x:Name="AddZoneButton"
+                        Grid.Column="4"
+                        Style="{StaticResource OutlineButton}"
+                        Height="32"
+                        Padding="12,0"
+                        VerticalAlignment="Center"
+                        Click="AddZoneButton_Click"
+                        AutomationProperties.Name="Add time zone">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE710;"
+                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="11"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,0" />
+                        <TextBlock Text="Add time zone"
+                                   FontSize="12"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="&#xE70D;"
+                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="10"
+                                   VerticalAlignment="Center"
+                                   Margin="8,1,0,0"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </Button>
+
+                <Popup x:Name="ZonePickerPopup"
+                       PlacementTarget="{Binding ElementName=AddZoneButton}"
+                       Placement="Bottom"
+                       HorizontalOffset="-262"
+                       StaysOpen="False"
+                       AllowsTransparency="True"
+                       PopupAnimation="Fade">
+                    <Border Margin="8"
+                            Padding="6"
+                            CornerRadius="8"
+                            Background="{DynamicResource ContentDialogBackground}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            Width="380"
+                            MaxHeight="340">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.25" />
+                        </Border.Effect>
+                        <ItemsControl x:Name="ZonePickerList"
+                                      VirtualizingStackPanel.IsVirtualizing="True"
+                                      VirtualizingStackPanel.VirtualizationMode="Recycling"
+                                      ScrollViewer.CanContentScroll="True">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.Template>
+                                <ControlTemplate TargetType="ItemsControl">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled"
+                                                  CanContentScroll="True">
+                                        <ItemsPresenter />
+                                    </ScrollViewer>
+                                </ControlTemplate>
+                            </ItemsControl.Template>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource SubtleButton}"
+                                            Tag="{Binding}"
+                                            HorizontalContentAlignment="Left"
+                                            Padding="10,7"
+                                            Margin="0,1"
+                                            Click="ZonePickerItem_Click">
+                                        <TextBlock Text="{Binding DisplayName}"
+                                                   FontSize="12"
+                                                   TextAlignment="Left"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   ToolTip="{Binding DisplayName}" />
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+                </Popup>
+            </Grid>
+
+            <Border Grid.Row="1"
+                    Height="1"
+                    Margin="0,0,0,4"
+                    Background="{DynamicResource DividerStrokeColorDefaultBrush}" />
+
+            <ScrollViewer Grid.Row="2"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl x:Name="ClockList"
+                              Padding="0,0,2,0"
+                              Focusable="False">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <Border x:Name="RowBorder"
+                                        CornerRadius="6"
+                                        Padding="10,8"
+                                        Background="Transparent">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="28" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock x:Name="TimeBlock"
+                                                   Grid.Column="0"
+                                                   Margin="0,0,16,0"
+                                                   Text="{Binding TimeText}"
+                                                   FontFamily="Segoe UI Variable Display, Segoe UI"
+                                                   FontSize="22"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"
+                                                   Typography.NumeralAlignment="Tabular"
+                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+
+                                        <StackPanel Grid.Column="1"
+                                                    Margin="0,0,8,0"
+                                                    VerticalAlignment="Center">
+                                            <TextBlock x:Name="NameBlock"
+                                                       Text="{Binding DisplayName}"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       ToolTip="{Binding DisplayName}"
+                                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                            <TextBlock Text="{Binding SubText}"
+                                                       FontSize="12"
+                                                       Margin="0,2,0,0"
+                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+
+                                        <Button x:Name="RemoveButton"
+                                                Grid.Column="2"
+                                                Style="{StaticResource SubtleButton}"
+                                                Width="28" Height="28"
+                                                Padding="0"
+                                                VerticalAlignment="Center"
+                                                Visibility="Collapsed"
+                                                Tag="{Binding}"
+                                                Click="RemoveZone_Click"
+                                                AutomationProperties.Name="Remove time zone">
+                                            <TextBlock Text="&#xE711;"
+                                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                       FontSize="10"
+                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                                <Border Height="1"
+                                        Margin="10,0"
+                                        Background="{DynamicResource DividerStrokeColorDefaultBrush}" />
+                            </StackPanel>
+                            <DataTemplate.Triggers>
+                                <Trigger SourceName="RowBorder" Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="RowBorder" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                                </Trigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsMouseOver, ElementName=RowBorder}" Value="True" />
+                                        <Condition Binding="{Binding CanRemove}" Value="True" />
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter TargetName="RemoveButton" Property="Visibility" Value="Visible" />
+                                </MultiDataTrigger>
+                                <DataTrigger Binding="{Binding IsLocal}" Value="True">
+                                    <Setter TargetName="TimeBlock" Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</Window>

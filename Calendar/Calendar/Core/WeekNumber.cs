@@ -1,4 +1,4 @@
-namespace Calendar.Core
+namespace CalendarApp.Core
 {
     // US rule: weeks start on Sunday; the week containing January 1 is week 1.
     public static class WeekNumber

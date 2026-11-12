@@ -1,4 +1,4 @@
-namespace Calendar.Core
+namespace CalendarApp.Core
 {
     // Pillars of the solar-term (Ganzhi) calendar: the year changes at Lichun and the month at each of the twelve "jie".
     public static class GanZhi

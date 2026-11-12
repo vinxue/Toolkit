@@ -7,9 +7,9 @@ using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Calendar.Core;
+using CalendarApp.Core;
 
-namespace Calendar
+namespace CalendarApp
 {
     public partial class MainWindow : Window
     {
@@ -27,6 +27,8 @@ namespace Calendar
         private int _pickerYear;
         private bool _updatingSelection;
         private readonly DispatcherTimer _clock = new() { Interval = TimeSpan.FromSeconds(1) };
+        private readonly List<TimeZoneInfo> _worldTimeZones = WorldClockItem.CreateDefaultZones();
+        private WorldClockWindow? _worldClockWindow;
         private TrayIcon? _tray;
         private bool _exiting;
 
@@ -57,6 +59,7 @@ namespace Calendar
             if (!_exiting && _tray is { IsAdded: true })
             {
                 e.Cancel = true;
+                _worldClockWindow?.Close();
                 Hide();
                 return;
             }
@@ -98,6 +101,24 @@ namespace Calendar
 
         private void PinButton_Click(object sender, RoutedEventArgs e) => TogglePin();
 
+        private void WorldClock_Click(object sender, RoutedEventArgs e)
+        {
+            if (_worldClockWindow is { IsLoaded: true })
+            {
+                if (_worldClockWindow.WindowState == WindowState.Minimized)
+                {
+                    _worldClockWindow.WindowState = WindowState.Normal;
+                }
+
+                _worldClockWindow.Activate();
+                return;
+            }
+
+            _worldClockWindow = new WorldClockWindow(_worldTimeZones) { Owner = this };
+            _worldClockWindow.Closed += (_, _) => _worldClockWindow = null;
+            _worldClockWindow.Show();
+        }
+
         private void TrayOpen_Click(object sender, RoutedEventArgs e) => ShowFromTray();
 
         private void TrayExit_Click(object sender, RoutedEventArgs e)
@@ -120,6 +141,7 @@ namespace Calendar
             CompactClockText.Text = ClockText.Text;
             CompactClockSuffix.Text = ClockSuffix.Text;
             CompactShichen.Text = ClockShichen.Text;
+            _worldClockWindow?.UpdateClocks();
 
             if (DateOnly.FromDateTime(now) != _today)
             {

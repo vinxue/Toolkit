@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 
-namespace Calendar
+namespace CalendarApp
 {
     public partial class App : Application
     {

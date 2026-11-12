@@ -5,7 +5,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Media;
 
-namespace Calendar.Core
+namespace CalendarApp.Core
 {
     // Shows a WPF ContextMenu at a tray position; a 1px foreground host window lets it close on click-away.
     public static class TrayMenu

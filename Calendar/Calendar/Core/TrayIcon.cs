@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 
-namespace Calendar.Core
+namespace CalendarApp.Core
 {
     // Notification-area icon via Shell_NotifyIcon, using the owner window's HWND for callbacks.
     public sealed class TrayIcon : IDisposable

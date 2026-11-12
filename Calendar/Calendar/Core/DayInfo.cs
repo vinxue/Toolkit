@@ -1,4 +1,4 @@
-namespace Calendar.Core
+namespace CalendarApp.Core
 {
     public sealed record DayInfo(
         DateOnly Date,
