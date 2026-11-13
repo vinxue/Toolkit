@@ -192,6 +192,9 @@
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="ButtonBorder" Property="Background" Value="#DCDCDC" />
                             </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#B8B8B8" />
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>

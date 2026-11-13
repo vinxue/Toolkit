@@ -1,4 +1,5 @@
-﻿using System.Windows;
+using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Web.WebView2.Core;
@@ -21,6 +22,8 @@ namespace Nexus
         private bool _isInitialized;
         private ChromeState? _chromeBeforeFullscreen;
 
+        public bool IsClosed { get; private set; }
+
         public PopupWebViewWindow(
             ProfileManager profileManager,
             ProfileContext profile,
@@ -33,12 +36,19 @@ namespace Nexus
             _openNewWindowAsync = openNewWindowAsync;
             InitializeComponent();
 
-            // Link popups have no address bar, so the title is the only place a
-            // private window can be told apart.
-            if (profile.IsInPrivate)
-            {
-                Title = "Private - Nexus";
-            }
+            var workArea = SystemParameters.WorkArea;
+            Width = Math.Min(Width, workArea.Width - 48);
+            Height = Math.Min(Height, workArea.Height - 48);
+
+            UpdateTitle(null);
+        }
+
+        // Link popups have no address bar, so the title is the only place a
+        // private window can be told apart.
+        private void UpdateTitle(string? documentTitle)
+        {
+            string appTitle = _profile.IsInPrivate ? "Private - Nexus" : "Nexus";
+            Title = string.IsNullOrWhiteSpace(documentTitle) ? appTitle : $"{documentTitle} - {appTitle}";
         }
 
         public async Task InitializeAsync(CoreWebView2NewWindowRequestedEventArgs args)
@@ -69,8 +79,27 @@ namespace Nexus
                 _openPopupWindow(popupArgs, _profile);
             PopupWebView.CoreWebView2.ContainsFullScreenElementChanged += (_, _) =>
                 SetWebContentFullscreen(PopupWebView.CoreWebView2.ContainsFullScreenElement);
+            PopupWebView.CoreWebView2.DocumentTitleChanged += (_, _) =>
+                UpdateTitle(PopupWebView.CoreWebView2.DocumentTitle);
 
             _isInitialized = true;
+        }
+
+        public void ReloadIfInitialized()
+        {
+            if (!_isInitialized || PopupWebView.CoreWebView2 is not { } core)
+            {
+                return;
+            }
+
+            try
+            {
+                core.Reload();
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or COMException)
+            {
+                // The window is closing or WebView2 was already torn down.
+            }
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e) =>
@@ -160,8 +189,11 @@ namespace Nexus
             {
                 _chromeBeforeFullscreen = new ChromeState(PopupRoot.Background, PopupAddressBar.Visibility);
                 PopupAddressBar.Visibility = Visibility.Collapsed;
-                PopupRoot.Background = Brushes.Black;
-                controller.Enter(this, Brushes.Black);
+                if (_isWebContentFullscreen)
+                {
+                    PopupRoot.Background = Brushes.Black;
+                }
+                controller.Enter(this);
             }
             else
             {
@@ -254,6 +286,7 @@ namespace Nexus
 
         protected override void OnClosed(EventArgs e)
         {
+            IsClosed = true;
             _appFullscreenController.Exit(this);
             _webFullscreenController.Exit(this);
 

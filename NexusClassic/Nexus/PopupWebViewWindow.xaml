@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         Title="Nexus"
-        Width="1180"
-        Height="720"
+        Width="1360"
+        Height="840"
         WindowStartupLocation="CenterScreen"
         Background="#FFFFFF"
         PreviewKeyDown="Window_PreviewKeyDown">

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -90,32 +90,40 @@ namespace Nexus.Services
         /// </summary>
         public static List<SiteConfig> Load()
         {
-            try
+            var sites = ReadSites();
+            if (sites.Count > 0)
             {
-                if (File.Exists(ConfigPath))
+                if (EnsureProfileNames(sites))
                 {
-                    string json = File.ReadAllText(ConfigPath);
-                    var sites = JsonSerializer.Deserialize<List<SiteConfig>>(json, JsonOptions);
-                    if (sites is { Count: > 0 })
-                    {
-                        if (EnsureProfileNames(sites))
-                        {
-                            Save(sites);
-                        }
-
-                        return sites;
-                    }
+                    Save(sites);
                 }
-            }
-            catch
-            {
-                BackupCorruptConfig();
+
+                return sites;
             }
 
             var defaults = CreateDefaults();
             EnsureProfileNames(defaults);
             Save(defaults);
             return defaults;
+        }
+
+        private static List<SiteConfig> ReadSites()
+        {
+            if (!File.Exists(ConfigPath))
+            {
+                return new();
+            }
+
+            try
+            {
+                string json = File.ReadAllText(ConfigPath);
+                return JsonSerializer.Deserialize<List<SiteConfig>>(json, JsonOptions) ?? new();
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or NotSupportedException)
+            {
+                BackupCorruptConfig();
+                return new();
+            }
         }
 
         /// <summary>
@@ -295,7 +303,7 @@ namespace Nexus.Services
                     $"sites.corrupt.{DateTime.Now:yyyyMMddHHmmss}.json");
                 File.Move(ConfigPath, backupPath);
             }
-            catch
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
                 // Best-effort only: if backup fails, defaults still let the app start.
             }

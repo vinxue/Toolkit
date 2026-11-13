@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -26,8 +26,6 @@ namespace Nexus
         private const double ExpandedContentWidth = 220;
         private const double CollapsedWidth = CollapsedContentWidth + SidebarDividerWidth;
         private const double ExpandedWidth = ExpandedContentWidth + SidebarDividerWidth;
-        private const double PopupWidth = 1180;
-        private const double PopupHeight = 720;
         private const int WmDpiChanged = 0x02E0;
 
         private readonly ObservableCollection<SiteConfig> _sites = new();
@@ -67,6 +65,10 @@ namespace Nexus
         public MainWindow()
         {
             InitializeComponent();
+
+            var workArea = SystemParameters.WorkArea;
+            Width = Math.Min(Width, workArea.Width - 48);
+            Height = Math.Min(Height, workArea.Height - 48);
 
             _profileManager.BrowserProcessFailed += (_, _) => RecoverFromBrowserProcessFailure();
 
@@ -360,7 +362,11 @@ namespace Nexus
 
                 SidebarPanel.Visibility = Visibility.Collapsed;
                 TemporaryAddressBar.Visibility = Visibility.Collapsed;
-                WebHost.Background = Brushes.Black;
+                // App fullscreen can show the empty/loading hints, which need the normal background.
+                if (_isWebContentFullscreen)
+                {
+                    WebHost.Background = Brushes.Black;
+                }
                 controller.Enter(this);
             }
             else
@@ -816,11 +822,32 @@ namespace Nexus
         {
             foreach (var view in _webViews.Values)
             {
-                if (view.CoreWebView2 is { } core &&
-                    string.Equals(core.Profile.ProfileName, profileName, StringComparison.OrdinalIgnoreCase))
-                {
-                    core.Reload();
-                }
+                ReloadIfProfileMatches(view, profileName);
+            }
+
+            if (_temporaryWebView is not null)
+            {
+                ReloadIfProfileMatches(_temporaryWebView, profileName);
+            }
+
+            _popupWindowManager.ReloadForProfile(profileName);
+        }
+
+        private static void ReloadIfProfileMatches(WebView2 webView, string profileName)
+        {
+            if (webView.CoreWebView2 is not { } core ||
+                !string.Equals(core.Profile.ProfileName, profileName, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            try
+            {
+                core.Reload();
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or COMException)
+            {
+                // The WebView may already be closing or recovering from a browser failure.
             }
         }
 
@@ -1160,11 +1187,7 @@ namespace Nexus
                 _profileManager,
                 profile,
                 OpenWebViewPopupWindow,
-                OpenNewWindowAsync)
-            {
-                Width = PopupWidth,
-                Height = PopupHeight
-            };
+                OpenNewWindowAsync);
 
             _popupWindowManager.Track(popupWindow, profile.Name);
             return popupWindow;
@@ -1185,6 +1208,12 @@ namespace Nexus
             }
             catch (Exception ex)
             {
+                // Closing the window mid-initialization aborts it; that is not an error.
+                if (popupWindow?.IsClosed == true || _isShuttingDown)
+                {
+                    return;
+                }
+
                 popupWindow?.Close();
                 MessageBox.Show(
                     this,

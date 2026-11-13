@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 
 namespace Nexus
 {
@@ -9,8 +9,6 @@ namespace Nexus
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            base.OnStartup(e);
-
             // Surface any unhandled error instead of leaving the window blank/silent.
             DispatcherUnhandledException += (_, args) =>
             {
@@ -21,6 +19,8 @@ namespace Nexus
                     MessageBoxImage.Error);
                 args.Handled = true;
             };
+
+            base.OnStartup(e);
         }
     }
 }
