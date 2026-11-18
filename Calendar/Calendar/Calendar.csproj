@@ -11,6 +11,7 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>AppIcon.ico</ApplicationIcon>
+    <Company>Gavin Xue</Company>
     <Copyright>Copyright © 2026 Gavin Xue</Copyright>
     <AssemblyTitle>Calendar</AssemblyTitle>
     <Product>Calendar</Product>

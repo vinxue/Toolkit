@@ -17,12 +17,12 @@ namespace CalendarApp
         private readonly ObservableCollection<WorldClockItem> _items = [];
         private DateTime? _customLocalDateTime;
         private bool _updatingCalendar;
+        private int _shownHour = -1;
 
         public WorldClockWindow(List<TimeZoneInfo> activeZones)
         {
             InitializeComponent();
             _activeZones = activeZones;
-            PickerHours.ItemsSource = Enumerable.Range(0, 24).ToArray();
 
             var nowUtc = DateTimeOffset.UtcNow;
             foreach (var tz in _activeZones)
@@ -79,6 +79,24 @@ namespace CalendarApp
             SelectedTimeText.Text = local.ToString("HH:mm", CultureInfo.InvariantCulture);
             PopupTimeText.Text = SelectedTimeText.Text;
             NowButton.IsEnabled = _customLocalDateTime is not null;
+
+            if (TimePickerPopup.IsOpen)
+            {
+                UpdateHourPicker(local.Hour);
+            }
+        }
+
+        private void UpdateHourPicker(int activeHour)
+        {
+            if (_shownHour == activeHour)
+            {
+                return;
+            }
+
+            _shownHour = activeHour;
+            PickerHours.ItemsSource = Enumerable.Range(0, 24)
+                .Select(h => new PickerItem(h, h == activeHour))
+                .ToArray();
         }
 
         private DateTime GetBaseLocalDateTime()
@@ -166,7 +184,9 @@ namespace CalendarApp
 
         private void TimePickerButton_Click(object sender, RoutedEventArgs e)
         {
-            RefreshHeader(GetReferenceUtc());
+            var refUtc = GetReferenceUtc();
+            RefreshHeader(refUtc);
+            UpdateHourPicker(refUtc.ToLocalTime().Hour);
             TimePickerPopup.IsOpen = true;
         }
 
@@ -205,6 +225,7 @@ namespace CalendarApp
             ZonePickerList.ItemsSource = SystemZones
                 .Where(z => !existingIds.Contains(z.Id))
                 .ToArray();
+            ZonePickerPopup.HorizontalOffset = AddZoneButton.ActualWidth - 400;
             ZonePickerPopup.IsOpen = true;
         }
 

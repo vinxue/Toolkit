@@ -85,16 +85,18 @@
                 <Popup x:Name="DatePickerPopup"
                        PlacementTarget="{Binding ElementName=DatePickerButton}"
                        Placement="Bottom"
+                       HorizontalOffset="-12"
+                       VerticalOffset="-12"
                        StaysOpen="False"
                        AllowsTransparency="True"
                        PopupAnimation="Fade">
-                    <Border Margin="8"
+                    <Border Margin="20"
                             CornerRadius="8"
                             Background="{DynamicResource ContentDialogBackground}"
                             BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                             BorderThickness="1">
                         <Border.Effect>
-                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.25" />
+                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.25" />
                         </Border.Effect>
                         <Calendar x:Name="PopupCalendar"
                                   Language="en-US"
@@ -108,10 +110,12 @@
                 <Popup x:Name="TimePickerPopup"
                        PlacementTarget="{Binding ElementName=TimePickerButton}"
                        Placement="Bottom"
+                       HorizontalOffset="-12"
+                       VerticalOffset="-12"
                        StaysOpen="False"
                        AllowsTransparency="True"
                        PopupAnimation="Fade">
-                    <Border Margin="8"
+                    <Border Margin="20"
                             Padding="10"
                             CornerRadius="8"
                             Background="{DynamicResource ContentDialogBackground}"
@@ -119,7 +123,7 @@
                             BorderThickness="1"
                             Width="264">
                         <Border.Effect>
-                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.25" />
+                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.25" />
                         </Border.Effect>
                         <StackPanel>
                             <Grid Margin="0,0,0,6">
@@ -159,14 +163,14 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Button Style="{StaticResource SubtleButton}"
-                                                Tag="{Binding}"
+                                        <Button Style="{StaticResource PickerButton}"
+                                                Tag="{Binding Value}"
                                                 Height="34"
                                                 Margin="1"
                                                 FontSize="12"
                                                 FontFamily="Segoe UI Variable Display, Segoe UI"
                                                 Typography.NumeralAlignment="Tabular"
-                                                Content="{Binding}"
+                                                Content="{Binding Value}"
                                                 ContentStringFormat="{}{0:D2}:00"
                                                 Click="PickerHour_Click" />
                                     </DataTemplate>
@@ -205,11 +209,12 @@
                 <Popup x:Name="ZonePickerPopup"
                        PlacementTarget="{Binding ElementName=AddZoneButton}"
                        Placement="Bottom"
-                       HorizontalOffset="-262"
+                       HorizontalOffset="-274"
+                       VerticalOffset="-12"
                        StaysOpen="False"
                        AllowsTransparency="True"
                        PopupAnimation="Fade">
-                    <Border Margin="8"
+                    <Border Margin="20"
                             Padding="6"
                             CornerRadius="8"
                             Background="{DynamicResource ContentDialogBackground}"
@@ -218,7 +223,7 @@
                             Width="380"
                             MaxHeight="340">
                         <Border.Effect>
-                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.25" />
+                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.25" />
                         </Border.Effect>
                         <ItemsControl x:Name="ZonePickerList"
                                       VirtualizingStackPanel.IsVirtualizing="True"

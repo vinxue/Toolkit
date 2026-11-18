@@ -3,8 +3,11 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using System.Windows.Threading;
 using CalendarApp.Core;
@@ -25,6 +28,7 @@ namespace CalendarApp
         private int _year;
         private int _month;
         private int _pickerYear;
+        private int _animGeneration;
         private bool _updatingSelection;
         private readonly DispatcherTimer _clock = new() { Interval = TimeSpan.FromSeconds(1) };
         private readonly List<TimeZoneInfo> _worldTimeZones = WorldClockItem.CreateDefaultZones();
@@ -35,14 +39,23 @@ namespace CalendarApp
         public MainWindow()
         {
             InitializeComponent();
-            PickerMonths.ItemsSource = Enumerable.Range(1, 12).ToArray();
             GoTo(_today, animate: false);
 
             Application.Current.SessionEnding += (_, _) => _exiting = true;
 
             _clock.Tick += (_, _) => UpdateClock();
-            UpdateClock();
-            _clock.Start();
+            IsVisibleChanged += (_, _) =>
+            {
+                if (IsVisible)
+                {
+                    UpdateClock();
+                    _clock.Start();
+                }
+                else
+                {
+                    _clock.Stop();
+                }
+            };
         }
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -69,8 +82,19 @@ namespace CalendarApp
 
         protected override void OnClosed(EventArgs e)
         {
+            _clock.Stop();
             _tray?.Dispose();
             base.OnClosed(e);
+        }
+
+        // Creates the HWND (and with it the tray icon) without showing the window.
+        public void StartInTray()
+        {
+            new WindowInteropHelper(this).EnsureHandle();
+            if (_tray is not { IsAdded: true })
+            {
+                Show();
+            }
         }
 
         public void ShowFromTray()
@@ -101,6 +125,27 @@ namespace CalendarApp
 
         private void PinButton_Click(object sender, RoutedEventArgs e) => TogglePin();
 
+        private void PinMenuItem_Click(object sender, RoutedEventArgs e) => TogglePin();
+
+        private void MoreButton_Click(object sender, RoutedEventArgs e)
+        {
+            MoreMenu.PlacementTarget = MoreButton;
+            MoreMenu.Placement = PlacementMode.Bottom;
+            MoreMenu.IsOpen = true;
+        }
+
+        private void MoreMenu_Opened(object sender, RoutedEventArgs e)
+        {
+            PinMenuItem.IsChecked = Topmost;
+            AutoStartMenuItem.IsChecked = AutoStart.IsEnabled;
+
+            string? otherPath = AutoStart.GetOtherRegisteredPath();
+            AutoStartSuffixRun.Text = otherPath is null ? "" : " (other)";
+            AutoStartMenuItem.ToolTip = otherPath is null
+                ? null
+                : $"Currently registered to:\n{otherPath}";
+        }
+
         private void WorldClock_Click(object sender, RoutedEventArgs e)
         {
             if (_worldClockWindow is { IsLoaded: true })
@@ -121,7 +166,22 @@ namespace CalendarApp
 
         private void TrayOpen_Click(object sender, RoutedEventArgs e) => ShowFromTray();
 
-        private void TrayExit_Click(object sender, RoutedEventArgs e)
+        private void AutoStart_Click(object sender, RoutedEventArgs e)
+        {
+            var item = (MenuItem)sender;
+            if (!AutoStart.TrySetEnabled(item.IsChecked))
+            {
+                item.IsChecked = AutoStart.IsEnabled;
+                MessageBox.Show(
+                    this,
+                    "Unable to update the startup setting in the Windows Registry.",
+                    "Calendar",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
+        private void Exit_Click(object sender, RoutedEventArgs e)
         {
             _exiting = true;
             _tray?.Dispose();
@@ -154,17 +214,23 @@ namespace CalendarApp
             date = date < MinDate ? MinDate : date > MaxDate ? MaxDate : date;
             _selected = date;
 
-            if (_days.Length == 0 || date.Year != _year || date.Month != _month)
+            bool monthChanged = _days.Length == 0 || date.Year != _year || date.Month != _month;
+            int direction = 0;
+            BitmapSource? outgoing = null;
+
+            if (monthChanged)
             {
-                int direction = Math.Sign((date.Year * 12 + date.Month) - (_year * 12 + _month));
+                direction = _days.Length == 0
+                    ? 0
+                    : Math.Sign((date.Year * 12 + date.Month) - (_year * 12 + _month));
+                if (animate && direction != 0 && SystemParameters.ClientAreaAnimation)
+                {
+                    outgoing = CaptureViewport();
+                }
+
                 _year = date.Year;
                 _month = date.Month;
                 RebuildGrid();
-
-                if (animate && direction != 0 && SystemParameters.ClientAreaAnimation)
-                {
-                    AnimateMonthChange(direction);
-                }
             }
 
             _updatingSelection = true;
@@ -175,6 +241,11 @@ namespace CalendarApp
             for (int i = 0; i < _weeks.Length; i++)
             {
                 _weeks[i].IsSelected = i == selectedRow;
+            }
+
+            if (monthChanged && animate && direction != 0 && SystemParameters.ClientAreaAnimation)
+            {
+                AnimateMonthChange(direction, outgoing);
             }
 
             TitleText.Text = $"{_year}年{_month}月";
@@ -196,13 +267,91 @@ namespace CalendarApp
             WeekList.ItemsSource = _weeks;
         }
 
-        private void AnimateMonthChange(int direction)
+        private BitmapSource? CaptureViewport()
         {
-            var duration = TimeSpan.FromMilliseconds(180);
-            var easing = new CubicEase { EasingMode = EasingMode.EaseOut };
+            double width = BodyViewport.ActualWidth;
+            double height = BodyViewport.ActualHeight;
+            if (width <= 0 || height <= 0)
+            {
+                return null;
+            }
+
+            var dpi = VisualTreeHelper.GetDpi(BodyViewport);
+            int pixelWidth = Math.Max(1, (int)Math.Round(width * dpi.DpiScaleX));
+            int pixelHeight = Math.Max(1, (int)Math.Round(height * dpi.DpiScaleY));
+
+            var dv = new DrawingVisual();
+            using (var dc = dv.RenderOpen())
+            {
+                dc.DrawRectangle(
+                    new VisualBrush(BodyViewport)
+                    {
+                        Stretch = Stretch.None,
+                        AlignmentX = AlignmentX.Left,
+                        AlignmentY = AlignmentY.Top,
+                        Viewbox = new Rect(0, 0, width, height),
+                        ViewboxUnits = BrushMappingMode.Absolute
+                    },
+                    null,
+                    new Rect(0, 0, width, height));
+            }
+
+            var bitmap = new RenderTargetBitmap(
+                pixelWidth,
+                pixelHeight,
+                96.0 * dpi.DpiScaleX,
+                96.0 * dpi.DpiScaleY,
+                PixelFormats.Pbgra32);
+            bitmap.Render(dv);
+            bitmap.Freeze();
+            return bitmap;
+        }
+
+        private void AnimateMonthChange(int direction, BitmapSource? outgoing)
+        {
+            int generation = ++_animGeneration;
+
+            // Measure and arrange the new month's containers before starting the animation clock
+            // so container generation doesn't eat the opening frames.
+            BodyHost.UpdateLayout();
+
+            if (outgoing is not null)
+            {
+                var outDuration = TimeSpan.FromMilliseconds(140);
+                OutgoingImage.Source = outgoing;
+                OutgoingShift.BeginAnimation(TranslateTransform.YProperty,
+                    new DoubleAnimation(0, -direction * 14, outDuration)
+                    {
+                        EasingFunction = new SineEase { EasingMode = EasingMode.EaseOut }
+                    });
+
+                var fadeOut = new DoubleAnimation(1, 0, outDuration);
+                fadeOut.Completed += (_, _) =>
+                {
+                    if (generation == _animGeneration)
+                    {
+                        OutgoingImage.Source = null;
+                    }
+                };
+                OutgoingImage.BeginAnimation(OpacityProperty, fadeOut);
+            }
+            else
+            {
+                OutgoingImage.Source = null;
+            }
+
+            var inSlideDuration = TimeSpan.FromMilliseconds(240);
+            var inFadeDuration = TimeSpan.FromMilliseconds(220);
             BodyShift.BeginAnimation(TranslateTransform.YProperty,
-                new DoubleAnimation(direction * 16, 0, duration) { EasingFunction = easing });
-            BodyHost.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, duration));
+                new DoubleAnimation(direction * 16, 0, inSlideDuration)
+                {
+                    EasingFunction = new SineEase { EasingMode = EasingMode.EaseOut }
+                });
+            BodyHost.BeginAnimation(OpacityProperty,
+                new DoubleAnimation(0, 1, inFadeDuration)
+                {
+                    EasingFunction = new SineEase { EasingMode = EasingMode.EaseOut }
+                });
         }
 
         private void UpdateDetail()
@@ -269,7 +418,8 @@ namespace CalendarApp
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (PickerPopup.IsOpen || (Keyboard.Modifiers & ModifierKeys.Alt) != 0)
+            // Input in the open menu routes through the window; leave it to the menu.
+            if (PickerPopup.IsOpen || MoreMenu.IsOpen || (Keyboard.Modifiers & ModifierKeys.Alt) != 0)
             {
                 return;
             }
@@ -292,9 +442,9 @@ namespace CalendarApp
             e.Handled = true;
         }
 
-        private void Window_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        private void CalendarGrid_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (PickerPopup.IsOpen)
+            if (PickerPopup.IsOpen || MoreMenu.IsOpen || e.Delta == 0)
             {
                 return;
             }
@@ -321,7 +471,7 @@ namespace CalendarApp
         private void TitleButton_Click(object sender, RoutedEventArgs e)
         {
             _pickerYear = _year;
-            PickerYearText.Text = $"{_pickerYear}年";
+            UpdatePicker();
             PickerPopup.IsOpen = true;
         }
 
@@ -332,7 +482,15 @@ namespace CalendarApp
         private void ShiftPickerYear(int delta)
         {
             _pickerYear = Math.Clamp(_pickerYear + delta, MinDate.Year, MaxDate.Year);
+            UpdatePicker();
+        }
+
+        private void UpdatePicker()
+        {
             PickerYearText.Text = $"{_pickerYear}年";
+            PickerMonths.ItemsSource = Enumerable.Range(1, 12)
+                .Select(m => new PickerItem(m, _pickerYear == _year && m == _month))
+                .ToArray();
         }
 
         private void PickerMonth_Click(object sender, RoutedEventArgs e)

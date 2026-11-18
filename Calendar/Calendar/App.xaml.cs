@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
+using CalendarApp.Core;
 
 namespace CalendarApp
 {
@@ -10,6 +11,7 @@ namespace CalendarApp
 
         private readonly Mutex _instanceMutex;
         private readonly EventWaitHandle _showEvent;
+        private RegisteredWaitHandle? _showWaitHandle;
 
         public App()
         {
@@ -18,29 +20,66 @@ namespace CalendarApp
 
             if (!isFirst)
             {
-                // The launching process owns foreground rights; hand them to the running instance.
-                using var self = Process.GetCurrentProcess();
-                foreach (var other in Process.GetProcessesByName(self.ProcessName))
+                if (!HasTrayArg(Environment.GetCommandLineArgs().Skip(1)))
                 {
-                    if (other.Id != self.Id)
+                    // The launching process owns foreground rights; hand them to the running instance.
+                    using var self = Process.GetCurrentProcess();
+                    foreach (var other in Process.GetProcessesByName(self.ProcessName))
                     {
-                        AllowSetForegroundWindow(other.Id);
+                        if (other.Id != self.Id)
+                        {
+                            AllowSetForegroundWindow(other.Id);
+                        }
+
+                        other.Dispose();
                     }
 
-                    other.Dispose();
+                    _showEvent.Set();
                 }
 
-                _showEvent.Set();
                 Environment.Exit(0);
             }
+        }
 
-            ThreadPool.RegisterWaitForSingleObject(
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+
+            AutoStart.RepairIfMoved();
+
+            var window = new MainWindow();
+            if (HasTrayArg(e.Args))
+            {
+                window.StartInTray();
+            }
+            else
+            {
+                window.Show();
+            }
+
+            // Registered after MainWindow exists so an early second launch stays queued in _showEvent.
+            _showWaitHandle = ThreadPool.RegisterWaitForSingleObject(
                 _showEvent,
-                (_, _) => Dispatcher.BeginInvoke(() => Windows.OfType<MainWindow>().FirstOrDefault()?.ShowFromTray()),
+                (_, _) => Dispatcher.BeginInvoke(() =>
+                {
+                    if (MainWindow is MainWindow main)
+                    {
+                        main.ShowFromTray();
+                    }
+                }),
                 null,
                 Timeout.Infinite,
                 false);
         }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            _showWaitHandle?.Unregister(null);
+            base.OnExit(e);
+        }
+
+        private static bool HasTrayArg(IEnumerable<string> args) =>
+            args.Contains(AutoStart.TrayArgument, StringComparer.OrdinalIgnoreCase);
 
         [DllImport("user32.dll")]
         private static extern bool AllowSetForegroundWindow(int processId);
