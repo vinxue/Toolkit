@@ -659,7 +659,7 @@
                                 <TextBlock Grid.Row="3" Grid.Column="1" Text="Ctrl+Shift+N" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="13" HorizontalAlignment="Right" Margin="0,12,0,0" />
                                 <TextBlock Grid.Row="4" Text="Close current page or window" FontSize="13" Margin="0,12,0,0" />
                                 <TextBlock Grid.Row="4" Grid.Column="1" Text="Ctrl+W" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="13" HorizontalAlignment="Right" Margin="0,12,0,0" />
-                                <TextBlock Grid.Row="5" Text="Toggle fullscreen" FontSize="13" Margin="0,12,0,0" />
+                                <TextBlock Grid.Row="5" Text="Toggle full screen" FontSize="13" Margin="0,12,0,0" />
                                 <TextBlock Grid.Row="5" Grid.Column="1" Text="F11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="13" HorizontalAlignment="Right" Margin="0,12,0,0" />
                             </Grid>
                         </Border>

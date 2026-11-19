@@ -32,7 +32,8 @@ namespace Nexus
             Func<AppTheme> getThemePreference,
             Action<AppTheme> setThemePreference,
             Func<CoreWebView2BrowsingDataKinds, Task> clearSharedBrowsingDataAsync,
-            Func<SiteConfig, CoreWebView2BrowsingDataKinds, Task> clearSiteBrowsingDataAsync)
+            Func<SiteConfig, CoreWebView2BrowsingDataKinds, Task> clearSiteBrowsingDataAsync,
+            bool openAddSiteForm = false)
         {
             _sites = sites;
             _addSite = addSite;
@@ -49,6 +50,13 @@ namespace Nexus
             DataFolderText.Text = SiteStore.DataFolder;
             ThemeModeBox.SelectedIndex = (int)_getThemePreference();
             InitializeAboutInfo();
+
+            if (openAddSiteForm)
+            {
+                ResetSiteForm();
+                SiteFormCard.Visibility = Visibility.Visible;
+                Loaded += (_, _) => NameBox.Focus();
+            }
         }
 
         private void Sites_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) =>

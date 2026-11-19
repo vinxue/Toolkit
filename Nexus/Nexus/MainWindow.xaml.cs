@@ -87,6 +87,27 @@ namespace Nexus
             _visibleSites.Source = _sites;
             _visibleSites.Filter += VisibleSites_Filter;
             SiteList.ItemsSource = _visibleSites.View;
+
+            _sites.CollectionChanged += (_, _) => UpdateEmptyHintState();
+            UpdateEmptyHintState();
+        }
+
+        private void UpdateEmptyHintState()
+        {
+            bool hasVisibleSites = _sites.Any(site => !site.IsHiddenInSidebar);
+
+            if (hasVisibleSites)
+            {
+                EmptyHintTitle.Text = "Pick a site to get started";
+                EmptyHintSubtitle.Text = "Choose a site from the sidebar, or add a new one.";
+                EmptyAddSiteButton.ClearValue(StyleProperty);
+            }
+            else
+            {
+                EmptyHintTitle.Text = "Add a site to get started";
+                EmptyHintSubtitle.Text = "Pin websites to the sidebar, or open an address directly.";
+                EmptyAddSiteButton.SetResourceReference(StyleProperty, "AccentButtonStyle");
+            }
         }
 
         private void VisibleSites_Filter(object sender, FilterEventArgs e) =>
@@ -105,6 +126,7 @@ namespace Nexus
             }
 
             _visibleSites.View.Refresh();
+            UpdateEmptyHintState();
         }
 
         private void HideSelectedSiteIfNeeded(SiteConfig site)
@@ -473,7 +495,13 @@ namespace Nexus
             e.Handled = true;
         }
 
-        private void SettingsButton_Click(object sender, RoutedEventArgs e)
+        private void SettingsButton_Click(object sender, RoutedEventArgs e) =>
+            OpenSettings(openAddSiteForm: false);
+
+        private void AddSiteButton_Click(object sender, RoutedEventArgs e) =>
+            OpenSettings(openAddSiteForm: true);
+
+        private void OpenSettings(bool openAddSiteForm)
         {
             var settingsWindow = new SettingsWindow(
                 _sites,
@@ -483,7 +511,8 @@ namespace Nexus
                 GetThemePreference,
                 SetThemePreference,
                 ClearSharedProfileBrowsingDataAsync,
-                ClearSiteBrowsingDataAsync)
+                ClearSiteBrowsingDataAsync,
+                openAddSiteForm)
             {
                 Owner = this
             };
